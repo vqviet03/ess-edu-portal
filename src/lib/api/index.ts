@@ -1,5 +1,5 @@
 import { mockApi } from "./mock";
-import { ApiError, type Session, type Student, type StudentApi, type Unit, type UnitSummary } from "./types";
+import { ApiError, type Classroom, type LearningDocument, type Session, type Student, type StudentApi, type Unit, type UnitReport, type UnitSummary } from "./types";
 
 export const isMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API !== "false";
 async function request<T>(path: string, token?: string, body?: unknown, signal?: AbortSignal): Promise<T> {
@@ -28,6 +28,10 @@ const realApi: StudentApi = {
   getStudent: (token, signal) => request<Student>("/students/me", token, undefined, signal),
   getUnits: (token, signal) => request<UnitSummary[]>("/students/me/units", token, undefined, signal),
   getUnit: (token, id, signal) => request<Unit>(`/students/me/units/${encodeURIComponent(id)}`, token, undefined, signal),
+  getClasses: (token, signal) => request<Classroom[]>("/students/me/classes", token, undefined, signal),
+  getClassUnits: (token, classId, signal) => request<UnitSummary[]>(`/students/me/classes/${encodeURIComponent(classId)}/units`, token, undefined, signal),
+  getUnitReport: (token, classId, unitId, signal) => request<UnitReport>(`/students/me/classes/${encodeURIComponent(classId)}/units/${encodeURIComponent(unitId)}/report`, token, undefined, signal),
+  getDocuments: (token, classId, signal) => request<LearningDocument[]>(`/students/me/classes/${encodeURIComponent(classId)}/documents`, token, undefined, signal),
 };
 export const api: StudentApi = isMockApi ? mockApi : realApi;
 const SESSION_KEY = "student-portal-token";
