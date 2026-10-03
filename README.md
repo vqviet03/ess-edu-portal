@@ -60,3 +60,5 @@ PR vào `dev` chạy lint, typecheck, core tests, production build và browser t
 Trong Settings → Pages chọn Source: GitHub Actions. Workflow lấy `base_path` từ `actions/configure-pages`: project Pages dùng `/<repo>`, root Pages hoặc custom domain dùng đường dẫn được Pages cấu hình. Local/build ngoài Actions đặt `NEXT_PUBLIC_BASE_PATH` tương ứng (không dấu `/` cuối). `next/link`, assets, favicon và client navigation đều tôn trọng basePath.
 
 Repository variables cho deploy: `NEXT_PUBLIC_API_MODE` (mặc định mock) và `NEXT_PUBLIC_API_BASE_URL`. Sau khi thay cấu hình, chạy lại deploy trên `dev`. Chi tiết backend: [docs/api-contract.md](docs/api-contract.md).
+
+Thiết kế PostgreSQL và migration cho Neon: [docs/database-design.md](docs/database-design.md) và [database/README.md](database/README.md).
