@@ -1,31 +1,37 @@
-"use client";
-import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-
-const theme = createTheme({
-  palette: {
-    primary: { main: "#1769d2", dark: "#104c9c" },
-    secondary: { main: "#164f58" },
-    background: { default: "#f4f7fb", paper: "#ffffff" },
-    text: { primary: "#152d4a", secondary: "#576b83" },
-    success: { main: "#187250" },
-    divider: "#e3eaf2",
-  },
-  typography: {
-    fontFamily: "Arial, Helvetica, sans-serif",
-    h3: { fontWeight: 750, letterSpacing: "-0.04em" },
-    h4: { fontWeight: 750, letterSpacing: "-0.035em" },
-    h5: { fontWeight: 700, letterSpacing: "-0.02em" },
-    h6: { fontWeight: 700 },
-    button: { textTransform: "none", fontWeight: 700, fontSize: "0.9375rem" },
-  },
-  shape: { borderRadius: 14 },
-  components: {
-    MuiButton: { defaultProps: { disableElevation: true }, styleOverrides: { root: { minHeight: 44 } } },
-    MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { root: { backgroundImage: "none" } } },
-    MuiLinearProgress: { styleOverrides: { root: { height: 8, borderRadius: 8, backgroundColor: "#e7eef7" }, bar: { borderRadius: 8 } } },
-    MuiChip: { styleOverrides: { root: { fontWeight: 600, fontSize: "0.8125rem" } } },
-  },
-});
-export default function Providers({ children }: { children: React.ReactNode }) {
-  return <ThemeProvider theme={theme}><CssBaseline />{children}</ThemeProvider>;
+'use client';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { Provider } from 'react-redux';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { makeStore } from '@/store';
+import { AuthRuntime } from '@/auth/runtime';
+type Preference = 'light' | 'dark' | 'system';
+const Appearance = createContext<{preference: Preference; change: (p: Preference) => void}>({preference: 'system', change: () => {}});
+export const useAppearance = () => useContext(Appearance);
+export default function Providers({children}: {children: React.ReactNode}) {
+  const [store] = useState(makeStore);
+  const [preference, setPreference] = useState<Preference>('system');
+  const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
+  useEffect(() => { try { const value = localStorage.getItem('learnleaf.theme'); if (value === 'light' || value === 'dark' || value === 'system') setPreference(value); } catch {} }, []);
+  const change = (value: Preference) => { setPreference(value); try { localStorage.setItem('learnleaf.theme', value); } catch {} };
+  const mode = preference === 'system' ? (systemDark ? 'dark' : 'light') : preference;
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode, action: {selected: mode === 'light' ? '#def1e3' : '#284937'}, primary: { main: mode === 'light' ? '#277751' : '#99d7b2', contrastText: mode === 'light' ? '#ffffff' : '#123321' },
+      background: { default: mode === 'light' ? '#f2f7f3' : '#111d17', paper: mode === 'light' ? '#ffffff' : '#1b2c22' },
+      text: { primary: mode === 'light' ? '#203c2c' : '#e1f0e5', secondary: mode === 'light' ? '#617568' : '#aec4b5' },
+      divider: mode === 'light' ? '#dde8e0' : '#35493b', success: {main: mode === 'light' ? '#277751' : '#99d7b2'}, error: {main: mode === 'light' ? '#bb4264' : '#ffa9c3'},
+    },
+    typography: { fontFamily: 'Arial, Helvetica, sans-serif', h4: {fontSize: '1.625rem', fontWeight: 700, lineHeight: 1.4}, h5: {fontSize: '1.25rem', fontWeight: 700}, h6: {fontSize: '1.125rem', fontWeight: 700}, body1: {lineHeight: 1.65}, button: {textTransform: 'none', fontWeight: 700} },
+    shape: {borderRadius: 14},
+    components: {
+      MuiPaper: {defaultProps: {elevation: 0}, styleOverrides: {root: {backgroundImage: 'none'}}},
+      MuiButton: {defaultProps: {disableElevation: true}, styleOverrides: {root: {minHeight: 44}}},
+      MuiIconButton: {styleOverrides: {root: {minWidth: 44, minHeight: 44}}},
+      MuiMenuItem: {styleOverrides: {root: {minHeight: 44}}},
+      MuiTab: {styleOverrides: {root: {minHeight: 48, textTransform: 'none', fontSize: '0.9375rem', fontWeight: 600}}},
+    },
+  }), [mode]);
+  return <Provider store={store}><Appearance.Provider value={{preference, change}}><ThemeProvider theme={theme}><CssBaseline/><AuthRuntime>{children}</AuthRuntime></ThemeProvider></Appearance.Provider></Provider>;
 }
