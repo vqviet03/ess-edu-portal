@@ -38,3 +38,6 @@ next-env.d.ts
 # All local environment files
 .env*
 !.env.example
+
+/test-results/
+/playwright-report/

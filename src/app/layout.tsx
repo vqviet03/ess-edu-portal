@@ -4,8 +4,8 @@ import Providers from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lớp học · Cổng học sinh",
-  description: "Theo dõi tiến độ và nội dung từng unit trong hành trình học của bạn.",
+  title: "LearnLeaf · Báo cáo học tập",
+  description: "Báo cáo kết quả học tập, điểm kỹ năng và tài liệu theo lớp.",
   icons: { icon: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/favicon.svg` },
 };
 

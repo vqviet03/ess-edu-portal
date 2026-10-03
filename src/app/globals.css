@@ -1,5 +1,5 @@
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 body { margin: 0; }
 a { color: inherit; }
-::selection { background: #cce7ff; }
+::selection { background: #b5dec2; color: #163624; }
+.recharts-surface:focus-visible { outline: 2px solid #277751; }

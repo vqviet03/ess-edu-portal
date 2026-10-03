@@ -1,15 +1,19 @@
 name: Check application
 on:
   pull_request:
-    branches: [dev, release/v1]
+    branches: [dev]
 permissions:
   contents: read
 concurrency:
-  group: check-${{ github.ref }}
+  group: check-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_MODE: mock
+      NEXT_PUBLIC_BASE_PATH: /ess-edu-portal
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,9 +21,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
       - run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /ess-edu-portal
-          NEXT_PUBLIC_USE_MOCK_API: 'true'
-          NEXT_TELEMETRY_DISABLED: 1
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
