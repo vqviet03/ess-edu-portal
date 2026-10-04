@@ -28,6 +28,7 @@ export const mockBaseQuery: AppBaseQuery = async (input, api) => {
   const token = (api.getState() as {auth: AuthState}).auth.accessToken;
   const [prefix, id, expiry] = (token ?? '').split('.');
   if (prefix !== 'mock' || !accounts.includes(id) || Number(expiry) <= Date.now() || !Number.isFinite(Number(expiry))) return fail(401, 'TOKEN_EXPIRED', 'Phiên đăng nhập đã hết hạn.');
+  if (args.url === '/auth/logout' && method === 'POST') return { data: {data: {loggedOut: true}} };
   if (args.url === '/me' && method === 'GET') return { data: {data: {...student, studentCode: id}} };
   if (id === 'HVFORBIDDEN') return fail(403, 'FORBIDDEN', 'Bạn không có quyền truy cập dữ liệu này.');
   if (id === 'HVERROR') return fail(500, 'INTERNAL_ERROR', 'Hệ thống đang gặp sự cố. Vui lòng thử lại.');

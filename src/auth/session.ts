@@ -1,4 +1,5 @@
 import type { AuthSession } from '../models';
+import { apiConfiguration } from '../api/config';
 export const SESSION_KEY = 'learnleaf.session';
 export function expiryTime(expiresAt: string | null, token?: string | null) {
   let deadline = expiresAt ? Date.parse(expiresAt) : 0;
@@ -13,11 +14,15 @@ export const expired = (expiresAt: string | null, token?: string | null) => expi
 export function readSession(): AuthSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    return value && typeof value.accessToken === 'string' && value.tokenType === 'Bearer' && !expired(value.expiresAt, value.accessToken) ? value : null;
+    if (!value || typeof value.accessToken !== 'string' || typeof value.expiresAt !== 'string' || value.tokenType !== 'Bearer' || expired(value.expiresAt, value.accessToken)) return null;
+    if (!value.student || typeof value.student.id !== 'string' || typeof value.student.studentCode !== 'string' || typeof value.student.fullName !== 'string') return null;
+    if (apiConfiguration.mode === 'real' && value.accessToken.startsWith('mock.')) return null;
+    if (value.apiMode && (value.apiMode !== apiConfiguration.mode || value.apiBaseUrl !== apiConfiguration.baseUrl)) return null;
+    return value;
   } catch { return null; }
 }
 export function writeSession(value: AuthSession | null) {
-  try { if (value) sessionStorage.setItem(SESSION_KEY, JSON.stringify(value)); else sessionStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
+  try { if (value) sessionStorage.setItem(SESSION_KEY, JSON.stringify({...value, apiMode: apiConfiguration.mode, apiBaseUrl: apiConfiguration.baseUrl})); else sessionStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
 }
 export function consumeLinkCode(): string | null {
   const hash = window.location.hash.slice(1);

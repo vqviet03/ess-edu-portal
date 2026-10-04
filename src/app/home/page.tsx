@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import NextLink from 'next/link';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -17,6 +18,8 @@ function HomeContent() {
   const classroom = selectClass(classes.currentData ?? [], auth.classId);
   const units = useUnitsQuery(classroom?.id ?? '', {skip: !classroom});
   const unit = selectUnit(units.currentData ?? [], auth.unitId);
+  useEffect(() => { if (classroom && auth.classId !== classroom.id) dispatch(chooseClass(classroom.id)); }, [classroom, auth.classId, dispatch]);
+  useEffect(() => { if (unit && auth.unitId !== unit.id) dispatch(chooseUnit(unit.id)); }, [unit, auth.unitId, dispatch]);
   const report = useReportQuery({classId: classroom?.id ?? '', unitId: unit?.id ?? ''}, {skip: !classroom || !unit?.hasReport});
   const progress = useProgressQuery(classroom?.id ?? '', {skip: !classroom});
   const entries = progress.currentData ?? [];

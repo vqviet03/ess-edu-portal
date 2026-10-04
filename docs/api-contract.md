@@ -1,10 +1,10 @@
-# Hợp đồng API LearnLeaf v1
+# Hợp đồng API ESS v1
 
 Base URL: NEXT_PUBLIC_API_BASE_URL, ví dụ https://api.example.com/v1. Tất cả ID là string, ngày giờ là ISO 8601. Giá trị chưa có là null; danh sách rỗng là items: []. Response thành công có data; lỗi có error. Content-Type và Accept: application/json.
 
 ## Xác thực
 
-POST /auth/login và /auth/exchange là public; mọi endpoint /me yêu cầu Authorization: Bearer <accessToken>. Frontend lưu session trong sessionStorage, đồng bộ Redux, rồi xác minh /me khi khôi phục. Backend luôn xác minh chữ ký JWT, issuer, audience, exp và quyền học sinh/lớp/unit/tài liệu. Không tin studentId, classId hoặc dữ liệu client để cấp quyền. 401 xóa phiên/cache và chuyển về login; 403 hiển thị không có quyền, không logout tự động. Không tự refresh/retry 401 và không log token/mật khẩu.
+POST /auth/login và /auth/exchange là public; POST /auth/logout và mọi endpoint /me yêu cầu Authorization: Bearer <accessToken>. Frontend lưu session trong sessionStorage, đồng bộ Redux, rồi xác minh /me khi khôi phục. Backend luôn xác minh chữ ký JWT, issuer, audience, exp và quyền học sinh/lớp/unit/tài liệu. Không tin studentId, classId hoặc dữ liệu client để cấp quyền. 401 xóa phiên/cache và chuyển về login; 403 hiển thị không có quyền, không logout tự động. Không tự refresh/retry 401 và không log token/mật khẩu.
 
 ## Link một lần
 
@@ -55,6 +55,18 @@ Request
   }
 }
 ```
+
+### POST /auth/logout
+
+Không cần body. Gửi Authorization: Bearer <accessToken>. Backend thu hồi session chứa JWT hiện tại; các request dùng lại token trả 401. Response:
+
+```json
+{
+  "data": { "loggedOut": true }
+}
+```
+
+Frontend luôn xóa phiên/cache/lựa chọn lớp và Unit sau thao tác logout, kể cả khi mạng lỗi; backend session khi ấy vẫn tồn tại đến expiry nếu chưa nhận được yêu cầu thu hồi.
 
 ### GET /me
 
@@ -335,7 +347,7 @@ Response lỗi chuẩn:
 | 429 | RATE_LIMITED | Rate limit login/exchange/access, gửi Retry-After |
 | 500 | INTERNAL_ERROR | Lỗi backend; không trả stack trace hoặc thông tin nhạy cảm |
 
-Mỗi lỗi dùng cùng envelope error với code và thông báo phù hợp tiếng Việt; fieldErrors tùy chọn. Frontend có timeout 15s, loading/empty/error và retry cho query; không tự phát lại mutation exchange/access.
+Mỗi lỗi dùng cùng envelope error với code và thông báo phù hợp tiếng Việt; fieldErrors tùy chọn. Frontend có timeout cấu hình bằng NEXT_PUBLIC_API_TIMEOUT_MS (mặc định 15s), loading/empty/error và retry cho query; không tự phát lại mutation exchange/access.
 
 ## Tài liệu có thời hạn
 
@@ -345,4 +357,4 @@ Endpoint access kiểm tra học sinh thuộc lớp và có quyền với materi
 
 Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.github.io (không có /ess-edu-portal); thêm đúng origin custom domain nếu dùng. Cho phép GET, POST, OPTIONS và headers Authorization, Content-Type, Accept; xử lý preflight OPTIONS. Dev thêm http://localhost:3000. Không dùng wildcard để thay kiểm tra quyền; ứng dụng dùng Bearer, không yêu cầu credential cookie cross-site.
 
-Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Thay NEXT_PUBLIC_API_MODE=real và URL rồi build lại để kết nối; biến NEXT_PUBLIC_* công khai, không chứa secret.
+Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. NEXT_PUBLIC_API_MODE mặc định real; cấu hình NEXT_PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai, không fallback sang mock; biến NEXT_PUBLIC_* công khai, không chứa secret.
