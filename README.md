@@ -11,11 +11,11 @@ npm ci
 cp .env.example .env.local
 ```
 
-Điền URL HTTPS của Cloud Run vào `.env.local`:
+`.env.example` đã có URL Cloud Run hiện tại; sao chép là có thể gọi API thật. Có thể đổi URL trong `.env.local`:
 
 ```dotenv
 NEXT_PUBLIC_API_MODE=real
-NEXT_PUBLIC_API_BASE_URL=https://<cloud-run-host>/v1
+NEXT_PUBLIC_API_BASE_URL=https://ess-edu-portal-api-246816830212.asia-southeast1.run.app/v1
 NEXT_PUBLIC_API_TIMEOUT_MS=15000
 NEXT_PUBLIC_BASE_PATH=
 ```
@@ -72,6 +72,16 @@ Backend test cần cho phép CORS `http://127.0.0.1:4173` và có demo seed `HV0
 
 Preview: http://localhost:4173/ess-edu-portal/. Routes `/`, `/login/`, `/auth/link/`, `/home/`, `/materials/` có HTML riêng, reload không cần SPA rewrite. `/dashboard/` cũ chuyển sang `/home/` ở client.
 
+## Cấu hình tài liệu trên Cloud Run
+
+API thật hiện trả `500 CONFIGURATION_ERROR` khi mở tài liệu: `URL tài liệu/API phải dùng HTTPS.` Backend cần biến môi trường sau (URL gốc, không thêm `/v1`):
+
+```dotenv
+Api__PublicBaseUrl=https://ess-edu-portal-api-246816830212.asia-southeast1.run.app
+```
+
+Cloud Run → service → Edit & deploy new revision → Variables & Secrets → thêm biến này và deploy revision. URL tài liệu bên ngoài cũng phải dùng HTTPS; file trong bucket cần cấu hình `Storage__Bucket`. Đây là cấu hình backend; frontend vẫn hiển thị danh sách và báo lỗi từ API.
+
 ## Mock tùy chọn
 
 Đặt `NEXT_PUBLIC_API_MODE=mock` và build/chạy lại để duyệt offline, không cần backend URL. **HV000123 / Demo123!**, link http://localhost:3000/auth/link/#code=demo-bon. Mã mock dùng một lần trong tab; thử lại bằng tab mới hoặc xóa `learnleaf.mock.used-code`. `demo-expired`/`demo-used` mô phỏng lỗi.
@@ -85,10 +95,10 @@ Số liệu U1/U2 chỉ có tỷ lệ; điểm thô, ngày kiểm tra và nhận
 PR vào `dev` chạy lint, typecheck, tests, production build real và browser tests, không deploy. Chỉ push vào `dev` sau merge (hoặc chạy workflow thủ công trên `dev`) deploy `out/`. Không tự merge nhánh tính năng.
 
 1. Settings → Pages → Source: **GitHub Actions**.
-2. Settings → Secrets and variables → Actions → **Variables** → tạo `NEXT_PUBLIC_API_BASE_URL` với URL HTTPS của backend, ví dụ `https://<cloud-run-host>/v1`.
+2. URL backend hiện tại đã được đặt trong workflow: `https://ess-edu-portal-api-246816830212.asia-southeast1.run.app/v1`. Tùy chọn ghi đè bằng repository variable `NEXT_PUBLIC_API_BASE_URL` trong Settings → Secrets and variables → Actions → **Variables**.
 3. Tùy chọn `NEXT_PUBLIC_API_TIMEOUT_MS` (mặc định 15000).
 4. Backend deploy code mới và cho phép CORS origin Pages; merge PR rồi chờ workflow deploy.
 
-Workflow deploy luôn build **real**, không dùng biến API mode để vô tình xuất bản demo. Thiếu URL dừng build với thông báo rõ. URL backend là cấu hình công khai, không cần GitHub Secret. Repository variables khác với secrets.
+Workflow deploy luôn build **real**, không dùng biến API mode để vô tình xuất bản demo. Workflow dùng URL Cloud Run đã cấu hình khi không có repository variable, nên không cần quyền quản lý variables để deploy. URL backend là cấu hình công khai, không cần GitHub Secret. Build ngoài workflow vẫn yêu cầu URL hợp lệ.
 
 Workflow lấy base path từ `actions/configure-pages`: project Pages dùng `/<repo>`, root/custom domain theo cấu hình Pages. Local/build ngoài Actions đặt `NEXT_PUBLIC_BASE_PATH` tương ứng, không dấu `/` cuối. Links, assets và reload trực tiếp hoạt động dưới base path; không cần Next server.

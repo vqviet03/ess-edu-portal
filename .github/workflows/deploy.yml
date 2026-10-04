@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_API_MODE: real
-      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL || 'https://ess-edu-portal-api-246816830212.asia-southeast1.run.app/v1' }}
       NEXT_PUBLIC_API_TIMEOUT_MS: ${{ vars.NEXT_PUBLIC_API_TIMEOUT_MS || '15000' }}
       NEXT_TELEMETRY_DISABLED: 1
     steps:
