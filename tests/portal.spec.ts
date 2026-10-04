@@ -1,4 +1,6 @@
 import {test, expect, type Page} from '@playwright/test';
+import { installApiFixture } from './support/api-fixture';
+test.beforeEach(async ({page}) => { if (process.env.NEXT_PUBLIC_API_MODE !== 'mock') await installApiFixture(page); });
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 async function login(page: Page, student = 'HV000123') {
   await page.goto('login/'); await page.getByLabel('ID học sinh').fill(student); await page.locator('input[autocomplete="current-password"]').fill('Demo123!'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();

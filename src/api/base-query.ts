@@ -2,18 +2,20 @@ import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryEr
 import type { AuthState } from '../store/auth';
 import { loggedOut } from '../store/auth';
 import { expired } from '../auth/session';
+import { resolveApiConfiguration } from './config';
 export type AppBaseQuery = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
-export function createAppBaseQuery(mode: string, baseUrl?: string): AppBaseQuery {
-  const real = fetchBaseQuery({ baseUrl, timeout: 15000, prepareHeaders(headers, { getState, endpoint }) {
+export function createAppBaseQuery(mode = 'real', baseUrl?: string, timeout: string | number = 15000): AppBaseQuery {
+  const config = resolveApiConfiguration(mode, baseUrl, timeout);
+  const real = fetchBaseQuery({ baseUrl: config.baseUrl, timeout: config.timeout, prepareHeaders(headers, { getState, endpoint }) {
     const token = (getState() as {auth: AuthState}).auth.accessToken;
     if (token && endpoint !== 'login' && endpoint !== 'exchange') headers.set('Authorization', `Bearer ${token}`);
     headers.set('Accept', 'application/json');
     return headers;
   }});
   return async (args, api, extra) => {
-    if (!['mock', 'real'].includes(mode) || (mode === 'real' && !baseUrl?.trim())) return { error: { status: 'CUSTOM_ERROR', error: 'Chưa cấu hình API.', data: { error: { code: 'CONFIGURATION_ERROR', message: 'Thiếu hoặc sai cấu hình API. Vui lòng liên hệ quản trị viên.' } } } };
+    if (config.error) return { error: { status: 'CUSTOM_ERROR', error: 'Chưa cấu hình API.', data: { error: { code: 'CONFIGURATION_ERROR', message: 'Hệ thống chưa sẵn sàng. Vui lòng liên hệ trung tâm.' } } } };
     const url = typeof args === 'string' ? args : args.url;
-    const protectedRequest = !url.startsWith('/auth/');
+    const protectedRequest = !['/auth/login', '/auth/exchange'].includes(url);
     const auth = (api.getState() as {auth: AuthState}).auth;
     const originalToken = auth.accessToken;
     if (protectedRequest && (!originalToken || expired(auth.expiresAt, originalToken))) {

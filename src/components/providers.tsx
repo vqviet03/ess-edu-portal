@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Provider } from 'react-redux';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -10,7 +11,8 @@ type Preference = 'light' | 'dark' | 'system';
 const Appearance = createContext<{preference: Preference; change: (p: Preference) => void}>({preference: 'system', change: () => {}});
 export const useAppearance = () => useContext(Appearance);
 export default function Providers({children}: {children: React.ReactNode}) {
-  const [store] = useState(makeStore);
+  const [store] = useState(() => makeStore());
+  useEffect(() => setupListeners(store.dispatch), [store]);
   const [preference, setPreference] = useState<Preference>('system');
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
   useEffect(() => { try { const value = localStorage.getItem('learnleaf.theme'); if (value === 'light' || value === 'dark' || value === 'system') setPreference(value); } catch {} }, []);
