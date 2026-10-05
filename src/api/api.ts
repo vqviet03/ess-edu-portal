@@ -6,7 +6,7 @@ const unwrap = <T>(response: Envelope<T>) => response.data;
 const list = <T>(response: Envelope<{items: T[]}>) => response.data.items;
 const path = (id: string) => `/me/classes/${encodeURIComponent(id)}`;
 export const createStudentApi = (config: ApiConfiguration = apiConfiguration) => createApi({
-  reducerPath: 'studentApi', baseQuery: createAppBaseQuery(config.mode, config.baseUrl, config.timeout),
+  reducerPath: 'studentApi', baseQuery: createAppBaseQuery(config.baseUrl, config.timeout),
   keepUnusedDataFor: 60,
   refetchOnMountOrArgChange: 30,
   refetchOnFocus: true,

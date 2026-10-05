@@ -1,16 +1,14 @@
 export interface ApiConfiguration {
-  mode: 'mock' | 'real';
   baseUrl: string;
   timeout: number;
   error: string | null;
 }
 
-export function resolveApiConfiguration(mode = 'real', value?: string, timeoutValue: string | number = 15000): ApiConfiguration {
+export function resolveApiConfiguration(value?: string, timeoutValue: string | number = 15000): ApiConfiguration {
   const timeout = Number(timeoutValue);
-  const config: ApiConfiguration = { mode: mode === 'mock' ? 'mock' : 'real', baseUrl: '', timeout, error: null };
-  if (mode !== 'real' && mode !== 'mock') config.error = 'NEXT_PUBLIC_API_MODE chỉ nhận real hoặc mock.';
-  else if (!Number.isInteger(timeout) || timeout <= 0 || timeout > 120000) config.error = 'NEXT_PUBLIC_API_TIMEOUT_MS phải là số nguyên từ 1 đến 120000.';
-  else if (mode === 'real') {
+  const config: ApiConfiguration = { baseUrl: '', timeout, error: null };
+  if (!Number.isInteger(timeout) || timeout <= 0 || timeout > 120000) config.error = 'NEXT_PUBLIC_API_TIMEOUT_MS phải là số nguyên từ 1 đến 120000.';
+  else {
     try {
       const url = new URL(value?.trim() ?? '');
       const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
@@ -25,7 +23,6 @@ export function resolveApiConfiguration(mode = 'real', value?: string, timeoutVa
 }
 
 export const apiConfiguration = resolveApiConfiguration(
-  process.env.NEXT_PUBLIC_API_MODE ?? 'real',
   process.env.NEXT_PUBLIC_API_BASE_URL,
   process.env.NEXT_PUBLIC_API_TIMEOUT_MS ?? '15000',
 );

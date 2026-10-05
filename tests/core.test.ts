@@ -4,10 +4,9 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { BaseQueryApi } from '@reduxjs/toolkit/query';
 import { difference, changes, selectClass, selectUnit } from '../src/models/report';
-import { classes, mockSession, progress, reports, units } from '../src/mock/fixtures';
+import { classes, testSession, progress, reports, units } from './support/data';
 import { makeStore } from '../src/store';
-import { api } from '../src/api/api';
-import { loggedOut, signedIn, chooseClass, chooseUnit } from '../src/store/auth';
+import { signedIn, loggedOut } from '../src/store/auth';
 import { createAppBaseQuery } from '../src/api/base-query';
 import { expired } from '../src/auth/session';
 
@@ -22,7 +21,7 @@ test('defaults respect API order, active class and highest unit; empty state', (
   assert.equal(selectUnit(units, 'u1')?.order, 1);
   assert.equal(selectClass([], null), null); assert.equal(selectUnit([], null), null);
 });
-test('exact source data, null raw scores, seven skills, four pieces of advice', () => {
+test('API report values preserve null raw scores, seven skills and advice', () => {
   assert.deepEqual(reports[2].total, {score: 23.1, maxScore: 35, percentage: 66});
   assert.equal(reports[2].skills.length, 7); assert.equal(reports[2].advice.length, 4);
   for (const report of reports.slice(0,2)) { assert.equal(report.total.score, null); assert.equal(report.overallComment, null); assert(report.skills.every(s => s.score === null && s.maxScore === null && s.comment === null)); }
@@ -33,44 +32,28 @@ test('JWT expiration and invalid API expiry', () => {
   assert(expired('bad')); assert(expired(new Date(Date.now()-1).toISOString()));
   const jwt = `e30.${Buffer.from(JSON.stringify({exp:1})).toString('base64url')}.signature`;
   assert(expired(new Date(Date.now()+60000).toISOString(), jwt));
-  assert(!expired(new Date(Date.now()+60000).toISOString(), 'mock.demo.123'));
+  assert(!expired(testSession().expiresAt, testSession().accessToken));
+  for (const token of ['invalid', 'legacy.HV000123.123', 'e30.e30.signature', 'e30.bm90LWpzb24.signature']) assert(expired(new Date(Date.now()+60000).toISOString(), token));
 });
-test('mock login, protected cache, class selection reset, and logout cleanup', async () => {
-  const store = makeStore();
-  const bad = await store.dispatch(api.endpoints.login.initiate({studentId:'HV000123',password:'bad'})); assert('error' in bad);
-  const session = await store.dispatch(api.endpoints.login.initiate({studentId:'HV000123',password:'Demo123!'})).unwrap(); store.dispatch(signedIn(session));
-  const request = store.dispatch(api.endpoints.classes.initiate()); assert.equal((await request.unwrap()).length,2);
-  store.dispatch(chooseClass('juniors-03')); store.dispatch(chooseUnit('u3')); store.dispatch(chooseClass('juniors-02')); assert.equal(store.getState().auth.unitId,null);
-  store.dispatch(loggedOut()); assert.equal(store.getState().auth.student,null); assert.equal(store.getState().auth.classId,null); assert.deepEqual(store.getState().studentApi.queries,{}); request.unsubscribe();
-});
-test('mock link exchange is one-use; clear invalid/expired errors', async () => {
-  const store = makeStore();
-  await store.dispatch(api.endpoints.exchange.initiate({code:'demo-bon'})).unwrap();
-  for (const [code, expected] of [['demo-bon',410],['demo-expired',410],['incorrect',400]]) {
-    const res = await store.dispatch(api.endpoints.exchange.initiate({code:String(code)})); assert('error' in res && res.error && 'status' in res.error); assert.equal(res.error.status,expected);
-  }
-});
-test('401 clears session/cache; 403 retains authentication; empty fixtures', async () => {
-  for (const id of ['HVFORBIDDEN','HVEMPTY','HVEXPIRED']) {
-    const store = makeStore(); store.dispatch(signedIn(mockSession(id)));
-    const req = store.dispatch(api.endpoints.classes.initiate()); const result = await req;
-    if (id === 'HVFORBIDDEN') {assert('error' in result); assert.equal(store.getState().auth.status,'authenticated');}
-    if (id === 'HVEMPTY') assert.deepEqual(result.data,[]);
-    if (id === 'HVEXPIRED') {assert.equal(store.getState().auth.status,'guest'); assert.deepEqual(store.getState().studentApi.queries,{});}
-    req.unsubscribe(); store.dispatch(loggedOut());
-  }
-});
-test('missing real URL never falls back to mock', async () => {
-  const result = await createAppBaseQuery('real','')({url:'/auth/login',method:'POST',body:{}}, context(), {});
+test('missing backend URL returns a configuration error', async () => {
+  const result = await createAppBaseQuery('')({url:'/auth/login',method:'POST',body:{}}, context(), {});
   assert.equal(result.error?.status,'CUSTOM_ERROR');
 });
-test('real mode calls configured endpoint with bearer header and contract; abort is supported', async () => {
-  const store = makeStore(); const session = mockSession('HV000123'); store.dispatch(signedIn(session));
+test('configured endpoint uses HTTP and Bearer; abort and expired-session checks are supported', async () => {
+  const store = makeStore(); const session = testSession(); store.dispatch(signedIn(session));
+  let calls = 0;
   const server = createServer((req,res) => {
+    calls++;
     assert.equal(req.url,'/v1/me'); assert.equal(req.headers.authorization,`Bearer ${session.accessToken}`);
     res.setHeader('Content-Type','application/json'); res.end(JSON.stringify({data: session.student}));
   }).listen(0,'127.0.0.1');
   await new Promise<void>(resolve => server.once('listening',resolve));
-  try { const result = await createAppBaseQuery('real',`http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`)('/me',context(store),{}); assert.deepEqual(result.data,{data:session.student}); } finally {server.close();}
-  const controller = new AbortController(); controller.abort(); const result = await createAppBaseQuery('mock')('/me',{...context(store), signal:controller.signal},{}); assert.equal(result.error?.status,'FETCH_ERROR');
+  try {
+    const query = createAppBaseQuery(`http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`);
+    const result = await query('/me',context(store),{}); assert.deepEqual(result.data,{data:session.student});
+    const controller = new AbortController(); controller.abort(); const aborted = await query('/me',{...context(store), signal:controller.signal},{}); assert.equal(aborted.error?.status,'FETCH_ERROR');
+    assert.equal(calls, 1);
+    store.dispatch(signedIn(testSession('expired', Date.now() - 1000)));
+    const rejected = await query('/me',context(store),{}); assert.equal(rejected.error?.status,401); assert.equal(calls,1); assert.equal(store.getState().auth.status,'guest');
+  } finally { store.dispatch(loggedOut()); server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });
