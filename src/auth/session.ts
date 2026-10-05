@@ -5,8 +5,14 @@ export function expiryTime(expiresAt: string | null, token?: string | null) {
   let deadline = expiresAt ? Date.parse(expiresAt) : 0;
   if (!Number.isFinite(deadline)) return 0;
   // JWT exp is an additional expiry check, never proof of authentication.
-  if (token && !token.startsWith('mock.')) {
-    try { const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); if (typeof payload.exp === 'number') deadline = Math.min(deadline, payload.exp * 1000); } catch { /* Backend /me validates token authenticity. */ }
+  if (token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3 || parts.some(part => !/^[A-Za-z0-9_-]+$/.test(part))) return 0;
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp) || payload.exp <= 0) return 0;
+      deadline = Math.min(deadline, payload.exp * 1000);
+    } catch { return 0; }
   }
   return deadline;
 }
@@ -14,15 +20,14 @@ export const expired = (expiresAt: string | null, token?: string | null) => expi
 export function readSession(): AuthSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    if (!value || typeof value.accessToken !== 'string' || typeof value.expiresAt !== 'string' || value.tokenType !== 'Bearer' || expired(value.expiresAt, value.accessToken)) return null;
+    if (!value || typeof value.accessToken !== 'string' || !value.accessToken || typeof value.expiresAt !== 'string' || value.tokenType !== 'Bearer' || expired(value.expiresAt, value.accessToken)) return null;
     if (!value.student || typeof value.student.id !== 'string' || typeof value.student.studentCode !== 'string' || typeof value.student.fullName !== 'string') return null;
-    if (apiConfiguration.mode === 'real' && value.accessToken.startsWith('mock.')) return null;
-    if (value.apiMode && (value.apiMode !== apiConfiguration.mode || value.apiBaseUrl !== apiConfiguration.baseUrl)) return null;
-    return value;
+    if (value.apiBaseUrl !== apiConfiguration.baseUrl) return null;
+    return { accessToken: value.accessToken, tokenType: 'Bearer', expiresAt: value.expiresAt, student: value.student };
   } catch { return null; }
 }
 export function writeSession(value: AuthSession | null) {
-  try { if (value) sessionStorage.setItem(SESSION_KEY, JSON.stringify({...value, apiMode: apiConfiguration.mode, apiBaseUrl: apiConfiguration.baseUrl})); else sessionStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
+  try { if (value) sessionStorage.setItem(SESSION_KEY, JSON.stringify({...value, apiBaseUrl: apiConfiguration.baseUrl})); else sessionStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
 }
 export function consumeLinkCode(): string | null {
   const hash = window.location.hash.slice(1);

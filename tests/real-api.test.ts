@@ -6,7 +6,7 @@ import { createStudentApi } from '../src/api/api';
 import { resolveApiConfiguration } from '../src/api/config';
 import { makeStore } from '../src/store';
 import { signedIn, loggedOut, chooseClass, chooseUnit } from '../src/store/auth';
-import { student, classes, units, reports, progress, materials } from '../src/mock/fixtures';
+import { student, classes, units, reports, progress, materials } from './support/data';
 import type { AuthSession } from '../src/models';
 import { errorDetails } from '../src/api/errors';
 
@@ -14,18 +14,18 @@ const session = (suffix = 'first'): AuthSession => ({ accessToken: `e30.${Buffer
 async function server(handler: (req: IncomingMessage, res: ServerResponse) => void | Promise<void>) {
   const http = createServer((req, res) => { Promise.resolve(handler(req, res)).catch(() => { res.statusCode = 500; res.end(); }); });
   await new Promise<void>(resolve => http.listen(0, '127.0.0.1', resolve));
-  const service = createStudentApi(resolveApiConfiguration('real', `http://127.0.0.1:${(http.address() as AddressInfo).port}/v1/`));
+  const service = createStudentApi(resolveApiConfiguration(`http://127.0.0.1:${(http.address() as AddressInfo).port}/v1/`));
   return { http, service, store: makeStore(service) };
 }
 function reply(res: ServerResponse, data: unknown, status = 200) { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); }
 async function body(req: IncomingMessage) { let text = ''; for await (const part of req) text += part; return text ? JSON.parse(text) : null; }
 
-test('real is the default; URLs and timeout are validated without mock fallback', () => {
-  assert.equal(resolveApiConfiguration().mode, 'real'); assert(resolveApiConfiguration().error);
-  assert.equal(resolveApiConfiguration('real', 'https://example.run.app/').baseUrl, 'https://example.run.app/v1');
-  assert.equal(resolveApiConfiguration('real', 'https://example.run.app/v1/').baseUrl, 'https://example.run.app/v1');
-  for (const url of ['', 'http://example.run.app/v1', 'https://user:pass@example.run.app/v1', 'https://example.run.app/v1?token=x', 'https://example.run.app/#jwt=x']) assert(resolveApiConfiguration('real', url).error);
-  for (const timeout of [0, -1, 1.5, NaN, 120001]) assert(resolveApiConfiguration('real', 'https://example.run.app/v1', timeout).error);
+test('backend URL is required and normalized; timeout configuration is validated', () => {
+  assert(resolveApiConfiguration().error);
+  assert.equal(resolveApiConfiguration('https://example.run.app/').baseUrl, 'https://example.run.app/v1');
+  assert.equal(resolveApiConfiguration('https://example.run.app/v1/').baseUrl, 'https://example.run.app/v1');
+  for (const url of ['', 'http://example.run.app/v1', 'https://user:pass@example.run.app/v1', 'https://example.run.app/v1?token=x', 'https://example.run.app/#jwt=x']) assert(resolveApiConfiguration(url).error);
+  for (const timeout of [0, -1, 1.5, NaN, 120001]) assert(resolveApiConfiguration('https://example.run.app/v1', timeout).error);
   assert.equal(errorDetails({status:'TIMEOUT_ERROR'}).code, 'TIMEOUT');
 });
 

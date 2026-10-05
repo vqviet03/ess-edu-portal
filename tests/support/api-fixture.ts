@@ -1,10 +1,10 @@
 import type { Page } from '@playwright/test';
-import { classes, materials, materialUrls, progress, reports, student, units } from '../../src/mock/fixtures';
+import { classes, materials, materialUrls, progress, reports, student, units } from './data';
 import { resolveApiConfiguration } from '../../src/api/config';
 
-// Only the test runner imports this. Browser code stays in real mode and sends HTTP requests.
+// Only the test runner imports this. Browser code always sends HTTP requests.
 export async function installApiFixture(page: Page) {
-  const { baseUrl } = resolveApiConfiguration('real', process.env.NEXT_PUBLIC_API_BASE_URL);
+  const { baseUrl } = resolveApiConfiguration(process.env.NEXT_PUBLIC_API_BASE_URL);
   const sessions = new Map<string, string>();
   let consumed = false;
   const issue = (id: string) => {
@@ -27,8 +27,8 @@ export async function installApiFixture(page: Page) {
     }
     if (url === '/auth/exchange') {
       const {code}=req.postDataJSON();
-      if (code==='demo-expired') return fail(410,'CODE_EXPIRED','Liên kết đã hết hạn.');
-      if (code!=='demo-bon') return fail(400,'INVALID_CODE','Mã đăng nhập không hợp lệ.');
+      if (code==='expired-test-code') return fail(410,'CODE_EXPIRED','Liên kết đã hết hạn.');
+      if (code!=='valid-test-code') return fail(400,'INVALID_CODE','Mã đăng nhập không hợp lệ.');
       if (consumed) return fail(410,'CODE_USED','Liên kết đã được sử dụng.');
       consumed=true; return send({data:issue('HV000123')});
     }

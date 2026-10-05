@@ -1,6 +1,6 @@
 import {test, expect, type Page} from '@playwright/test';
 import { installApiFixture } from './support/api-fixture';
-test.beforeEach(async ({page}) => { if (process.env.NEXT_PUBLIC_API_MODE !== 'mock') await installApiFixture(page); });
+test.beforeEach(async ({page}) => { await installApiFixture(page); });
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 async function login(page: Page, student = 'HV000123') {
   await page.goto('login/'); await page.getByLabel('ID học sinh').fill(student); await page.locator('input[autocomplete="current-password"]').fill('Demo123!'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
@@ -25,15 +25,16 @@ test('manual login, exact data, seven curves, eight comparisons, class/unit stat
   await logout(page); expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull(); await page.goto('home/'); await expect(page).toHaveURL(/\/login\/$/); expect(errors).toEqual([]);
 });
 test('one-time link sanitizes URL, succeeds once and rejects used/expired code', async ({page}) => {
-  await page.goto('auth/link/#code=demo-bon'); await expect(page).toHaveURL(/\/home\/$/); expect(new URL(page.url()).hash).toBe(''); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible(); await logout(page);
-  await page.goto('auth/link/#code=demo-bon'); await expect(page.locator('.MuiAlert-root')).toContainText('đã được sử dụng'); expect(new URL(page.url()).hash).toBe('');
-  await page.goto('auth/link/#code=demo-expired'); await expect(page.locator('.MuiAlert-root')).toContainText('hết hạn');
+  await page.goto('auth/link/#code=valid-test-code'); await expect(page).toHaveURL(/\/home\/$/); expect(new URL(page.url()).hash).toBe(''); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible(); await logout(page);
+  await page.goto('auth/link/#code=valid-test-code'); await expect(page.locator('.MuiAlert-root')).toContainText('đã được sử dụng'); expect(new URL(page.url()).hash).toBe('');
+  await page.goto('auth/link/#code=expired-test-code'); await expect(page.locator('.MuiAlert-root')).toContainText('hết hạn');
   await page.goto('auth/link/#code=invalid'); await expect(page.locator('.MuiAlert-root')).toContainText('không hợp lệ');
 });
 test('401 on /me clears the session without navigation loops', async ({page}) => {
   await login(page); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
-  await page.evaluate(() => { const key='learnleaf.session'; const session=JSON.parse(sessionStorage.getItem(key)!); session.accessToken='invalid'; sessionStorage.setItem(key,JSON.stringify(session)); });
-  await page.reload(); await expect(page).toHaveURL(/\/login\/$/); expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
+  await page.evaluate(() => { const key='learnleaf.session'; const session=JSON.parse(sessionStorage.getItem(key)!); session.accessToken=session.accessToken.replace(/\.[^.]+$/,'.revoked-signature'); sessionStorage.setItem(key,JSON.stringify(session)); });
+  const rejected = page.waitForResponse(response => response.url().endsWith('/me') && response.status() === 401);
+  await page.reload(); await rejected; await expect(page).toHaveURL(/\/login\/$/); expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
 });
 test('empty, forbidden and missing-report fixtures have usable states', async ({page}) => {
   await login(page,'HVEMPTY'); await expect(page.getByText('Chưa có lớp học nào.')).toBeVisible(); await logout(page);

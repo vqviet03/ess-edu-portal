@@ -4,9 +4,9 @@ import { loggedOut } from '../store/auth';
 import { expired } from '../auth/session';
 import { resolveApiConfiguration } from './config';
 export type AppBaseQuery = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
-export function createAppBaseQuery(mode = 'real', baseUrl?: string, timeout: string | number = 15000): AppBaseQuery {
-  const config = resolveApiConfiguration(mode, baseUrl, timeout);
-  const real = fetchBaseQuery({ baseUrl: config.baseUrl, timeout: config.timeout, prepareHeaders(headers, { getState, endpoint }) {
+export function createAppBaseQuery(baseUrl?: string, timeout: string | number = 15000): AppBaseQuery {
+  const config = resolveApiConfiguration(baseUrl, timeout);
+  const query = fetchBaseQuery({ baseUrl: config.baseUrl, timeout: config.timeout, prepareHeaders(headers, { getState, endpoint }) {
     const token = (getState() as {auth: AuthState}).auth.accessToken;
     if (token && endpoint !== 'login' && endpoint !== 'exchange') headers.set('Authorization', `Bearer ${token}`);
     headers.set('Accept', 'application/json');
@@ -22,7 +22,7 @@ export function createAppBaseQuery(mode = 'real', baseUrl?: string, timeout: str
       api.dispatch(loggedOut('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'));
       return { error: { status: 401, data: { error: { code: 'TOKEN_EXPIRED', message: 'Phiên đăng nhập đã hết hạn.' } } } };
     }
-    const result = mode === 'mock' ? await (await import('../mock/base-query')).mockBaseQuery(args, api, extra) : await real(args, api, extra);
+    const result = await query(args, api, extra);
     if (protectedRequest && result.error?.status === 401 && (api.getState() as {auth: AuthState}).auth.accessToken === originalToken) api.dispatch(loggedOut('Phiên đăng nhập không hợp lệ hoặc đã hết hạn.'));
     return result;
   };
