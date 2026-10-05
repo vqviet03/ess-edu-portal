@@ -20,7 +20,7 @@ function HomeContent() {
   const unit = selectUnit(units.currentData ?? [], auth.unitId);
   useEffect(() => { if (classroom && auth.classId !== classroom.id) dispatch(chooseClass(classroom.id)); }, [classroom, auth.classId, dispatch]);
   useEffect(() => { if (unit && auth.unitId !== unit.id) dispatch(chooseUnit(unit.id)); }, [unit, auth.unitId, dispatch]);
-  const report = useReportQuery({classId: classroom?.id ?? '', unitId: unit?.id ?? ''}, {skip: !classroom || !unit?.hasReport});
+  const report = useReportQuery({classId: classroom?.id ?? '', unitId: unit?.id ?? ''}, {skip: !classroom || !unit?.hasReport, pollingInterval: 30000, skipPollingIfUnfocused: true});
   const progress = useProgressQuery(classroom?.id ?? '', {skip: !classroom});
   const entries = progress.currentData ?? [];
   return <Shell>
