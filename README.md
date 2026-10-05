@@ -94,3 +94,9 @@ PR vào `dev` chạy lint, typecheck, tests, production build và browser tests,
 Workflow dùng URL Cloud Run đã cấu hình khi không có repository variable, nên không cần quyền quản lý variables để deploy. URL backend là cấu hình công khai, không cần GitHub Secret. Build ngoài workflow vẫn yêu cầu URL hợp lệ.
 
 Workflow lấy base path từ `actions/configure-pages`: project Pages dùng `/<repo>`, root/custom domain theo cấu hình Pages. Local/build ngoài Actions đặt `NEXT_PUBLIC_BASE_PATH` tương ứng, không dấu `/` cuối. Links, assets và reload trực tiếp hoạt động dưới base path; không cần Next server.
+
+## Hướng dẫn, thu/phóng và biểu đồ
+
+Header có “Hướng dẫn” cho đăng nhập, báo cáo và tài liệu: giải thích từng phần kèm minh họa được ghi rõ không phải dữ liệu tài khoản. Desktop mở cột bên phải; mobile mở vùng cuộn phía dưới, vẫn thao tác được nội dung chính. “Ẩn hướng dẫn” đóng vùng này.
+
+Nút −/100%/+ chọn 75/85/100/115/125%, lưu localStorage `ess.student.zoom`. Chỉ đổi hiển thị, không thay dữ liệu. Mỗi đường kỹ năng và biểu đồ chênh lệch có nút bật/tắt với aria-pressed, có hiện/ẩn tất cả; mặc định đủ 7 đường và 8 biểu đồ, bảng điểm/nhận xét luôn giữ nguyên. Báo cáo được cập nhật mỗi 30 giây khi có focus và khi quay lại tab để nhận sửa nhận xét từ giảng viên. Ứng dụng vẫn chỉ dùng API thật; fixtures giới hạn trong tests.

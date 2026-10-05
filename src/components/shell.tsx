@@ -5,6 +5,7 @@ import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import { Box, Button, Container, MenuItem, Stack, Typography } from './ui';
+import { AppScale, DisplayTools, GuideLayout, useAppDisplay } from '@/features/help/display';
 import Brand from './brand';
 import { useAppearance } from './providers';
 import { type RootState, useAppDispatch, useAppSelector } from '@/store';
@@ -12,6 +13,7 @@ import { loggedOut } from '@/store/auth';
 import { useLogoutMutation } from '@/api/api';
 export default function Shell({children}: {children: React.ReactNode}) {
   const [menu, setMenu] = useState<{kind: 'theme' | 'language' | 'profile'; anchor: HTMLElement} | null>(null);
+  const { zoom } = useAppDisplay();
   const appearance = useAppearance();
   const student = useAppSelector(s => s.auth.student);
   const dispatch = useAppDispatch();
@@ -23,10 +25,10 @@ export default function Shell({children}: {children: React.ReactNode}) {
     try { await logout().unwrap(); } catch { /* Local logout still works when the backend is unavailable. */ }
     finally { if (store.getState().auth.accessToken === token) dispatch(loggedOut()); }
   }
-  return <Container maxWidth="lg" sx={{px: {xs: 2.5, md: 3}, pb: 5}}>
-    <Stack component="header" direction="row" sx={{alignItems: 'center', justifyContent: 'space-between', py: 2.5, gap: 1}}>
+  return <AppScale><Container maxWidth={false} sx={{maxWidth: 1280 / (zoom / 100), px: {xs: 2.5, md: 3}, pb: 5}}>
+    <Stack component="header" direction="row" sx={{alignItems: 'center', justifyContent: 'space-between', py: 2.5, gap: 1, flexWrap: 'wrap'}}>
       <Brand/>
-      <Stack direction="row" sx={{alignItems: 'center'}}>
+      <Stack direction="row" sx={{alignItems: 'center', flexWrap: 'wrap'}}><DisplayTools/>
         <Button aria-label="Ngôn ngữ" color="inherit" sx={{minWidth: 44}} onClick={e => setMenu({kind: 'language', anchor: e.currentTarget})}>VI</Button>
         <IconButton aria-label="Giao diện" onClick={e => setMenu({kind: 'theme', anchor: e.currentTarget})}><Box component="span" aria-hidden sx={{fontSize: 25}}>☼</Box></IconButton>
         {student && <IconButton aria-label="Tài khoản" disabled={logoutState.isLoading} onClick={e => setMenu({kind: 'profile', anchor: e.currentTarget})}><Avatar sx={{width: 30, height: 30, fontSize: 13, bgcolor: 'action.selected', color: 'primary.main'}}>{student.fullName.split(' ').filter(Boolean).slice(-2).map(name => name[0]).join('')}</Avatar></IconButton>}
@@ -37,7 +39,7 @@ export default function Shell({children}: {children: React.ReactNode}) {
       {menu?.kind === 'language' && <MenuItem selected onClick={() => setMenu(null)}>Tiếng Việt</MenuItem>}
       {menu?.kind === 'profile' && <MenuItem disabled={logoutState.isLoading} onClick={signOut}>Đăng xuất</MenuItem>}
     </Menu>
-    <Box component="main">{children}</Box>
+    <GuideLayout><Box component="main">{children}</Box></GuideLayout>
     <Typography variant="body2" color="text.secondary" sx={{mt: 4, textAlign: 'center'}}>ESS · Báo cáo học tập của học sinh</Typography>
-  </Container>;
+  </Container></AppScale>;
 }

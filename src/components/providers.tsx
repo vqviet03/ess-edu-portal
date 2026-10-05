@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { makeStore } from '@/store';
+import { AppDisplayProvider } from '@/features/help/display';
 import { AuthRuntime } from '@/auth/runtime';
 type Preference = 'light' | 'dark' | 'system';
 const Appearance = createContext<{preference: Preference; change: (p: Preference) => void}>({preference: 'system', change: () => {}});
@@ -35,5 +36,5 @@ export default function Providers({children}: {children: React.ReactNode}) {
       MuiTab: {styleOverrides: {root: {minHeight: 48, textTransform: 'none', fontSize: '0.9375rem', fontWeight: 600}}},
     },
   }), [mode]);
-  return <Provider store={store}><Appearance.Provider value={{preference, change}}><ThemeProvider theme={theme}><CssBaseline/><AuthRuntime>{children}</AuthRuntime></ThemeProvider></Appearance.Provider></Provider>;
+  return <Provider store={store}><Appearance.Provider value={{preference, change}}><ThemeProvider theme={theme}><CssBaseline/><AppDisplayProvider storageKey="ess.student.zoom"><AuthRuntime>{children}</AuthRuntime></AppDisplayProvider></ThemeProvider></Appearance.Provider></Provider>;
 }
