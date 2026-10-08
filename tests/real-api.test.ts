@@ -90,3 +90,20 @@ test('a late 401 for the old token cannot delete a newly signed-in session', asy
     assert.equal(store.getState().auth.accessToken,newer.accessToken); assert.equal(store.getState().auth.status,'authenticated');
   } finally { release(); store.dispatch(loggedOut()); http.closeAllConnections(); await new Promise<void>(resolve=>http.close(()=>resolve())); }
 });
+
+test('cached report does not refetch on focus/network or resubscribe; targeted event refreshes only its class', async () => {
+  const calls: string[] = [];
+  const {http,service,store} = await server((req,res) => { calls.push(req.url!); reply(res,{data:reports[2]}); });
+  const active: {unsubscribe: () => void}[] = [];
+  try {
+    store.dispatch(signedIn(session()));
+    const first = store.dispatch(service.endpoints.report.initiate({classId:'class-a',unitId:'u3'})); active.push(first); await first.unwrap();
+    const other = store.dispatch(service.endpoints.report.initiate({classId:'class-b',unitId:'u3'})); active.push(other); await other.unwrap();
+    store.dispatch(service.internalActions.onFocus()); store.dispatch(service.internalActions.onOnline());
+    const repeated = store.dispatch(service.endpoints.report.initiate({classId:'class-a',unitId:'u3'})); active.push(repeated); await repeated.unwrap();
+    assert.equal(calls.length,2);
+    store.dispatch(service.util.invalidateTags([{type:'Report',id:'class-a'}]));
+    await store.dispatch(service.endpoints.report.initiate({classId:'class-a',unitId:'u3'})).unwrap();
+    assert.equal(calls.length,3); assert.equal(calls.filter(url=>url.includes('class-b')).length,1);
+  } finally {active.forEach(q=>q.unsubscribe()); store.dispatch(loggedOut()); http.closeAllConnections(); await new Promise<void>(resolve=>http.close(()=>resolve()));}
+});

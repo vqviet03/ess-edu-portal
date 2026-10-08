@@ -1,4 +1,5 @@
 'use client';
+import { TeacherContacts } from '@/features/materials/contacts';
 import { useEffect } from 'react';
 import NextLink from 'next/link';
 import Tabs from '@mui/material/Tabs';
@@ -20,7 +21,7 @@ function HomeContent() {
   const unit = selectUnit(units.currentData ?? [], auth.unitId);
   useEffect(() => { if (classroom && auth.classId !== classroom.id) dispatch(chooseClass(classroom.id)); }, [classroom, auth.classId, dispatch]);
   useEffect(() => { if (unit && auth.unitId !== unit.id) dispatch(chooseUnit(unit.id)); }, [unit, auth.unitId, dispatch]);
-  const report = useReportQuery({classId: classroom?.id ?? '', unitId: unit?.id ?? ''}, {skip: !classroom || !unit?.hasReport, pollingInterval: 30000, skipPollingIfUnfocused: true});
+  const report = useReportQuery({classId: classroom?.id ?? '', unitId: unit?.id ?? ''}, {skip: !classroom || !unit?.hasReport});
   const progress = useProgressQuery(classroom?.id ?? '', {skip: !classroom});
   const entries = progress.currentData ?? [];
   return <Shell>
@@ -32,6 +33,7 @@ function HomeContent() {
       {units.isFetching ? <Feedback loading/> : units.error ? <Feedback error={units.error} retry={units.refetch}/> : unit ? <Tabs aria-label="Chọn Unit" value={unit.id} variant="scrollable" scrollButtons="auto" onChange={(_, id: string) => dispatch(chooseUnit(id))} sx={{mb: 2, '& .MuiTabs-indicator': {display: 'none'}, '& .MuiTab-root': {bgcolor: 'background.paper', borderRadius: 2, mr: 1, flex: {xs: 1, md: 'initial'}}, '& .Mui-selected': {bgcolor: 'action.selected', color: 'primary.main'}}}>{[...(units.currentData ?? [])].sort((a,b) => a.order - b.order).map(u => <Tab key={u.id} value={u.id} label={u.name} id={`tab-${u.id}`} aria-controls="unit-report"/>)}</Tabs> : <Feedback empty="Lớp này chưa có Unit học tập."/>}
       <Button component={NextLink} href={`/materials/?classId=${encodeURIComponent(classroom.id)}`} variant="contained" sx={{mb: 2.5}}>Tài liệu học tập</Button>
       <Box id="unit-report" role="tabpanel" aria-labelledby={unit ? `tab-${unit.id}` : undefined}>
+        <TeacherContacts classId={classroom.id}/>
         {unit && (report.isFetching ? <Feedback loading/> : !unit.hasReport ? <Feedback empty="Unit này chưa có báo cáo."/> : report.error ? <Feedback error={report.error} retry={report.refetch}/> : report.currentData ? <ReportView report={report.currentData} entries={entries} unitName={unit.name} progressLoading={progress.isFetching} progressError={progress.error} retryProgress={progress.refetch}/> : <Feedback empty="Chưa có báo cáo cho Unit này."/>)}
       </Box>
     </>}

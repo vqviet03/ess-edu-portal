@@ -44,7 +44,7 @@ test('empty, forbidden and missing-report fixtures have usable states', async ({
 test.describe('mobile', () => {
   test.use({hasTouch: true});
   test('materials, settings, mobile and static deep links', async ({page, request}) => {
-  for (const route of ['', 'login/', 'auth/link/', 'home/', 'materials/']) { const response=await request.get(`http://127.0.0.1:4173${base}/${route}`); expect(response.status()).toBe(200); }
+  for (const route of ['', 'login/', 'auth/link/', 'home/', 'materials/']) { const response=await request.get(`http://127.0.0.1:${process.env.PORT ?? 4173}${base}/${route}`); expect(response.status()).toBe(200); }
   await page.setViewportSize({width:390,height:844}); await login(page); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
   await page.getByRole('button',{name:'Giao diện',exact:true}).click(); await page.getByRole('menuitem',{name:'Tối',exact:true}).click(); expect(await page.evaluate(() => localStorage.getItem('learnleaf.theme'))).toBe('dark');
   await page.reload(); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
@@ -54,9 +54,9 @@ test.describe('mobile', () => {
   await page.getByRole('heading',{name:'Thay đổi điểm theo từng kỹ năng qua các Unit'}).scrollIntoViewIfNeeded(); await expect(page.getByTestId('change-chart')).toHaveCount(8); await expect(page.getByTestId('change-chart').nth(1).locator('.recharts-label-list text')).toHaveText(['+20.0%', '0.0%']);
   await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({path:'test-results/mobile-dark.png',fullPage:true});
   await page.getByRole('button',{name:'Ngôn ngữ',exact:true}).click(); await expect(page.getByRole('menuitem',{name:'Tiếng Việt'})).toBeVisible(); await page.keyboard.press('Escape');
-  await page.getByRole('link',{name:'Tài liệu học tập',exact:true}).click(); await expect(page).toHaveURL(/materials\/\?classId=juniors-03$/); await expect(page.getByText('Tài liệu PDF mẫu')).toBeVisible();
-  await page.getByRole('button',{name:'Phát tài liệu',exact:true}).first().click(); await expect(page.locator('audio')).toHaveAttribute('src',/^https:/); await page.getByRole('button',{name:'Đóng',exact:true}).click();
-  await page.getByRole('link',{name:'Về báo cáo'}).click(); await page.getByRole('button',{name:'Giao diện',exact:true}).click(); await page.getByRole('menuitem',{name:'Sáng',exact:true}).click();
+  await page.getByRole('link',{name:'Tài liệu học tập',exact:true}).click(); await expect(page).toHaveURL(/materials\/\?classId=juniors-03$/); await expect(page.getByRole('tab',{name:'Thread',exact:true})).toHaveAttribute('aria-selected','true'); await page.getByRole('tab',{name:'Tài liệu',exact:true}).click(); await expect(page.getByText('Tài liệu PDF mẫu')).toBeVisible();
+  await page.getByRole('button',{name:'Xem / tải tài liệu',exact:true}).nth(1).click(); await expect(page.locator('audio')).toHaveAttribute('src',/^blob:/); await page.getByRole('button',{name:'Đóng',exact:true}).click();
+  await page.getByRole('link',{name:'← Về báo cáo'}).click(); await page.getByRole('button',{name:'Giao diện',exact:true}).click(); await page.getByRole('menuitem',{name:'Sáng',exact:true}).click();
   await page.setViewportSize({width:1440,height:1000}); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible(); await chart.scrollIntoViewIfNeeded(); await expect(chart.locator('.recharts-line-curve')).toHaveCount(7); await page.getByRole('heading',{name:'Thay đổi điểm theo từng kỹ năng qua các Unit'}).scrollIntoViewIfNeeded(); await expect(page.getByTestId('change-chart')).toHaveCount(8); await expect(page.getByTestId('change-chart').nth(1).locator('.recharts-label-list text')).toHaveText(['+20.0%', '0.0%']); await page.evaluate(() => window.scrollTo(0,0)); await page.screenshot({path:'test-results/desktop-light.png',fullPage:true});
 });
 });

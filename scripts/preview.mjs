@@ -4,7 +4,7 @@ import {stat} from 'node:fs/promises';
 import path from 'node:path';
 const base = (process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
 const root = path.resolve('out');
-const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain'};
+const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain'};
 http.createServer(async (req, res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); } catch { res.writeHead(400).end(); return; }

@@ -2,6 +2,7 @@ import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryEr
 import type { AuthState } from '../store/auth';
 import { loggedOut } from '../store/auth';
 import { expired } from '../auth/session';
+import { errorDetails } from './errors';
 import { resolveApiConfiguration } from './config';
 export type AppBaseQuery = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
 export function createAppBaseQuery(baseUrl?: string, timeout: string | number = 15000): AppBaseQuery {
@@ -27,3 +28,6 @@ export function createAppBaseQuery(baseUrl?: string, timeout: string | number = 
     return result;
   };
 }
+
+export {errorDetails} from "./errors";
+export function errorMessage(e: unknown) { return e instanceof Error ? e.message : errorDetails(e).message; }
