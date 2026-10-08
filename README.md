@@ -103,3 +103,5 @@ Header có “Hướng dẫn” cho đăng nhập, báo cáo và tài liệu: gi
 Nút −/100%/+ chọn 75/85/100/115/125%, lưu localStorage `ess.student.zoom`. Chỉ đổi hiển thị, không thay dữ liệu. Mỗi đường kỹ năng và biểu đồ chênh lệch có nút bật/tắt với aria-pressed, có hiện/ẩn tất cả; mặc định đủ 7 đường và 8 biểu đồ, bảng điểm/nhận xét luôn giữ nguyên. Báo cáo được cập nhật theo tín hiệu WebSocket của lớp; không có polling interval hoặc refetch định kỳ/focus. Kết nối lại replay signal theo cursor; thao tác tải lại/thử lại vẫn chủ động gọi API. Ứng dụng vẫn chỉ dùng API thật; fixtures giới hạn trong tests.
 
 Thread lớp, quyền tác giả và triển khai: [docs/class-thread-posts.md](docs/class-thread-posts.md).
+
+Thông báo học sinh, socket/cache, nhấn giữ reaction và thumbnail: [docs/student-notifications.md](docs/student-notifications.md).

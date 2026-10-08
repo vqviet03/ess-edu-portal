@@ -1,4 +1,13 @@
 import { api } from "./api";
+import {
+  notificationFilter,
+  mergeNotice,
+} from "@/features/materials/notification-state";
+const mutation = (url: string, body: unknown, method = "POST") => ({
+  url,
+  method,
+  body,
+});
 import type { Envelope } from "@/models";
 import type {
   CursorPage,
@@ -11,6 +20,7 @@ import type {
   UploadSettings,
   UploadTicket,
   Reaction,
+  Notification,
 } from "@/features/materials/models";
 import {
   putSigned,
@@ -19,6 +29,91 @@ import {
 const unwrap = <T>(r: Envelope<T>) => r.data;
 export const libraryApi = api.injectEndpoints({
   endpoints: (b) => ({
+    notifications: b.query<
+      CursorPage<Notification>,
+      { type?: string; isRead?: boolean; cursor?: string }
+    >({
+      query: (q) => ({ url: "/notifications", params: notificationFilter(q) }),
+      serializeQueryArgs: ({ queryArgs }) => notificationFilter(queryArgs),
+      keepUnusedDataFor: 86400,
+      transformResponse: unwrap<CursorPage<Notification>>,
+      providesTags: ["Notifications"],
+    }),
+    changeNotification: b.mutation<
+      Notification,
+      { id: string; version: number; isRead?: boolean; deleted?: boolean }
+    >({
+      query: ({ id, deleted, ...body }) =>
+        mutation(`/notifications/${id}`, body, deleted ? "DELETE" : "PATCH"),
+      transformResponse: unwrap<Notification>,
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const state = getState() as Parameters<
+            typeof libraryApi.util.selectCachedArgsForQuery
+          >[0];
+          const filters = libraryApi.util.selectCachedArgsForQuery(
+            state,
+            "notifications",
+          );
+          const previous = filters
+            .map((args) =>
+              libraryApi.endpoints.notifications
+                .select(args)(state)
+                .data?.items.find((n) => n.id === arg.id),
+            )
+            .find((n) => n !== undefined);
+          const delta = previous
+            ? arg.deleted
+              ? -Number(!previous.isRead)
+              : Number(!data.isRead) - Number(!previous.isRead)
+            : 0;
+          for (const args of filters) {
+            dispatch(
+              libraryApi.util.updateQueryData("notifications", args, (page) => {
+                const unread = page.unreadCount;
+                if (arg.deleted) {
+                  page.items = page.items.filter((n) => n.id !== arg.id);
+                } else mergeNotice(page, args, data);
+                if (unread !== undefined)
+                  page.unreadCount = Math.max(0, unread + delta);
+              }),
+            );
+          }
+        } catch {
+          /* Failed writes preserve cached notices and the user's form. */
+        }
+      },
+    }),
+    readNotifications: b.mutation<unknown, void>({
+      query: () => mutation("/notifications/read-all", {}),
+      async onQueryStarted(_, { dispatch, getState, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          const state = getState() as Parameters<
+            typeof libraryApi.util.selectCachedArgsForQuery
+          >[0];
+          for (const args of libraryApi.util.selectCachedArgsForQuery(
+            state,
+            "notifications",
+          )) {
+            dispatch(
+              libraryApi.util.updateQueryData("notifications", args, (page) => {
+                page.unreadCount = 0;
+                for (const notice of page.items)
+                  if (!notice.isRead) {
+                    notice.isRead = true;
+                    notice.version++;
+                  }
+                if (args.isRead === false) page.items = [];
+              }),
+            );
+          }
+        } catch {
+          /* Keep unread state if the server rejects the action. */
+        }
+      },
+    }),
     threads: b.query<
       CursorPage<Post>,
       {
@@ -39,6 +134,12 @@ export const libraryApi = api.injectEndpoints({
       }),
       transformResponse: unwrap<CursorPage<Post>>,
       providesTags: (_, __, q) => [{ type: "Threads", id: q.classId }],
+    }),
+    post: b.query<Post, string>({
+      query: (id) => `/posts/${id}`,
+      transformResponse: unwrap<Post>,
+      providesTags: (post) =>
+        post ? [{ type: "Threads", id: post.classId }] : ["Threads"],
     }),
     threadSessions: b.query<{ items: ThreadSession[] }, string>({
       query: (id) => `/classes/${id}/thread-sessions`,
@@ -63,16 +164,17 @@ export const libraryApi = api.injectEndpoints({
       }>,
       providesTags: ["Contacts"],
     }),
-    comments: b.query<CursorPage<Comment>, { postId: string; cursor?: string }>(
-      {
-        query: (q) => ({
-          url: `/posts/${q.postId}/comments`,
-          params: { cursor: q.cursor },
-        }),
-        transformResponse: unwrap<CursorPage<Comment>>,
-        providesTags: (_, __, q) => [{ type: "Comments", id: q.postId }],
-      },
-    ),
+    comments: b.query<
+      CursorPage<Comment>,
+      { postId: string; cursor?: string; around?: string }
+    >({
+      query: (q) => ({
+        url: `/posts/${q.postId}/comments`,
+        params: { cursor: q.cursor, around: q.around },
+      }),
+      transformResponse: unwrap<CursorPage<Comment>>,
+      providesTags: (_, __, q) => [{ type: "Comments", id: q.postId }],
+    }),
     saveComment: b.mutation<
       Comment,
       {
@@ -244,7 +346,11 @@ export const libraryApi = api.injectEndpoints({
   }),
 });
 export const {
+  useNotificationsQuery,
+  useChangeNotificationMutation,
+  useReadNotificationsMutation,
   useThreadsQuery,
+  usePostQuery,
   useThreadSessionsQuery,
   usePostsQuery,
   useContactsQuery,

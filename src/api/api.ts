@@ -11,7 +11,7 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
   refetchOnMountOrArgChange: false,
   refetchOnFocus: false,
   refetchOnReconnect: false,
-  tagTypes: ['Classes', 'Report', 'Units', 'Progress', 'Materials', 'Threads', 'Comments', 'Contacts'],
+  tagTypes: ['Classes', 'Report', 'Units', 'Progress', 'Materials', 'Threads', 'Comments', 'Contacts', 'Notifications'],
   endpoints: build => ({
     login: build.mutation<AuthSession, {studentId: string; password: string}>({ query: body => ({url: '/auth/login', method: 'POST', body}), transformResponse: unwrap<AuthSession> }),
     exchange: build.mutation<AuthSession, {code: string}>({ query: body => ({url: '/auth/exchange', method: 'POST', body}), transformResponse: unwrap<AuthSession> }),

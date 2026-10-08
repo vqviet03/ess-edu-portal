@@ -3,6 +3,13 @@ import { createContext, Suspense, useContext, useEffect, useState, type ReactNod
 import { usePathname, useSearchParams } from "next/navigation";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import Remove from "@mui/icons-material/Remove";
+import Add from "@mui/icons-material/Add";
+import RestartAlt from "@mui/icons-material/RestartAlt";
+import HelpOutlined from "@mui/icons-material/HelpOutlined";
+import ChevronRight from "@mui/icons-material/ChevronRight";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -19,10 +26,10 @@ export const useAppDisplay = () => useContext(Display);
 export function DisplayTools() {
   const display = useAppDisplay(), index = (zoomLevels as readonly number[]).indexOf(display.zoom);
   return <Stack direction="row" useFlexGap sx={{ alignItems: "center", flexWrap: "wrap", gap: .5 }} aria-label="Hướng dẫn và kích thước giao diện">
-    <Button variant="outlined" aria-label="Thu nhỏ giao diện" disabled={index === 0} onClick={() => display.setZoom(zoomLevels[index - 1])}>−</Button>
-    <Button aria-label="Đặt lại kích thước 100%" onClick={() => display.setZoom(100)}>{display.zoom}%</Button>
-    <Button variant="outlined" aria-label="Phóng to giao diện" disabled={index === zoomLevels.length - 1} onClick={() => display.setZoom(zoomLevels[index + 1])}>+</Button>
-    <Button variant={display.open ? "contained" : "outlined"} aria-controls="page-guide" aria-expanded={display.open} onClick={display.toggle}>{display.open ? "Ẩn hướng dẫn" : "Hướng dẫn"}</Button>
+    <Tooltip title="Thu nhỏ giao diện"><span><IconButton aria-label="Thu nhỏ giao diện" disabled={index === 0} onClick={() => display.setZoom(zoomLevels[index - 1])}><Remove fontSize="small"/></IconButton></span></Tooltip>
+    <Typography variant="caption">{display.zoom}%</Typography><Tooltip title="Đặt lại kích thước 100%"><IconButton aria-label="Đặt lại kích thước 100%" onClick={() => display.setZoom(100)}><RestartAlt fontSize="small"/></IconButton></Tooltip>
+    <Tooltip title="Phóng to giao diện"><span><IconButton aria-label="Phóng to giao diện" disabled={index === zoomLevels.length - 1} onClick={() => display.setZoom(zoomLevels[index + 1])}><Add fontSize="small"/></IconButton></span></Tooltip>
+    <Tooltip title={display.open ? "Ẩn hướng dẫn" : "Hướng dẫn"}><IconButton aria-label={display.open ? "Ẩn hướng dẫn" : "Hướng dẫn"} aria-controls="page-guide" aria-expanded={display.open} onClick={display.toggle}>{display.open?<ChevronRight fontSize="small"/>:<HelpOutlined fontSize="small"/>}</IconButton></Tooltip>
   </Stack>;
 }
 export function AppScale({ children }: { children: ReactNode }) {

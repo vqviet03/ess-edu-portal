@@ -14,10 +14,19 @@ export function realtimeTags(
           { type: "Units", id: classId },
         ]
       : ["Classes", "Report", "Progress", "Units"];
+  if (noticeType === "SCORE")
+    return classId
+      ? [
+          { type: "Report", id: classId },
+          { type: "Progress", id: classId },
+          { type: "Units", id: classId },
+        ]
+      : ["Report", "Progress", "Units"];
   const threads = classId
     ? { type: "Threads" as const, id: classId }
     : ("Threads" as const);
-  if (noticeType === "SOCIAL") return [threads, "Comments"];
+  if (noticeType === "SOCIAL" || noticeType === "REPLY")
+    return [threads, "Comments"];
   return [
     threads,
     "Comments",

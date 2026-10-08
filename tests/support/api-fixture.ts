@@ -1,8 +1,9 @@
-import type { Page } from "@playwright/test";
+import type { Page, WebSocketRoute } from "@playwright/test";
 import type {
   Comment,
   MaterialFile,
   Post,
+  Notification,
 } from "../../src/features/materials/models";
 import {
   classes,
@@ -16,7 +17,10 @@ import {
 import { resolveApiConfiguration } from "../../src/api/config";
 
 // Only the test runner imports this. Browser code always sends HTTP requests.
-export async function installApiFixture(page: Page) {
+export async function installApiFixture(
+  page: Page,
+  options: { images?: boolean } = {},
+) {
   const { baseUrl } = resolveApiConfiguration(
     process.env.NEXT_PUBLIC_API_BASE_URL,
   );
@@ -72,6 +76,34 @@ export async function installApiFixture(page: Page) {
     commentCount: 0,
   };
   const comments: Comment[] = [];
+  if (options.images) {
+    files[0].thumbnailUrl = "/protected-thumbnail";
+    files[0].mimeType = "image/png";
+    comments.push({
+      id: "image-comment",
+      postId: thread.id,
+      parentId: null,
+      authorId: student.id,
+      authorName: student.fullName,
+      body: "Ảnh bình luận",
+      version: 1,
+      createdAt: new Date().toISOString(),
+      attachments: [files[0]],
+    });
+    thread.commentCount = comments.length;
+  }
+  const notices: Notification[] = [],
+    sockets = new Set<WebSocketRoute>();
+  const snapshot = () => ({
+    type: "NOTIFICATIONS",
+    data: {
+      items: notices.filter((n) => !deleted.has(n.id)),
+      nextCursor: null,
+      unreadCount: notices.filter((n) => !n.isRead && !deleted.has(n.id))
+        .length,
+    },
+  });
+  const deleted = new Set<string>();
 
   const issue = (id: string) => {
     const expiresAt = new Date(Date.now() + 3600000).toISOString();
@@ -87,9 +119,12 @@ export async function installApiFixture(page: Page) {
   await page.routeWebSocket(
     `${baseUrl.replace(/^https:/, "wss:").replace(/^http:/, "ws:")}/events/ws`,
     (socket) => {
-      socket.onMessage(() =>
-        socket.send(JSON.stringify({ type: "READY", cursor: "0" })),
-      );
+      sockets.add(socket);
+      socket.onMessage(() => {
+        socket.send(JSON.stringify({ type: "READY", cursor: "0" }));
+        socket.send(JSON.stringify(snapshot()));
+      });
+      socket.onClose(() => sockets.delete(socket));
     },
   );
   await page.route(`${baseUrl}/**`, async (route) => {
@@ -148,6 +183,47 @@ export async function installApiFixture(page: Page) {
       sessions.delete(token);
       return send({ data: { loggedOut: true } });
     }
+    if (url === "/notifications/read-all") {
+      for (const n of notices) {
+        if (!n.isRead) {
+          n.isRead = true;
+          n.version++;
+        }
+      }
+      return send({ data: { read: true } });
+    }
+    if (url === "/notifications") {
+      const params = new URL(req.url()).searchParams;
+      return send({
+        data: {
+          items: notices.filter(
+            (n) =>
+              !deleted.has(n.id) &&
+              (!params.get("type") || n.type === params.get("type")) &&
+              (!params.has("isRead") ||
+                n.isRead === (params.get("isRead") === "true")),
+          ),
+          nextCursor: null,
+          unreadCount: notices.filter((n) => !n.isRead && !deleted.has(n.id))
+            .length,
+        },
+      });
+    }
+    if (url.startsWith("/notifications/")) {
+      const n = notices.find((n) => n.id === url.split("/").at(-1));
+      if (!n) return fail(404, "NOT_FOUND", "Không tìm thấy");
+      const body = req.postDataJSON();
+      if (body.version !== n.version)
+        return fail(409, "CONFLICT", "Dữ liệu đã thay đổi");
+      if (req.method() === "DELETE") {
+        deleted.add(n.id);
+        return send({ data: { deleted: true } });
+      }
+      n.isRead = body.isRead;
+      n.version++;
+      return send({ data: n });
+    }
+    if (url === "/posts/post-one") return send({ data: thread });
     if (url === "/me") return send({ data: { ...student, studentCode: id } });
     if (id === "HVFORBIDDEN")
       return fail(403, "FORBIDDEN", "Bạn không có quyền truy cập dữ liệu này.");
@@ -307,6 +383,19 @@ export async function installApiFixture(page: Page) {
         body: wav,
       });
     }
+    if (
+      url.match(/^\/materials\/[^/]+\/content$/) &&
+      new URL(req.url()).searchParams.get("purpose") === "thumbnail"
+    )
+      return route.fulfill({
+        status: 200,
+        headers,
+        contentType: "image/png",
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jvL0AAAAASUVORK5CYII=",
+          "base64",
+        ),
+      });
     if (url.match(/^\/materials\/[^/]+\/content$/))
       return route.fulfill({
         status: 200,
@@ -345,4 +434,13 @@ export async function installApiFixture(page: Page) {
       });
     return fail(404, "NOT_FOUND", "Chưa có báo cáo.");
   });
+  return {
+    notify(n: Notification) {
+      const at = notices.findIndex((old) => old.id === n.id);
+      if (at < 0) notices.unshift({ ...n });
+      else notices[at] = { ...n };
+      for (const socket of sockets)
+        socket.send(JSON.stringify({ type: "NOTIFICATION", data: n }));
+    },
+  };
 }

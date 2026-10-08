@@ -1,10 +1,10 @@
 "use client";
 import { Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import NextLink from "next/link";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
-import { Button, MenuItem, TextField, Typography } from "@/components/ui";
+import { MenuItem, TextField, Typography } from "@/components/ui";
 import { Feedback } from "@/components/feedback";
 import { useClassesQuery } from "@/api/api";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -12,12 +12,16 @@ import { chooseClass } from "@/store/auth";
 import { selectClass } from "@/models/report";
 import { TeacherContacts } from "@/features/materials/contacts";
 import { ClassTabs } from "@/features/materials/class-tabs";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import FolderOutlined from "@mui/icons-material/FolderOutlined";
 function HomeContent() {
   const auth = useAppSelector((s) => s.auth),
     dispatch = useAppDispatch(),
     classes = useClassesQuery(),
-    classroom = selectClass(classes.currentData ?? [], auth.classId),
-    params = useSearchParams();
+    params = useSearchParams(), router = useRouter(),
+    requestedClass = classes.currentData?.find(c=>c.id===params.get("classId")),
+    classroom = requestedClass ?? selectClass(classes.currentData ?? [], auth.classId);
   useEffect(() => {
     if (classroom && auth.classId !== classroom.id)
       dispatch(chooseClass(classroom.id));
@@ -45,7 +49,7 @@ function HomeContent() {
             label="Lớp học"
             fullWidth
             value={classroom.id}
-            onChange={(e) => dispatch(chooseClass(e.target.value))}
+            onChange={(e) => {dispatch(chooseClass(e.target.value));router.replace(`/home/?classId=${encodeURIComponent(e.target.value)}&tab=${params.get("tab") ?? "thread"}`);}}
             sx={{ maxWidth: { md: 480 }, mb: 2 }}
           >
             {classes.currentData?.map((c) => (
@@ -55,15 +59,10 @@ function HomeContent() {
               </MenuItem>
             ))}
           </TextField>
-          <Button
-            component={NextLink}
-            href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}
-          >
-            Tài liệu học tập
-          </Button>
+          <Tooltip title="Tài liệu học tập"><IconButton component={NextLink} aria-label="Tài liệu học tập" href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}><FolderOutlined fontSize="small"/></IconButton></Tooltip>
           <TeacherContacts classId={classroom.id} />
           <ClassTabs
-            key={classroom.id}
+            key={`${classroom.id}:${params.get("tab") ?? "thread"}:${params.get("unitId") ?? ""}`}
             classId={classroom.id}
             initialTab={params.get("tab") ?? "thread"}
           />

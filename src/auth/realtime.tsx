@@ -1,5 +1,10 @@
 "use client";
 import { useEffect } from "react";
+import type { Notification } from "@/features/materials/models";
+import {
+  noticeReceived,
+  noticeSnapshotReceived,
+} from "@/features/materials/notification-state";
 import { realtimeTags } from "@/api/realtime-tags";
 import { api } from "@/api/api";
 import { apiConfiguration } from "@/api/config";
@@ -11,11 +16,18 @@ type Signal = {
   version?: number;
   href?: string;
   operationId?: string;
+  title?: string;
+  isRead?: boolean;
+  createdAt?: string;
 };
 type Frame = {
   type: string;
   cursor?: string;
-  data?: Signal & { items?: Signal[] };
+  data?: Signal & {
+    items?: Notification[];
+    nextCursor?: string | null;
+    unreadCount?: number;
+  };
 };
 export function StudentRealtime() {
   const dispatch = useAppDispatch();
@@ -80,20 +92,42 @@ export function StudentRealtime() {
             (frame.type === "NOTIFICATION" ||
               frame.type === "RESOURCE_CHANGED") &&
             frame.data
-          )
-            refresh(
-              frame.data,
-              frame.type as "NOTIFICATION" | "RESOURCE_CHANGED",
-            );
-          if (frame.type === "NOTIFICATIONS") {
-            const changed = (frame.data?.items ?? []).some(
-              (item) => item.id && notices.get(item.id) !== (item.version ?? 1),
-            );
-            for (const item of frame.data?.items ?? [])
+          ) {
+            const item = frame.data;
+            if (frame.type === "NOTIFICATION") {
+              const isNew = !item.id || !notices.has(item.id);
+              if (
+                item.id &&
+                item.title &&
+                item.createdAt &&
+                item.type &&
+                typeof item.isRead === "boolean" &&
+                typeof item.version === "number" &&
+                (notices.get(item.id) ?? 0) < item.version
+              ) {
+                dispatch(noticeReceived(item as Notification));
+              }
               if (item.id) notices.set(item.id, item.version ?? 1);
-            if (receivedSnapshot && changed) refresh({});
+              if (isNew) refresh(item, "NOTIFICATION");
+            } else refresh(item, "RESOURCE_CHANGED");
+          }
+          if (frame.type === "NOTIFICATIONS") {
+            const items = frame.data?.items ?? [];
+            dispatch(
+              noticeSnapshotReceived({
+                items,
+                nextCursor: frame.data?.nextCursor ?? null,
+                unreadCount: frame.data?.unreadCount ?? 0,
+              }),
+            );
+            for (const item of items) {
+              if (receivedSnapshot && !notices.has(item.id)) refresh(item);
+              notices.set(item.id, item.version);
+            }
             receivedSnapshot = true;
           }
+          while (notices.size > 1024)
+            notices.delete(notices.keys().next().value!);
         } catch {
           /* Ignore malformed frames; never log auth or private data. */
         }
