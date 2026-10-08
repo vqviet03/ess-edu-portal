@@ -30,9 +30,14 @@ export default function Providers({children}: {children: React.ReactNode}) {
     shape: {borderRadius: 14},
     components: {
       MuiPaper: {defaultProps: {elevation: 0}, styleOverrides: {root: {backgroundImage: 'none'}}},
-      MuiButton: {defaultProps: {disableElevation: true}, styleOverrides: {root: {minHeight: 44}}},
-      MuiIconButton: {styleOverrides: {root: {minWidth: 44, minHeight: 44}}},
-      MuiMenuItem: {styleOverrides: {root: {minHeight: 44}}},
+      MuiButton: {defaultProps: {disableElevation: true, size: 'small'}, styleOverrides: {root: {'@media (pointer: coarse)': {minHeight: 44}}}},
+      MuiIconButton: {defaultProps:{size:'small'},styleOverrides:{root:{'@media (pointer: coarse)':{minWidth:44,minHeight:44}}}},
+      MuiTextField: {defaultProps:{size:'small'}},
+      MuiFormControl: {defaultProps:{size:'small'}},
+      MuiInputBase: {defaultProps:{size:'small'}},
+      MuiSelect: {defaultProps:{size:'small'}},
+      MuiChip: {defaultProps:{size:'small'}},
+      MuiMenuItem: {styleOverrides: {root: {'@media (pointer: coarse)': {minHeight: 44}}}},
       MuiTab: {styleOverrides: {root: {minHeight: 48, textTransform: 'none', fontSize: '0.9375rem', fontWeight: 600}}},
     },
   }), [mode]);

@@ -1,8 +1,7 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import InputBase from "@mui/material/InputBase";
@@ -24,6 +23,11 @@ import { Feedback } from "@/shared/ui";
 import { useUnsaved } from "@/shared/unsaved";
 import type { Comment, MaterialFile, Post } from "./models";
 import { initials } from "./post-surface";
+import { CommentAttachment } from "./comment-attachment";
+import { IconAction } from "@/shared/icon-action";
+import Reply from "@mui/icons-material/Reply";
+import FirstPage from "@mui/icons-material/FirstPage";
+import ArrowForward from "@mui/icons-material/ArrowForward";
 import { MaterialViewer } from "./viewer";
 import { UploadDialog } from "./upload";
 
@@ -31,17 +35,22 @@ export function Comments({
   post,
   expanded,
   expand,
+  targetComment,
 }: {
   post: Post;
   expanded: boolean;
   expand: () => void;
+  targetComment?: string;
 }) {
   const student = useAppSelector((s) => s.auth.student),
     me = student
       ? { id: student.id, name: student.fullName, roles: [] as string[] }
       : null,
     [cursor, setCursor] = useState<string>(),
-    query = useCommentsQuery({ postId: post.id, cursor }, { skip: !expanded }),
+    query = useCommentsQuery(
+      { postId: post.id, cursor, around: cursor ? undefined : targetComment },
+      { skip: !expanded },
+    ),
     [body, setBody] = useState(""),
     [upload, setUpload] = useState(false),
     [attachments, setAttachments] = useState<MaterialFile[]>([]),
@@ -58,6 +67,19 @@ export function Comments({
     [remove] = useRemoveCommentMutation(),
     [error, setError] = useState<unknown>();
   const input = useRef<HTMLTextAreaElement>(null);
+  const scrolled = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      targetComment &&
+      query.currentData?.items.some((c) => c.id === targetComment) &&
+      scrolled.current !== targetComment
+    ) {
+      document
+        .getElementById(`comment-${targetComment}`)
+        ?.scrollIntoView({ block: "center" });
+      scrolled.current = targetComment;
+    }
+  }, [targetComment, query.currentData]);
   useUnsaved(!!body.trim() || attachments.length > 0);
   async function submit() {
     if (state.isLoading || (!body.trim() && !attachments.length)) return;
@@ -105,6 +127,7 @@ export function Comments({
                 direction="row"
                 spacing={1}
                 data-testid="post-comment"
+                id={`comment-${c.id}`}
                 sx={{
                   ml: c.parentId ? { xs: 1, sm: 4 } : 0,
                   alignItems: "flex-start",
@@ -116,6 +139,10 @@ export function Comments({
                     flex: 1,
                     minWidth: 0,
                     bgcolor: "var(--post-soft)",
+                    outline:
+                      c.id === targetComment
+                        ? "2px solid var(--post-green)"
+                        : undefined,
                     borderRadius: "16px",
                     p: 1.5,
                   }}
@@ -138,21 +165,25 @@ export function Comments({
                     </Typography>
                     {(c.authorId === me?.id ||
                       me?.roles?.includes("MANAGER")) && (
-                      <IconButton
-                        aria-label={`Thao tác bình luận của ${c.authorName}`}
-                        disabled={c.version === 0}
-                        onClick={(e) =>
-                          setMenu({ anchor: e.currentTarget, comment: c })
-                        }
-                        sx={{
-                          color: "var(--post-muted)",
-                          width: 44,
-                          height: 44,
-                          my: -1,
-                        }}
-                      >
-                        <MoreHoriz fontSize="small" />
-                      </IconButton>
+                      <Tooltip title="Thao tác bình luận">
+                        <span>
+                          <IconButton
+                            aria-label={`Thao tác bình luận của ${c.authorName}`}
+                            disabled={c.version === 0}
+                            onClick={(e) =>
+                              setMenu({ anchor: e.currentTarget, comment: c })
+                            }
+                            sx={{
+                              color: "var(--post-muted)",
+                              width: 32,
+                              height: 32,
+                              my: -1,
+                            }}
+                          >
+                            <MoreHoriz fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     )}
                   </Stack>
                   {c.parentId && (
@@ -173,22 +204,23 @@ export function Comments({
                   >
                     {c.body}
                   </Typography>
-                  {c.attachments?.map((file) => (
-                    <Button
-                      key={file.id}
-                      startIcon={<AttachFile fontSize="small" />}
-                      onClick={() => setPreview(file)}
-                      sx={{
-                        minHeight: 44,
-                        maxWidth: "100%",
-                        justifyContent: "flex-start",
-                        color: "var(--post-green)",
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      {file.displayName}
-                    </Button>
-                  ))}
+                  <Stack
+                    direction="row"
+                    useFlexGap
+                    sx={{
+                      gap: 1,
+                      flexWrap: "wrap",
+                      mt: c.attachments?.length ? 1 : 0,
+                    }}
+                  >
+                    {c.attachments?.map((file) => (
+                      <CommentAttachment
+                        key={file.id}
+                        file={file}
+                        preview={setPreview}
+                      />
+                    ))}
+                  </Stack>
                   <Stack
                     direction="row"
                     sx={{ alignItems: "center", flexWrap: "wrap", gap: 1 }}
@@ -200,23 +232,16 @@ export function Comments({
                     >
                       {new Date(c.createdAt).toLocaleString("vi-VN")}
                     </Typography>
-                    <Button
+                    <IconAction
+                      label="Trả lời"
+                      icon={<Reply fontSize="small" />}
                       disabled={c.version === 0}
                       onClick={() => {
                         setParent(c.id);
                         setEditing(null);
                         input.current?.focus();
                       }}
-                      sx={{
-                        minHeight: 44,
-                        p: 0,
-                        minWidth: 0,
-                        fontSize: 11,
-                        color: "var(--post-muted)",
-                      }}
-                    >
-                      Trả lời
-                    </Button>
+                    />
                     {c.version === 0 && (
                       <Typography variant="caption">Đang gửi…</Typography>
                     )}
@@ -228,18 +253,20 @@ export function Comments({
           {(cursor || query.currentData?.nextCursor) && (
             <Stack direction="row">
               {cursor && (
-                <Button onClick={() => setCursor(undefined)}>
-                  Bình luận đầu
-                </Button>
+                <IconAction
+                  label="Bình luận đầu"
+                  icon={<FirstPage fontSize="small" />}
+                  onClick={() => setCursor(undefined)}
+                />
               )}
               {query.currentData?.nextCursor && (
-                <Button
+                <IconAction
+                  label="Bình luận tiếp theo"
+                  icon={<ArrowForward fontSize="small" />}
                   onClick={() =>
                     setCursor(query.currentData?.nextCursor ?? undefined)
                   }
-                >
-                  Bình luận tiếp theo
-                </Button>
+                />
               )}
             </Stack>
           )}
@@ -248,6 +275,7 @@ export function Comments({
       <Feedback error={error} />
       {(parent || editing) && (
         <Chip
+          size="small"
           label={editing ? "Đang sửa bình luận" : "Đang trả lời"}
           onDelete={() => {
             setParent(undefined);
@@ -263,6 +291,7 @@ export function Comments({
         <Stack direction="row" useFlexGap sx={{ flexWrap: "wrap", gap: 1 }}>
           {attachments.map((file) => (
             <Chip
+              size="small"
               key={file.id}
               label={file.displayName}
               sx={{ maxWidth: "100%" }}
@@ -300,6 +329,7 @@ export function Comments({
           }}
         >
           <InputBase
+            size="small"
             multiline
             maxRows={6}
             inputRef={input}
@@ -326,7 +356,7 @@ export function Comments({
               aria-label="Đính kèm ảnh / file / audio / video"
               disabled={state.isLoading}
               onClick={() => setUpload(true)}
-              sx={{ color: "var(--post-muted)", width: 44, height: 44 }}
+              sx={{ color: "var(--post-muted)", width: 32, height: 32 }}
             >
               <AttachFile fontSize="small" />
             </IconButton>
@@ -340,8 +370,8 @@ export function Comments({
                   (!body.trim() && !attachments.length) || state.isLoading
                 }
                 sx={{
-                  width: 44,
-                  height: 44,
+                  width: 32,
+                  height: 32,
                   bgcolor: "var(--post-green)",
                   color: "var(--post-surface)",
                   "&:hover": { bgcolor: "var(--post-green)", opacity: 0.85 },

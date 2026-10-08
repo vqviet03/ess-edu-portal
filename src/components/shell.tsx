@@ -4,9 +4,13 @@ import { useStore } from 'react-redux';
 import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
-import { Box, Button, Container, MenuItem, Stack, Typography } from './ui';
+import { Box, Container, MenuItem, Stack, Typography } from './ui';
 import { AppScale, DisplayTools, GuideLayout, useAppDisplay } from '@/features/help/display';
 import Brand from './brand';
+import { NotificationBell } from '@/features/notifications/bell';
+import Tooltip from '@mui/material/Tooltip';
+import Language from '@mui/icons-material/Language';
+import BrightnessAuto from '@mui/icons-material/BrightnessAuto';
 import { useAppearance } from './providers';
 import { type RootState, useAppDispatch, useAppSelector } from '@/store';
 import { loggedOut } from '@/store/auth';
@@ -29,9 +33,9 @@ export default function Shell({children}: {children: React.ReactNode}) {
     <Stack component="header" direction="row" sx={{alignItems: 'center', justifyContent: 'space-between', py: 2.5, gap: 1, flexWrap: 'wrap'}}>
       <Brand/>
       <Stack direction="row" sx={{alignItems: 'center', flexWrap: 'wrap'}}><DisplayTools/>
-        <Button aria-label="Ngôn ngữ" color="inherit" sx={{minWidth: 44}} onClick={e => setMenu({kind: 'language', anchor: e.currentTarget})}>VI</Button>
-        <IconButton aria-label="Giao diện" onClick={e => setMenu({kind: 'theme', anchor: e.currentTarget})}><Box component="span" aria-hidden sx={{fontSize: 25}}>☼</Box></IconButton>
-        {student && <IconButton aria-label="Tài khoản" disabled={logoutState.isLoading} onClick={e => setMenu({kind: 'profile', anchor: e.currentTarget})}><Avatar sx={{width: 30, height: 30, fontSize: 13, bgcolor: 'action.selected', color: 'primary.main'}}>{student.fullName.split(' ').filter(Boolean).slice(-2).map(name => name[0]).join('')}</Avatar></IconButton>}
+        <Tooltip title="Ngôn ngữ"><IconButton aria-label="Ngôn ngữ" onClick={e => setMenu({kind: 'language', anchor: e.currentTarget})}><Language fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Giao diện"><IconButton aria-label="Giao diện" onClick={e => setMenu({kind: 'theme', anchor: e.currentTarget})}><BrightnessAuto fontSize="small" /></IconButton></Tooltip>{student && <NotificationBell/>}
+        {student && <Tooltip title="Tài khoản"><IconButton aria-label="Tài khoản" disabled={logoutState.isLoading} onClick={e => setMenu({kind: 'profile', anchor: e.currentTarget})}><Avatar sx={{width: 30, height: 30, fontSize: 13, bgcolor: 'action.selected', color: 'primary.main'}}>{student.fullName.split(' ').filter(Boolean).slice(-2).map(name => name[0]).join('')}</Avatar></IconButton></Tooltip>}
       </Stack>
     </Stack>
     <Menu anchorEl={menu?.anchor} open={!!menu} onClose={() => setMenu(null)}>

@@ -82,22 +82,20 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     page.getByText("Lớp chưa có thread được công bố.", { exact: true }),
   ).toBeVisible();
   await page.getByRole("tab", { name: "Thread", exact: true }).click();
-  await post.getByRole("button", { name: "Yêu thích", exact: true }).click();
+  await post.getByRole("button", { name: "Thích", exact: true }).click();
   await expect(
-    post.getByRole("button", { name: "Yêu thích", exact: true }),
+    post.getByRole("button", { name: "Thích", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(
-    post.getByRole("button", { name: "Yêu thích", exact: true }),
+    post.getByRole("button", { name: "Thích", exact: true }),
   ).toHaveText("");
   const iconShapes = new Set<string | null>();
   for (const [label, color] of [
-    ["Thích", "rgb(83, 151, 229)"],
     ["Tuyệt vời", "rgb(214, 155, 36)"],
+    ["Thích", "rgb(83, 151, 229)"],
     ["Yêu thích", "rgb(231, 106, 145)"],
   ]) {
-    await post
-      .getByRole("button", { name: "Chọn tương tác", exact: true })
-      .click();
+    await post.locator('button[aria-haspopup="menu"][aria-pressed]').press("ArrowDown");
     await page
       .getByRole("menuitem", { name: `Chọn ${label}`, exact: true })
       .click();
