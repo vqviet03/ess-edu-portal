@@ -1,5 +1,7 @@
 # Hợp đồng API ESS v1
 
+Thread/file authentication bổ sung: [thread-materials.md](thread-materials.md). Binary file access bắt buộc Bearer; không dùng public/signed GET nữa.
+
 Base URL: NEXT_PUBLIC_API_BASE_URL, ví dụ https://api.example.com/v1. Tất cả ID là string, ngày giờ là ISO 8601. Giá trị chưa có là null; danh sách rỗng là items: []. Response thành công có data; lỗi có error. Content-Type và Accept: application/json.
 
 ## Xác thực
@@ -314,7 +316,7 @@ Không cần body. Response
 ```json
 {
   "data": {
-    "url": "https://cdn.example.com/file.pdf?signature=<opaque-signature>",
+    "url": "https://api.example.com/v1/materials/<uuid>/content?purpose=preview",
     "expiresAt": "2026-10-03T10:05:00Z"
   }
 }
@@ -349,12 +351,12 @@ Response lỗi chuẩn:
 
 Mỗi lỗi dùng cùng envelope error với code và thông báo phù hợp tiếng Việt; fieldErrors tùy chọn. Frontend có timeout cấu hình bằng NEXT_PUBLIC_API_TIMEOUT_MS (mặc định 15s), loading/empty/error và retry cho query; không tự phát lại mutation exchange/access.
 
-## Tài liệu có thời hạn
+## Tài liệu qua application được xác thực
 
-Endpoint access kiểm tra học sinh thuộc lớp và có quyền với materialId rồi trả URL HTTPS có thời hạn. Không đính kèm JWT vào URL. CDN/backend phải thực thi expiry, quyền đối tượng và Content-Type; frontend kiểm tra scheme/expiry, có trình phát audio/video và link mở tab mới. Cho phép range requests với media và CORS/CDN phù hợp nếu cần. Không cache response cấp URL tại proxy công khai (Cache-Control: no-store).
+Endpoint access tương thích trả URL application; preview/download/thumbnail gọi `/materials/{id}/content` với Bearer JWT. Backend kiểm tra quyền lớp/enrollment ACTIVE ở mỗi request; không dùng signed GET/public storage URL, không đặt JWT trong URL. Frontend lấy Blob bằng RTK Query và thu hồi object URL khi đóng/reset cache. Quyền không còn hợp lệ trả 401/403; legacy public file trả 410 để upload lại vào kho private. Chi tiết [thread-materials.md](thread-materials.md).
 
 ## CORS, HTTPS và vận hành
 
-Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.github.io (không có /ess-edu-portal); thêm đúng origin custom domain nếu dùng. Cho phép GET, POST, OPTIONS và headers Authorization, Content-Type, Accept; xử lý preflight OPTIONS. Dev thêm http://localhost:3000. Không dùng wildcard để thay kiểm tra quyền; ứng dụng dùng Bearer, không yêu cầu credential cookie cross-site.
+Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.github.io (không có /ess-edu-portal); thêm đúng origin custom domain nếu dùng. Cho phép GET, POST, PUT, PATCH, DELETE, OPTIONS và headers Authorization, Content-Type, Accept; xử lý preflight OPTIONS. Dev thêm http://localhost:3000. Không dùng wildcard để thay kiểm tra quyền; ứng dụng dùng Bearer, không yêu cầu credential cookie cross-site.
 
 Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Frontend chỉ gọi backend qua RTK Query/fetchBaseQuery; cấu hình NEXT_PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai; lỗi hoặc dữ liệu rỗng từ backend được hiển thị trực tiếp, không tạo dữ liệu thay thế. Biến NEXT_PUBLIC_* công khai, không chứa secret.

@@ -1,5 +1,6 @@
 # ESS · Báo cáo học tập
 
+[Thread, đính kèm bình luận, file private và rollout](docs/thread-materials.md): mặc định tab Thread cho học sinh; liên hệ giảng viên; routing upload theo storage; migration Materials `005_materials.sql` trước triển khai frontend.
 Next.js App Router + TypeScript strict + MUI + Redux Toolkit/RTK Query. Static export cho GitHub Pages; giao diện Sáng/Tối/Theo hệ thống, ưu tiên mobile. Recharts tải khi biểu đồ đi vào vùng nhìn.
 
 ## Chạy với backend thật
@@ -36,7 +37,7 @@ Có thể dùng URL gốc `https://<cloud-run-host>`; frontend tự thêm `/v1`.
 
 Mọi request được bảo vệ gửi `Authorization: Bearer <accessToken>`. Logout gọi `POST /auth/logout` thu hồi phiên trên backend, sau đó xóa session, cache và lựa chọn lớp/Unit; nếu mạng lỗi vẫn xóa phiên tại trình duyệt. 401/expiry xóa phiên; 403 giữ phiên và hiện lỗi. Không tự retry mutation hoặc refresh token. Phiên lưu được gắn với URL backend; token sai cấu trúc hoặc hết hạn bị loại bỏ. Reload khôi phục phiên rồi xác minh `/me`; kiểm tra `exp` ở client không xác minh chữ ký JWT. Backend phải xác thực và phân quyền mọi endpoint; route guard chỉ phục vụ giao diện.
 
-Tài liệu lấy theo lớp và xin URL HTTPS có thời hạn qua endpoint access, không gắn JWT vào link. Backend cần CORS cho origin `https://vqviet03.github.io` (không thêm đường dẫn repo), và `http://localhost:3000` khi phát triển. Chi tiết request/response: [docs/api-contract.md](docs/api-contract.md).
+Thread và tài liệu lấy theo lớp. Mỗi preview/download/thumbnail gọi API có Bearer JWT; trình duyệt chỉ mở Blob nội bộ, không nhận signed GET/public storage URL. Backend cần CORS cho origin `https://vqviet03.github.io` (không thêm đường dẫn repo), và `http://localhost:3000` khi phát triển. Chi tiết request/response: [docs/api-contract.md](docs/api-contract.md).
 
 ## Build và kiểm tra
 
@@ -99,4 +100,4 @@ Workflow lấy base path từ `actions/configure-pages`: project Pages dùng `/<
 
 Header có “Hướng dẫn” cho đăng nhập, báo cáo và tài liệu: giải thích từng phần kèm minh họa được ghi rõ không phải dữ liệu tài khoản. Desktop mở cột bên phải; mobile mở vùng cuộn phía dưới, vẫn thao tác được nội dung chính. “Ẩn hướng dẫn” đóng vùng này.
 
-Nút −/100%/+ chọn 75/85/100/115/125%, lưu localStorage `ess.student.zoom`. Chỉ đổi hiển thị, không thay dữ liệu. Mỗi đường kỹ năng và biểu đồ chênh lệch có nút bật/tắt với aria-pressed, có hiện/ẩn tất cả; mặc định đủ 7 đường và 8 biểu đồ, bảng điểm/nhận xét luôn giữ nguyên. Báo cáo được cập nhật mỗi 30 giây khi có focus và khi quay lại tab để nhận sửa nhận xét từ giảng viên. Ứng dụng vẫn chỉ dùng API thật; fixtures giới hạn trong tests.
+Nút −/100%/+ chọn 75/85/100/115/125%, lưu localStorage `ess.student.zoom`. Chỉ đổi hiển thị, không thay dữ liệu. Mỗi đường kỹ năng và biểu đồ chênh lệch có nút bật/tắt với aria-pressed, có hiện/ẩn tất cả; mặc định đủ 7 đường và 8 biểu đồ, bảng điểm/nhận xét luôn giữ nguyên. Báo cáo được cập nhật theo tín hiệu WebSocket của lớp; không có polling interval hoặc refetch định kỳ/focus. Kết nối lại replay signal theo cursor; thao tác tải lại/thử lại vẫn chủ động gọi API. Ứng dụng vẫn chỉ dùng API thật; fixtures giới hạn trong tests.

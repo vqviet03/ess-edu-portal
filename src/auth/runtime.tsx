@@ -1,4 +1,6 @@
 'use client';
+import {UnsavedRuntime} from '@/shared/unsaved';
+import {StudentRealtime} from './realtime';
 import { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from 'react-redux';
@@ -27,7 +29,7 @@ export function AuthRuntime({children}: {children: React.ReactNode}) {
     checkExpiry();
     return () => clearTimeout(timer);
   }, [auth.accessToken, auth.expiresAt, dispatch]);
-  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}>{children}</CheckContext.Provider>;
+  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}><UnsavedRuntime/><StudentRealtime/>{children}</CheckContext.Provider>;
 }
 export function Guard({children}: {children: React.ReactNode}) {
   const status = useAppSelector(s => s.auth.status);

@@ -5,4 +5,4 @@ export default defineConfig([...nextVitals, ...nextTs, {rules: {
   // Client-only session/theme hydration must run after the server render.
   'react-hooks/set-state-in-effect': 'off',
   'no-empty': ['error', {allowEmptyCatch: true}],
-}}, globalIgnores(['.next/**', 'out/**', 'next-env.d.ts', 'test-results/**', 'playwright-report/**'])]);
+}}, globalIgnores(['.next/**', 'out/**', 'public/pdf/**', 'next-env.d.ts', 'test-results/**', 'playwright-report/**'])]);
