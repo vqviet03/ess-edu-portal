@@ -29,9 +29,13 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: /Bình luận/ }).click();
   await page.getByLabel("Viết bình luận").fill("Con đã làm bài");
-  await page
-    .getByRole("button", { name: "Gửi bình luận", exact: true })
-    .click();
+  const refreshed = Promise.all([
+    page.waitForResponse(r => r.request().method() === "GET" && new URL(r.url()).pathname.endsWith("/posts/post-one/comments")),
+    page.waitForResponse(r => r.request().method() === "GET" && new URL(r.url()).pathname.endsWith("/classes/juniors-03/threads")),
+  ]);
+  await page.getByRole("button", { name: "Gửi bình luận", exact: true }).click();
+  await refreshed;
+  await expect(page.getByLabel("Viết bình luận")).toHaveValue("");
   await expect(page.getByText("Con đã làm bài", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(
