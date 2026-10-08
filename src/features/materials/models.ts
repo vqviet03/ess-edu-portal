@@ -51,9 +51,23 @@ export interface Attachment {
   file: MaterialFile | null;
 }
 export type Reaction = "LIKE" | "LOVE" | "CELEBRATE";
+export type PostType = "SESSION_MATERIAL" | "ANNOUNCEMENT" | "DISCUSSION";
+export interface ThreadSession {
+  id: string;
+  name: string;
+  date: string;
+  unitNumber: number | null;
+  status: string;
+}
 export interface Post {
   id: string;
-  sessionId: string;
+  sessionId: string | null;
+  postType?: PostType;
+  editedAt?: string | null;
+  sessionName?: string | null;
+  className?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
   classId: string;
   title: string;
   body: string;
@@ -71,6 +85,8 @@ export interface Post {
   commentCount: number;
 }
 export interface PostInput {
+  postType?: PostType;
+  sessionId?: string | null;
   title: string;
   body: string;
   status: Post["status"];

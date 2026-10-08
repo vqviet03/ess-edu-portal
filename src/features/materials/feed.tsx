@@ -1,7 +1,6 @@
 "use client";
-import { MaterialThumbnail } from "./thumbnail";
+import { PostSurface } from "./post-surface";
 import { useState } from "react";
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -18,15 +17,10 @@ import { useAppSelector } from "@/store";
 import { Feedback } from "@/shared/ui";
 import { useThreadsQuery } from "@/api/library-api";
 import { useUnsaved } from "@/shared/unsaved";
-import type { Attachment, MaterialFile, Post, Reaction } from "./models";
-import { bytes, fileKind } from "./utils";
+import type { MaterialFile, Post } from "./models";
+
 import { MaterialViewer } from "./viewer";
 import { UploadDialog } from "./upload";
-const reactionLabels: Record<Reaction, string> = {
-  LIKE: "👍 Thích",
-  LOVE: "♥ Yêu thích",
-  CELEBRATE: "🎉 Tuyệt vời",
-};
 function Comments({ post }: { post: Post }) {
   const student = useAppSelector((s) => s.auth.student),
     me = student ? { id: student.id, roles: [] as string[] } : null,
@@ -167,7 +161,6 @@ function Comments({ post }: { post: Post }) {
       {upload && (
         <UploadDialog
           folderId={null}
-          sessionId={post.sessionId}
           postId={post.id}
           close={() => setUpload(false)}
           added={(file) => setAttachments((old) => [...old, file])}
@@ -205,147 +198,60 @@ function Comments({ post }: { post: Post }) {
     </Stack>
   );
 }
-function PostCard({
-  post,
-  sessionId,
-  cursor,
-}: {
-  post: Post;
-  sessionId: string;
-  cursor?: string;
-}) {
-  const [showComments, setShowComments] = useState(false),
+function PostCard({ post, cursor }: { post: Post; cursor?: string }) {
+  const me = useAppSelector((s) => s.auth.student),
+    [showComments, setShowComments] = useState(false),
     [preview, setPreview] = useState<MaterialFile | null>(null),
     [reaction, state] = useReactionMutation(),
     [error, setError] = useState<unknown>();
   return (
-    <Paper
-      sx={{
-        p: { xs: 2, md: 3 },
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 2,
-      }}
-    >
-      <Stack spacing={2}>
-        <Stack
-          direction="row"
-          useFlexGap
-          sx={{ justifyContent: "space-between", flexWrap: "wrap" }}
-        >
-          <Box>
-            <Typography sx={{ fontWeight: 700 }}>{post.authorName}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              Người đăng: {post.publisherName} ·{" "}
-              {new Date(post.createdAt).toLocaleString("vi-VN")}
-            </Typography>
-          </Box>
-          {post.status === "DRAFT" && <Chip label="Nháp" />}
-        </Stack>
-        <Typography variant="h5">{post.title}</Typography>
-        <Typography sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-          {post.body}
-        </Typography>
-        {(["LESSON", "GUIDE", "AUDIO"] as Attachment["group"][]).map(
-          (group) => {
-            const attachments = post.attachments.filter(
-              (a) => a.group === group,
-            );
-            return attachments.length ? (
-              <Stack key={group} spacing={1}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {group === "LESSON"
-                    ? "Bài học"
-                    : group === "GUIDE"
-                      ? "Hướng dẫn"
-                      : "Audio"}
-                </Typography>
-                {attachments.map((a) => (
-                  <Button
-                    key={a.materialId}
-                    variant="outlined"
-                    disabled={!a.available || !a.file}
-                    onClick={() => setPreview(a.file)}
-                    sx={{
-                      justifyContent: "flex-start",
-                      textTransform: "none",
-                      gap: 2,
-                      p: 1.5,
-                    }}
-                  >
-                    {a.file?.thumbnailUrl && (
-                      <MaterialThumbnail id={a.file.id} />
-                    )}
-                    <Box sx={{ minWidth: 0, textAlign: "left" }}>
-                      <Typography
-                        sx={{
-                          ...{ overflowWrap: "anywhere" },
-                          fontWeight: 600,
-                        }}
-                      >
-                        {a.file?.displayName ?? "Tài liệu không còn khả dụng"}
-                      </Typography>
-                      <Typography variant="caption">
-                        {a.file
-                          ? `${fileKind(a.file.mimeType)} · ${bytes(a.file.sizeBytes)}`
-                          : "Đã ngừng sử dụng"}
-                      </Typography>
-                    </Box>
-                  </Button>
-                ))}
-              </Stack>
-            ) : null;
-          },
-        )}
-        <Typography variant="body2" color="text.secondary">
-          {post.reactions
-            .filter((r) => r.count > 0)
-            .map((r) => `${reactionLabels[r.reaction]} ${r.count}`)
-            .join(" · ") || "Chưa có tương tác"}{" "}
-          · {post.reactions.reduce((n, r) => n + r.count, 0)} tương tác ·{" "}
-          {post.commentCount} bình luận
-        </Typography>
-        <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: "wrap" }}>
-          {Object.entries(reactionLabels).map(([value, label]) => (
-            <Button
-              key={value}
-              variant={post.myReaction === value ? "contained" : "outlined"}
-              aria-pressed={post.myReaction === value}
-              disabled={state.isLoading}
-              onClick={async () => {
-                setError(undefined);
-                try {
-                  await reaction({
-                    id: post.id,
-                    sessionId,
-                    cursor,
-                    reaction:
-                      post.myReaction === value ? null : (value as Reaction),
-                  }).unwrap();
-                } catch (e) {
-                  setError(e);
-                }
-              }}
-            >
-              {label}
-            </Button>
-          ))}
-          <Button onClick={() => setShowComments((s) => !s)}>
-            Bình luận ({post.commentCount})
-          </Button>
-        </Stack>
-        <Feedback error={error} />
-        {showComments && <Comments post={post} />}
-      </Stack>
+    <>
+      <PostSurface
+        post={post}
+        viewerName={me?.fullName ?? "Bạn"}
+        commentOpen={showComments}
+        openComments={() => setShowComments((s) => !s)}
+        preview={setPreview}
+        reacting={state.isLoading}
+        onReaction={async (value) => {
+          setError(undefined);
+          try {
+            await reaction({
+              id: post.id,
+              sessionId: post.sessionId,
+              cursor,
+              reaction: post.myReaction === value ? null : value,
+            }).unwrap();
+          } catch (e) {
+            setError(e);
+          }
+        }}
+      >
+        <Comments post={post} />
+      </PostSurface>
+      <Feedback error={error} />
       {preview && (
         <MaterialViewer file={preview} close={() => setPreview(null)} />
       )}
-    </Paper>
+    </>
   );
 }
-export function ThreadFeed({ classId }: { classId: string }) {
+export function ThreadFeed({
+  classId,
+  sessionId,
+  postType,
+  enabled = true,
+}: {
+  classId: string;
+  sessionId?: string;
+  postType?: Post["postType"];
+  enabled?: boolean;
+}) {
   const [cursor, setCursor] = useState<string>(),
-    list = useThreadsQuery({ classId, cursor });
+    list = useThreadsQuery(
+      { classId, cursor, sessionId, postType },
+      { skip: !enabled },
+    );
   return (
     <Stack spacing={2}>
       <Feedback
@@ -354,12 +260,7 @@ export function ThreadFeed({ classId }: { classId: string }) {
         retry={() => void list.refetch()}
       />
       {list.currentData?.items.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          sessionId={post.sessionId}
-          cursor={cursor}
-        />
+        <PostCard key={post.id} post={post} cursor={cursor} />
       ))}
       {!list.isLoading && !list.error && !list.currentData?.items.length && (
         <Feedback empty="Lớp chưa có thread được công bố." />

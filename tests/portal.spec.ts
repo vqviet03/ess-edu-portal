@@ -3,7 +3,7 @@ import { installApiFixture } from './support/api-fixture';
 test.beforeEach(async ({page}) => { await installApiFixture(page); });
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 async function login(page: Page, student = 'HV000123') {
-  await page.goto('login/'); await page.getByLabel('ID học sinh').fill(student); await page.locator('input[autocomplete="current-password"]').fill('Demo123!'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
+  await page.goto('login/'); await page.getByLabel('ID học sinh').fill(student); await page.locator('input[autocomplete="current-password"]').fill('Demo123!'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click(); if(!['HVEMPTY','HVFORBIDDEN'].includes(student)) await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click();
 }
 async function logout(page: Page) { await page.getByRole('button',{name:'Tài khoản',exact:true}).click(); await page.getByRole('menuitem',{name:'Đăng xuất'}).click(); await expect(page).toHaveURL(/\/login\/$/); }
 test('manual login, exact data, seven curves, eight comparisons, class/unit state and logout', async ({page}) => {
@@ -11,6 +11,7 @@ test('manual login, exact data, seven curves, eight comparisons, class/unit stat
   await page.goto('home/'); await expect(page).toHaveURL(/\/login\/$/);
   await page.getByLabel('ID học sinh').fill('HV000123'); await page.locator('input[autocomplete="current-password"]').fill('wrong'); await page.getByRole('button',{name:'Hiện mật khẩu'}).click(); await expect(page.locator('input[autocomplete="current-password"]')).toHaveAttribute('type','text'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click(); await expect(page.locator('.MuiAlert-root')).toContainText('không đúng');
   await page.locator('input[autocomplete="current-password"]').fill('Demo123!'); await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
+  await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click();
   await expect(page.getByRole('tab',{name:'Unit 3'})).toHaveAttribute('aria-selected','true');
   await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
   await expect(page.getByText('23.1 / 35').first()).toBeVisible();
@@ -19,13 +20,13 @@ test('manual login, exact data, seven curves, eight comparisons, class/unit stat
   await page.getByRole('heading',{name:'Thay đổi điểm theo từng kỹ năng qua các Unit'}).scrollIntoViewIfNeeded(); await expect(page.getByTestId('change-chart')).toHaveCount(8); await expect(page.getByTestId('change-chart').nth(1).locator('.recharts-label-list text')).toHaveText(['+20.0%', '0.0%']);
   await expect(page.getByText('-58.6%',{exact:true})).toBeVisible();
   await page.getByRole('tab',{name:'Unit 1'}).click(); await expect(page.getByText('Chưa có nhận xét tổng thể.')).toBeVisible();
-  await page.getByRole('combobox',{name:'Lớp học'}).click(); await page.getByRole('option',{name:'Juniors 02',exact:true}).click(); await expect(page.getByText('Lớp này chưa có Unit học tập.')).toBeVisible(); await expect(page.getByRole('heading',{name:/Tổng quan kết quả/})).toHaveCount(0);
-  await page.getByRole('combobox',{name:'Lớp học'}).click(); await page.getByRole('option',{name:'Juniors 03 · Đang học'}).click(); await expect(page.getByRole('tab',{name:'Unit 3'})).toHaveAttribute('aria-selected','true');
-  await page.reload(); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
+  await page.getByRole('combobox',{name:'Lớp học'}).click(); await page.getByRole('option',{name:'Juniors 02',exact:true}).click(); await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click(); await expect(page.getByText('Lớp này chưa có Unit học tập.')).toBeVisible(); await expect(page.getByRole('heading',{name:/Tổng quan kết quả/})).toHaveCount(0);
+  await page.getByRole('combobox',{name:'Lớp học'}).click(); await page.getByRole('option',{name:'Juniors 03 · Đang học'}).click(); await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click(); await expect(page.getByRole('tab',{name:'Unit 3'})).toHaveAttribute('aria-selected','true');
+  await page.reload(); await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click(); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
   await logout(page); expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull(); await page.goto('home/'); await expect(page).toHaveURL(/\/login\/$/); expect(errors).toEqual([]);
 });
 test('one-time link sanitizes URL, succeeds once and rejects used/expired code', async ({page}) => {
-  await page.goto('auth/link/#code=valid-test-code'); await expect(page).toHaveURL(/\/home\/$/); expect(new URL(page.url()).hash).toBe(''); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible(); await logout(page);
+  await page.goto('auth/link/#code=valid-test-code'); await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click(); await expect(page).toHaveURL(/\/home\/$/); expect(new URL(page.url()).hash).toBe(''); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible(); await logout(page);
   await page.goto('auth/link/#code=valid-test-code'); await expect(page.locator('.MuiAlert-root')).toContainText('đã được sử dụng'); expect(new URL(page.url()).hash).toBe('');
   await page.goto('auth/link/#code=expired-test-code'); await expect(page.locator('.MuiAlert-root')).toContainText('hết hạn');
   await page.goto('auth/link/#code=invalid'); await expect(page.locator('.MuiAlert-root')).toContainText('không hợp lệ');
@@ -47,7 +48,7 @@ test.describe('mobile', () => {
   for (const route of ['', 'login/', 'auth/link/', 'home/', 'materials/']) { const response=await request.get(`http://127.0.0.1:${process.env.PORT ?? 4173}${base}/${route}`); expect(response.status()).toBe(200); }
   await page.setViewportSize({width:390,height:844}); await login(page); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
   await page.getByRole('button',{name:'Giao diện',exact:true}).click(); await page.getByRole('menuitem',{name:'Tối',exact:true}).click(); expect(await page.evaluate(() => localStorage.getItem('learnleaf.theme'))).toBe('dark');
-  await page.reload(); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
+  await page.reload(); await page.getByRole('tab',{name:'Báo cáo kết quả',exact:true}).click(); await expect(page.getByRole('heading',{name:'Tổng quan kết quả Unit 3'})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.getByRole('heading',{name:/Biểu đồ tiến độ theo kỹ năng/}).scrollIntoViewIfNeeded(); const chart = page.getByTestId('skills-chart'); await chart.scrollIntoViewIfNeeded(); await expect(chart.locator('.recharts-line-curve')).toHaveCount(7);
   await chart.locator('.recharts-line-dots').first().locator('circle').last().tap(); await expect(chart.locator('.recharts-tooltip-wrapper')).toBeVisible(); await expect(chart.locator('.recharts-tooltip-item')).toHaveCount(7);

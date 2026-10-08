@@ -3,6 +3,8 @@ import type { Envelope } from "@/models";
 import type {
   CursorPage,
   Post,
+  PostType,
+  ThreadSession,
   Comment,
   MaterialFile,
   UploadInput,
@@ -17,13 +19,31 @@ import {
 const unwrap = <T>(r: Envelope<T>) => r.data;
 export const libraryApi = api.injectEndpoints({
   endpoints: (b) => ({
-    threads: b.query<CursorPage<Post>, { classId: string; cursor?: string }>({
+    threads: b.query<
+      CursorPage<Post>,
+      {
+        classId: string;
+        cursor?: string;
+        sessionId?: string;
+        postType?: PostType;
+      }
+    >({
       query: (q) => ({
         url: `/classes/${q.classId}/threads`,
-        params: { cursor: q.cursor, limit: 10 },
+        params: {
+          cursor: q.cursor,
+          sessionId: q.sessionId,
+          postType: q.postType,
+          limit: 10,
+        },
       }),
       transformResponse: unwrap<CursorPage<Post>>,
       providesTags: (_, __, q) => [{ type: "Threads", id: q.classId }],
+    }),
+    threadSessions: b.query<{ items: ThreadSession[] }, string>({
+      query: (id) => `/classes/${id}/thread-sessions`,
+      transformResponse: unwrap<{ items: ThreadSession[] }>,
+      providesTags: (_, __, id) => [{ type: "Units", id }],
     }),
     posts: b.query<CursorPage<Post>, { sessionId: string; cursor?: string }>({
       query: (q) => ({
@@ -89,7 +109,7 @@ export const libraryApi = api.injectEndpoints({
       unknown,
       {
         id: string;
-        sessionId: string;
+        sessionId?: string | null;
         cursor?: string;
         reaction: Reaction | null;
       }
@@ -99,6 +119,37 @@ export const libraryApi = api.injectEndpoints({
         method: q.reaction ? "PUT" : "DELETE",
         body: q.reaction ? { reaction: q.reaction } : undefined,
       }),
+      async onQueryStarted(q, { dispatch, getState, queryFulfilled }) {
+        const patches = libraryApi.util
+          .selectCachedArgsForQuery(getState(), "threads")
+          .map((args) =>
+            dispatch(
+              libraryApi.util.updateQueryData("threads", args, (draft) => {
+                const p = draft.items.find((p) => p.id === q.id);
+                if (!p) return;
+                if (p.myReaction) {
+                  const old = p.reactions.find(
+                    (r) => r.reaction === p.myReaction,
+                  );
+                  if (old) old.count = Math.max(0, old.count - 1);
+                }
+                p.myReaction = q.reaction;
+                if (q.reaction) {
+                  const row = p.reactions.find(
+                    (r) => r.reaction === q.reaction,
+                  );
+                  if (row) row.count++;
+                  else p.reactions.push({ reaction: q.reaction, count: 1 });
+                }
+              }),
+            ),
+          );
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach((p) => p.undo());
+        }
+      },
       invalidatesTags: (_, e) => (e ? [] : ["Threads"]),
     }),
     content: b.query<
@@ -194,6 +245,7 @@ export const libraryApi = api.injectEndpoints({
 });
 export const {
   useThreadsQuery,
+  useThreadSessionsQuery,
   usePostsQuery,
   useContactsQuery,
   useCommentsQuery,

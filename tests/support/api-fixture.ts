@@ -7,7 +7,7 @@ export async function installApiFixture(page: Page) {
   const { baseUrl } = resolveApiConfiguration(process.env.NEXT_PUBLIC_API_BASE_URL);
   const sessions = new Map<string, string>();
   let consumed = false;
-  const thread = {id:'post-one',sessionId:'session-one',classId:'juniors-03',title:'Thread Unit 1',body:'Hướng dẫn học tập',status:'PUBLISHED',authorId:'teacher-one',authorName:'Vũ Quốc Việt',publishedBy:'teacher-one',publisherName:'Vũ Quốc Việt',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),version:1,attachments:[],reactions:[] as {reaction:string;count:number}[],myReaction:null as string|null,commentCount:0};
+  const thread = {id:'post-one',sessionId:'session-one',classId:'juniors-03',title:'Thread Unit 1',postType:'SESSION_MATERIAL',sessionName:'Unit 1',className:'Juniors 03',editedAt:null,canEdit:false,canDelete:false,body:'Hướng dẫn học tập',status:'PUBLISHED',authorId:'teacher-one',authorName:'Vũ Quốc Việt',publishedBy:'teacher-one',publisherName:'Vũ Quốc Việt',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),version:1,attachments:[],reactions:[] as {reaction:string;count:number}[],myReaction:null as string|null,commentCount:0};
   const comments: {id:string;postId:string;parentId:string|null;authorId:string;authorName:string;body:string;version:number;createdAt:string;attachments:unknown[]}[]=[];
 
   const issue = (id: string) => {
@@ -41,9 +41,11 @@ export async function installApiFixture(page: Page) {
     if (url==='/auth/logout') {sessions.delete(token); return send({data:{loggedOut:true}});}
     if (url==='/me') return send({data:{...student,studentCode:id}});
     if (id==='HVFORBIDDEN') return fail(403,'FORBIDDEN','Bạn không có quyền truy cập dữ liệu này.');
+    if (/^\/classes\/[^/]+\/(threads|thread-sessions)$/.test(url) && !url.includes('juniors-03')) return send({data:{items:[],nextCursor:null}});
     if (url==='/me/classes') return send({data:{items:id==='HVEMPTY'?[]:classes}});
     if (url.match(/^\/classes\/[^/]+\/contacts$/)) return send({data:{items:[{id:'vq.viet',name:'Vũ Quốc Việt',email:'teacher@example.test',phone:'0900000000'}]}});
-    if (url==='/classes/juniors-03/threads') return send({data:{items:[thread],nextCursor:null}});
+    if (url==='/classes/juniors-03/thread-sessions') return send({data:{items:[{id:'session-one',name:'Unit 1',date:'2026-10-06',unitNumber:1,status:'COMPLETED'},{id:'session-two',name:'Unit 2',date:'2026-10-08',unitNumber:2,status:'DRAFT'}]}});
+    if (url==='/classes/juniors-03/threads') {const sid=new URL(req.url()).searchParams.get('sessionId');return send({data:{items:sid&&sid!==thread.sessionId?[]:[thread],nextCursor:null}});}
     if (url==='/posts/post-one/reaction') {const reaction=req.method()==='DELETE'?null:req.postDataJSON().reaction;thread.myReaction=reaction;thread.reactions=reaction?[{reaction,count:1}]:[];return send({data:{reaction}});}
     if (url==='/posts/post-one/comments') {
       if(req.method()==='GET')return send({data:{items:comments,nextCursor:null}});
