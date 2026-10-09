@@ -95,9 +95,11 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     ["Thích", "rgb(83, 151, 229)"],
     ["Yêu thích", "rgb(231, 106, 145)"],
   ]) {
-    await post
-      .locator('button[aria-haspopup="menu"][aria-pressed]')
-      .press("ArrowDown");
+    const reactionButton = post.locator(
+      'button[aria-haspopup="menu"][aria-pressed]',
+    );
+    await expect(reactionButton).toBeEnabled();
+    await reactionButton.press("ArrowDown");
     await page
       .getByRole("menuitem", { name: `Chọn ${label}`, exact: true })
       .click();
