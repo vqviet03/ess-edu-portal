@@ -121,3 +121,5 @@ Tab Điểm danh đọc `GET /me/classes/:classId/attendance?month=&status=&page
 Thread hiển thị bình luận ghim ngay cả khi đóng regular list; xem thêm nối trang, thích bình luận, reply có tên tác giả. Ảnh đơn full width theo tỷ lệ tự nhiên; ảnh nhiều/file giữ tile, thumbnails qua API authenticated. Giữ các tab báo cáo, tài liệu, điểm động viên và auth hiện có.
 
 Cần backend Core migration 016 + Materials 007 từ image mới. Contract: [attendance-threads.md](https://github.com/vqviet03/ess-edu-api/blob/feat/class-rewards-schedules/docs/attendance-threads.md). Production luôn API thật; dữ liệu HTTP tổng hợp chỉ trong test runner. Không thêm polling; signal ATTENDANCE chỉ refresh Attendance/Rewards liên quan.
+
+Biểu đồ Unit, chênh lệch và điểm tích luỹ tự mở vùng cuộn ngang khi các mốc quá sát nhau so với chiều rộng khung. Icon −/+/đặt lại cạnh biểu đồ điều chỉnh zoom ngang 50–400%, giữ nguyên chiều cao, toàn bộ điểm, tooltip và các lựa chọn ẩn/hiện. Trục ngày giữ khoảng cách thời gian thực; cuộn bằng cảm ứng, trackpad hoặc bàn phím khi vùng biểu đồ được focus. Zoom/cuộn không gọi thêm API và không thêm interval.
