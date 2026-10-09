@@ -8,7 +8,7 @@ import {
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 test("student reward history and four cumulative curves are read-only, responsive and signal-driven", async ({
   page,
-}) => {
+}, testInfo) => {
   const fixture = await installApiFixture(page);
   const today = vietnamToday();
   const data: RewardDetail = {
@@ -129,7 +129,7 @@ test("student reward history and four cumulative curves are read-only, responsiv
   ).toBeVisible();
   await expect(page.locator(".recharts-line")).toHaveCount(4);
   await page.screenshot({
-    path: "/workspace/ess-review-images/student-rewards-desktop.png",
+    path: testInfo.outputPath("student-rewards-desktop.png"),
     fullPage: true,
   });
   await expect(
@@ -162,12 +162,12 @@ test("student reward history and four cumulative curves are read-only, responsiv
     )
     .toBe(true);
   await page.screenshot({
-    path: "/workspace/ess-review-images/student-rewards-mobile.png",
+    path: testInfo.outputPath("student-rewards-mobile.png"),
     fullPage: true,
   });
   await page.emulateMedia({ colorScheme: "dark" });
   await page.screenshot({
-    path: "/workspace/ess-review-images/student-rewards-mobile-dark.png",
+    path: testInfo.outputPath("student-rewards-mobile-dark.png"),
     fullPage: true,
   });
   await page.emulateMedia({ colorScheme: "light" });
