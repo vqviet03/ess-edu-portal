@@ -163,6 +163,8 @@ export async function installApiFixture(
       send({ error: { code, message } }, status);
     if (req.method() === "OPTIONS")
       return route.fulfill({ status: 204, headers });
+    if (url === "/application-settings")
+      return send({ data: { appName: "Trung tâm Ngoại ngữ Lá Xanh", classIdPrefix: "lx", version: 2, schemaReady: true } });
     if (url === "/auth/login") {
       const body = req.postDataJSON();
       if (req.headers().authorization)

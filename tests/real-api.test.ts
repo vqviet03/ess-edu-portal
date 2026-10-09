@@ -29,6 +29,28 @@ test('backend URL is required and normalized; timeout configuration is validated
   assert.equal(errorDetails({status:'TIMEOUT_ERROR'}).code, 'TIMEOUT');
 });
 
+test('public application settings use real HTTP without JWT, share cache and preserve auth on failure', async () => {
+  let calls = 0, failing = false;
+  const settings = { appName: 'Trung tâm Lá Xanh', classIdPrefix: 'lx', version: 2 };
+  const {http, service, store} = await server((req, res) => {
+    calls++; assert.equal(req.url, '/v1/application-settings'); assert.equal(req.headers.authorization, undefined);
+    reply(res, failing ? {error:{code:'UNAVAILABLE',message:'Tạm thời không khả dụng'}} : {data:settings}, failing ? 401 : 200);
+  });
+  try {
+    const first = store.dispatch(service.endpoints.applicationSettings.initiate());
+    const second = store.dispatch(service.endpoints.applicationSettings.initiate());
+    assert.deepEqual(await first.unwrap(), settings); assert.deepEqual(await second.unwrap(), settings); assert.equal(calls, 1);
+    assert.equal(store.getState().auth.status, 'booting');
+    const issued = session(); store.dispatch(signedIn(issued));
+    assert.deepEqual(await store.dispatch(service.endpoints.applicationSettings.initiate()).unwrap(), settings); assert.equal(calls, 1);
+    failing = true;
+    const result = await store.dispatch(service.endpoints.applicationSettings.initiate(undefined, {forceRefetch:true}));
+    assert(result.error); assert.equal(store.getState().auth.accessToken, issued.accessToken); assert.equal(store.getState().auth.status, 'authenticated');
+    assert.equal(calls, 2);
+    first.unsubscribe(); second.unsubscribe();
+  } finally { store.dispatch(loggedOut()); http.closeAllConnections(); await new Promise<void>(resolve => http.close(() => resolve())); }
+});
+
 test('all student endpoints use real HTTP, envelopes, Bearer and class/unit keys', async () => {
   const issued = session(); const requests: string[] = [];
   const fixture = await server(async (req, res) => {

@@ -9,14 +9,14 @@ export function createAppBaseQuery(baseUrl?: string, timeout: string | number = 
   const config = resolveApiConfiguration(baseUrl, timeout);
   const query = fetchBaseQuery({ baseUrl: config.baseUrl, timeout: config.timeout, prepareHeaders(headers, { getState, endpoint }) {
     const token = (getState() as {auth: AuthState}).auth.accessToken;
-    if (token && endpoint !== 'login' && endpoint !== 'exchange') headers.set('Authorization', `Bearer ${token}`);
+    if (token && !['login', 'exchange', 'applicationSettings'].includes(endpoint)) headers.set('Authorization', `Bearer ${token}`);
     headers.set('Accept', 'application/json');
     return headers;
   }});
   return async (args, api, extra) => {
     if (config.error) return { error: { status: 'CUSTOM_ERROR', error: 'Chưa cấu hình API.', data: { error: { code: 'CONFIGURATION_ERROR', message: 'Hệ thống chưa sẵn sàng. Vui lòng liên hệ trung tâm.' } } } };
     const url = typeof args === 'string' ? args : args.url;
-    const protectedRequest = !['/auth/login', '/auth/exchange'].includes(url);
+    const protectedRequest = !['/auth/login', '/auth/exchange', '/application-settings'].includes(url);
     const auth = (api.getState() as {auth: AuthState}).auth;
     const originalToken = auth.accessToken;
     if (protectedRequest && (!originalToken || expired(auth.expiresAt, originalToken))) {

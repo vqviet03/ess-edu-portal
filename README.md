@@ -1,5 +1,7 @@
 # ESS · Báo cáo học tập
 
+Tên trên header, footer và tiêu đề trình duyệt lấy từ API thật `GET /application-settings` (`appName`) như Staff Portal. Tên đã được quản lý đổi/phê duyệt sẽ hiển thị khi mở hoặc reload trang; cấu hình được dùng chung qua RTK Query, không có request định kỳ. Không cần rebuild để thay tên trung tâm.
+
 [Thread, đính kèm bình luận, file private và rollout](docs/thread-materials.md): mặc định tab Thread cho học sinh; liên hệ giảng viên; routing upload theo storage; migration Materials `005_materials.sql` trước triển khai frontend.
 Next.js App Router + TypeScript strict + MUI + Redux Toolkit/RTK Query. Static export cho GitHub Pages; giao diện Sáng/Tối/Theo hệ thống, ưu tiên mobile. Recharts tải khi biểu đồ đi vào vùng nhìn.
 

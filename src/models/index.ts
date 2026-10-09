@@ -10,4 +10,5 @@ export interface Material { id: string; title: string; type: 'pdf' | 'audio' | '
 export interface Access { url: string; expiresAt: string }
 export interface AuthSession { accessToken: string; tokenType: 'Bearer'; expiresAt: string; student: Student }
 export interface Envelope<T> { data: T }
+export interface ApplicationSettings { appName: string; classIdPrefix: string; version: number; schemaReady?: boolean }
 export interface ApiFailure { error: { code: string; message: string; fieldErrors?: Record<string, string> } }

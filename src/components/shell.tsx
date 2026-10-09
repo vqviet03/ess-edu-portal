@@ -15,7 +15,9 @@ import { useAppearance } from './providers';
 import { type RootState, useAppDispatch, useAppSelector } from '@/store';
 import { loggedOut } from '@/store/auth';
 import { useLogoutMutation } from '@/api/api';
+import { useApplicationName } from '@/features/settings/hooks';
 export default function Shell({children}: {children: React.ReactNode}) {
+  const appName = useApplicationName();
   const [menu, setMenu] = useState<{kind: 'theme' | 'language' | 'profile'; anchor: HTMLElement} | null>(null);
   const { zoom } = useAppDisplay();
   const appearance = useAppearance();
@@ -31,7 +33,7 @@ export default function Shell({children}: {children: React.ReactNode}) {
   }
   return <AppScale><Container maxWidth={false} sx={{maxWidth: 1280 / (zoom / 100), px: {xs: 2.5, md: 3}, pb: 5}}>
     <Stack component="header" direction="row" sx={{alignItems: 'center', justifyContent: 'space-between', py: 2.5, gap: 1, flexWrap: 'wrap'}}>
-      <Brand/>
+      <Brand name={appName}/>
       <Stack direction="row" sx={{alignItems: 'center', flexWrap: 'wrap'}}><DisplayTools/>
         <Tooltip title="Ngôn ngữ"><IconButton aria-label="Ngôn ngữ" onClick={e => setMenu({kind: 'language', anchor: e.currentTarget})}><Language fontSize="small" /></IconButton></Tooltip>
         <Tooltip title="Giao diện"><IconButton aria-label="Giao diện" onClick={e => setMenu({kind: 'theme', anchor: e.currentTarget})}><BrightnessAuto fontSize="small" /></IconButton></Tooltip>{student && <NotificationBell/>}
@@ -44,6 +46,6 @@ export default function Shell({children}: {children: React.ReactNode}) {
       {menu?.kind === 'profile' && <MenuItem disabled={logoutState.isLoading} onClick={signOut}>Đăng xuất</MenuItem>}
     </Menu>
     <GuideLayout><Box component="main">{children}</Box></GuideLayout>
-    <Typography variant="body2" color="text.secondary" sx={{mt: 4, textAlign: 'center'}}>ESS · Báo cáo học tập của học sinh</Typography>
+    <Typography component="footer" variant="body2" color="text.secondary" sx={{mt: 4, textAlign: 'center', overflowWrap: 'anywhere'}}>{appName} · Báo cáo học tập của học sinh</Typography>
   </Container></AppScale>;
 }

@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import type {
   Access,
+  ApplicationSettings,
   AuthSession,
   Class,
   Envelope,
@@ -24,6 +25,7 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
     refetchOnFocus: false,
     refetchOnReconnect: false,
     tagTypes: [
+      "ApplicationSettings",
       "Attendance",
       "Rewards",
       "Schedule",
@@ -38,6 +40,11 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
       "Notifications",
     ],
     endpoints: (build) => ({
+      applicationSettings: build.query<ApplicationSettings, void>({
+        query: () => "/application-settings",
+        transformResponse: unwrap<ApplicationSettings>,
+        providesTags: ["ApplicationSettings"],
+      }),
       login: build.mutation<
         AuthSession,
         { studentId: string; password: string }
@@ -98,6 +105,7 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
   });
 export const api = createStudentApi();
 export const {
+  useApplicationSettingsQuery,
   useLoginMutation,
   useExchangeMutation,
   useLogoutMutation,

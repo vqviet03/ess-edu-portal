@@ -1,5 +1,11 @@
 # Hợp đồng API ESS v1
 
+## Tên trung tâm và cấu hình hiển thị
+
+`GET /application-settings` là endpoint công khai, trả `{data:{appName,classIdPrefix,version,schemaReady?}}` theo cấu hình đã được quản lý phê duyệt. Frontend dùng cùng một RTK Query cache cho header, footer và tiêu đề trình duyệt; không gửi JWT, polling hoặc refetch theo focus/network. Reload trang lấy cấu hình hiện tại. Khi chưa tải được cấu hình, giao diện và title HTML static dùng tên trung tính “Cổng học sinh”. Layout chung quản lý title bằng React để giữ tên khi chuyển route; API chỉ tải ở client, giữ static export.
+
+Ví dụ: `{ "data": { "appName": "Trung tâm Lá Xanh", "classIdPrefix": "lx", "version": 2, "schemaReady": true } }`.
+
 Thread/file authentication bổ sung: [thread-materials.md](thread-materials.md). Binary file access bắt buộc Bearer; không dùng public/signed GET nữa.
 
 Base URL: NEXT_PUBLIC_API_BASE_URL, ví dụ https://api.example.com/v1. Tất cả ID là string, ngày giờ là ISO 8601. Giá trị chưa có là null; danh sách rỗng là items: []. Response thành công có data; lỗi có error. Content-Type và Accept: application/json.
