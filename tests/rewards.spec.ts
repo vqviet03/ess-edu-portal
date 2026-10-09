@@ -128,6 +128,10 @@ test("student reward history and four cumulative curves are read-only, responsiv
     page.getByRole("heading", { name: "Hành trình tích luỹ", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".recharts-line")).toHaveCount(4);
+  await page.screenshot({
+    path: "/workspace/ess-review-images/student-rewards-desktop.png",
+    fullPage: true,
+  });
   await expect(
     page.getByText("Đóng góp ròng", { exact: true }).first(),
   ).toBeVisible();
@@ -158,9 +162,15 @@ test("student reward history and four cumulative curves are read-only, responsiv
     )
     .toBe(true);
   await page.screenshot({
-    path: "/tmp/student-rewards-mobile.png",
+    path: "/workspace/ess-review-images/student-rewards-mobile.png",
     fullPage: true,
   });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.screenshot({
+    path: "/workspace/ess-review-images/student-rewards-mobile-dark.png",
+    fullPage: true,
+  });
+  await page.emulateMedia({ colorScheme: "light" });
   await page.clock.install();
   const previous = rewardReads;
   await page.clock.fastForward(60000);

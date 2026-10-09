@@ -79,3 +79,7 @@ Rollout: merge/deploy backend image mới trước → Cloud Run Jobs `ess-prod-
 SELECT name, applied_at FROM schema_migrations WHERE name='015_class_rewards_schedule.sql';
 ```
 Sau đó merge FE PRs vào dev để Pages deploy. Migration không tạo/sửa điểm cũ và không cần đụng các secrets Cloud Tasks/PubSub đã cấu hình.
+
+## Giao diện theo Figma
+
+Đối chiếu frame hồ sơ 3:3148 và mobile 3:5725 của https://www.figma.com/design/4HTHoXVUEgn4o3Iq0JzBRB. Năm metric dùng nền pastel riêng, panel bo 16px, lịch sử và các tab lớp cùng style scoped trong feature. Biểu đồ vẫn dùng dữ liệu API, bốn đường và chú thích ẩn/hiện; bộ lọc thời gian mở bằng **Khoảng ngày hiển thị**. Giữ nguyên quyền chỉ xem, số liệu và phân trang. Không cần migration/biến môi trường mới cho lần chỉnh UI này.

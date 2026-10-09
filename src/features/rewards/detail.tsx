@@ -21,6 +21,7 @@ import { IconAction } from "@/shared/icon-action";
 import { RewardEntries, RewardOverview } from "./view";
 import { vietnamToday, type RewardKind } from "./models";
 import { StudySchedulePanel } from "./schedule";
+import { rewardSurface, rewardTabs } from "./design";
 function ClassRewardDetail({ classId }: { classId: string }) {
   const [range, setRange] = useState(() => ({ from: "", to: vietnamToday() })),
     [kind, setKind] = useState<RewardKind | "">(""),
@@ -125,9 +126,11 @@ function ClassRewardDetail({ classId }: { classId: string }) {
             </Stack>
           }
           history={
-            <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+            <Paper sx={rewardSurface}>
               <Stack spacing={2}>
-                <Typography variant="h6">Lịch sử điểm</Typography>
+                <Typography variant="h6" sx={{ fontSize: 18 }}>
+                  Lịch sử điểm
+                </Typography>
                 <Tabs
                   value={kind}
                   onChange={(_, v: RewardKind | "") => {
@@ -136,6 +139,7 @@ function ClassRewardDetail({ classId }: { classId: string }) {
                   }}
                   variant="scrollable"
                   aria-label="Loại lịch sử điểm"
+                  sx={rewardTabs}
                 >
                   <Tab label="Tất cả" value="" />
                   <Tab label="Được thưởng" value="EARN" />
@@ -220,6 +224,7 @@ export function StudentRewards({ classId }: { classId: string }) {
             onChange={(_, id: string) => setSelected(id)}
             variant="scrollable"
             aria-label="Lớp tích luỹ điểm"
+            sx={rewardTabs}
           >
             {classes.map((c) => (
               <Tab key={c.id} label={c.name} value={c.id} />

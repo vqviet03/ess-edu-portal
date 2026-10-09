@@ -13,19 +13,20 @@ import { useStudyScheduleQuery } from "@/api/rewards-api";
 import { Feedback } from "@/shared/ui";
 import { IconAction } from "@/shared/icon-action";
 import { displayDate, scheduleLabel } from "./models";
+import { rewardButton, rewardDialog, rewardSurface } from "./design";
 export function StudySchedulePanel({ classId }: { classId: string }) {
   const query = useStudyScheduleQuery(classId, { skip: !classId }),
     [open, setOpen] = useState(false),
     data = query.currentData;
   return (
     <>
-      <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+      <Paper sx={rewardSurface}>
         <Stack spacing={1.5}>
           <Stack
             direction="row"
             sx={{ alignItems: "center", justifyContent: "space-between" }}
           >
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{ fontSize: 18 }}>
               Lịch học{data ? ` · ${scheduleLabel(data.configuration)}` : ""}
             </Typography>
             <IconAction
@@ -68,9 +69,14 @@ export function StudySchedulePanel({ classId }: { classId: string }) {
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth={false}
+        slotProps={{ paper: { sx: rewardDialog(760) } }}
       >
-        <DialogTitle>Lịch học của lớp</DialogTitle>
+        <DialogTitle>
+          <Typography component="span" sx={{ fontSize: 24, fontWeight: 700 }}>
+            Lịch học của lớp
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             {data?.occurrences.length ? (
@@ -88,7 +94,7 @@ export function StudySchedulePanel({ classId }: { classId: string }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setOpen(false)}>
+          <Button size="small" sx={rewardButton} onClick={() => setOpen(false)}>
             Đóng
           </Button>
         </DialogActions>
