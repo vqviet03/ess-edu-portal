@@ -16,6 +16,7 @@ const Report = dynamic(
   () => import("@/features/class-report").then((m) => m.ClassReport),
   { loading: () => <Feedback loading /> },
 );
+const Rewards=dynamic(()=>import("@/features/rewards/detail").then(m=>m.StudentRewards),{loading:()=> <Feedback loading/>});
 function SessionMaterials({ classId }: { classId: string }) {
   const sessions = useThreadSessionsQuery(classId),
     [session, setSession] = useState<ThreadSession | null>(null);
@@ -58,7 +59,7 @@ export function ClassTabs({
   classId: string;
   initialTab?: string;
 }) {
-  const first = ["thread", "files", "report"].includes(initialTab)
+  const first = ["thread", "files", "report", "rewards"].includes(initialTab)
       ? initialTab
       : "thread",
     [tab, setTab] = useState(first),
@@ -93,6 +94,7 @@ export function ClassTabs({
           id="class-report-tab"
           aria-controls="class-report-panel"
         />
+        <Tab label="Điểm tích luỹ" value="rewards" id="class-rewards-tab" aria-controls="class-rewards-panel"/>
       </Tabs>
       <Box
         role="tabpanel"
@@ -121,6 +123,7 @@ export function ClassTabs({
       >
         {visited.includes("report") && <Report classId={classId} />}
       </Box>
+      <Box role="tabpanel" id="class-rewards-panel" aria-labelledby="class-rewards-tab" hidden={tab!=="rewards"} sx={{mt:2}}>{visited.includes("rewards")&&<Rewards classId={classId}/>}</Box>
     </>
   );
 }

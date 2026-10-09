@@ -14,6 +14,7 @@ export function realtimeTags(
           { type: "Units", id: classId },
         ]
       : ["Classes", "Report", "Progress", "Units"];
+  if (noticeType === "REWARD" || noticeType === "SCHEDULE") return [{type:"Rewards",...(classId?{id:classId}:{})},...(noticeType === "SCHEDULE" ? [{type:"Schedule" as const,...(classId?{id:classId}:{})}] : [])];
   if (noticeType === "SCORE")
     return classId
       ? [

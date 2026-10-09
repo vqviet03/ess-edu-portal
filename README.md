@@ -105,3 +105,9 @@ Nút −/100%/+ chọn 75/85/100/115/125%, lưu localStorage `ess.student.zoom`.
 Thread lớp, quyền tác giả và triển khai: [docs/class-thread-posts.md](docs/class-thread-posts.md).
 
 Thông báo học sinh, socket/cache, nhấn giữ reaction và thumbnail: [docs/student-notifications.md](docs/student-notifications.md).
+
+### Điểm động viên theo lớp
+
+Tab **Điểm tích luỹ** tại trang lớp dùng API thật: tổng thưởng/vi phạm/sử dụng/đóng góp ròng/số dư, hoạt động hôm nay, lịch sử phân trang theo loại/ngày, lịch học và bốn đường theo ngày thực. Có thể ẩn/hiện đường, tooltip đủ ngày/tháng/năm. Học sinh chỉ xem quỹ của chính mình trong lớp có quyền; không có nút ghi điểm. Ngày vắng/chưa xác nhận không tạo mốc 0 giả; đổi thưởng giảm số dư không phản ánh giảm tích cực. Mặc định xem toàn bộ lịch sử, tối đa 10 năm; tổng cộng dồn giữ baseline khi lọc thời gian.
+
+Socket REWARD/SCHEDULE invalidate đúng Rewards/Schedule, không polling hay gọi lại báo cáo điểm học tập. Link thông báo mở `tab=rewards`. [API và rollout](docs/rewards-schedules.md); backend cần migration **Core 015** trước deploy frontend. Không thêm env/server route/thư viện; vẫn static export/GitHub Pages từ dev. Dữ liệu giả chỉ nằm trong tests HTTP, không nằm trong ứng dụng.

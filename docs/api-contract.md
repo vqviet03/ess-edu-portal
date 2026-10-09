@@ -362,3 +362,5 @@ Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.githu
 Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Frontend chỉ gọi backend qua RTK Query/fetchBaseQuery; cấu hình NEXT_PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai; lỗi hoặc dữ liệu rỗng từ backend được hiển thị trực tiếp, không tạo dữ liệu thay thế. Biến NEXT_PUBLIC_* công khai, không chứa secret.
 
 Thông báo MATERIAL/REPLY/SCORE và đường dẫn đến bài/bình luận/Unit: [student-notifications.md](student-notifications.md). Dùng notification endpoints/socket hiện có; không polling hoặc truyền JWT qua URL.
+
+Điểm động viên/lịch học: [rewards-schedules.md](rewards-schedules.md), đọc `/me/reward-classes`, `/me/classes/:classId/rewards`, `/history`, `/activities`, `/schedule`. Không có endpoint mutation reward dành cho học sinh.

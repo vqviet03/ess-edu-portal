@@ -32,6 +32,8 @@ const types: Record<string, string> = {
   MATERIAL: "Bài đăng / tài liệu",
   REPLY: "Trả lời bình luận",
   SCORE: "Công bố điểm",
+  REWARD: "Điểm động viên",
+  SCHEDULE: "Lịch học",
   SOCIAL: "Bình luận / tương tác",
 };
 export function NotificationsPage() {

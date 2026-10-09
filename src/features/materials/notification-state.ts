@@ -63,7 +63,7 @@ export function studentNoticeHref(
     if (!classId) return null;
     const query = new URLSearchParams({
       classId,
-      tab: notice.type === "SCORE" ? "report" : "thread",
+      tab: notice.type === "REWARD" || notice.type === "SCHEDULE" ? "rewards" : notice.type === "SCORE" ? "report" : "thread",
     });
     for (const key of ["postId", "commentId", "unitId"]) {
       const value = target.searchParams.get(key);
