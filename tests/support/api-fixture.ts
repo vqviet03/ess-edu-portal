@@ -91,6 +91,20 @@ export async function installApiFixture(
       attachments: [files[0]],
     });
     thread.commentCount = comments.length;
+    const pdf = {
+      ...files[0],
+      id: "mixed-pdf",
+      displayName: "Bài học kèm ảnh.pdf",
+      mimeType: "application/pdf",
+      thumbnailUrl: null,
+    };
+    files.push(pdf);
+    thread.attachments.push({
+      materialId: pdf.id,
+      group: "LESSON",
+      available: true,
+      file: pdf,
+    });
   }
   const notices: Notification[] = [],
     sockets = new Set<WebSocketRoute>();
@@ -292,6 +306,8 @@ export async function installApiFixture(
         id: `comment-${comments.length + 1}`,
         postId: "post-one",
         parentId: body.parentId ?? null,
+        parentAuthorName:
+          comments.find((c) => c.id === body.parentId)?.authorName ?? null,
         authorId: student.id,
         authorName: student.fullName,
         body: body.body,

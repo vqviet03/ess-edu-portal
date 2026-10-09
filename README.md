@@ -111,3 +111,11 @@ Thông báo học sinh, socket/cache, nhấn giữ reaction và thumbnail: [docs
 Tab **Điểm tích luỹ** tại trang lớp dùng API thật: tổng thưởng/vi phạm/sử dụng/đóng góp ròng/số dư, hoạt động hôm nay, lịch sử phân trang theo loại/ngày, lịch học và bốn đường theo ngày thực. Có thể ẩn/hiện đường, tooltip đủ ngày/tháng/năm. Học sinh chỉ xem quỹ của chính mình trong lớp có quyền; không có nút ghi điểm. Ngày vắng/chưa xác nhận không tạo mốc 0 giả; đổi thưởng giảm số dư không phản ánh giảm tích cực. Mặc định xem toàn bộ lịch sử, tối đa 10 năm; tổng cộng dồn giữ baseline khi lọc thời gian.
 
 Socket REWARD/SCHEDULE invalidate đúng Rewards/Schedule, không polling hay gọi lại báo cáo điểm học tập. Link thông báo mở `tab=rewards`. [API và rollout](docs/rewards-schedules.md); backend cần migration **Core 015** trước deploy frontend. Không thêm env/server route/thư viện; vẫn static export/GitHub Pages từ dev. Dữ liệu giả chỉ nằm trong tests HTTP, không nằm trong ứng dụng.
+
+## Điểm danh của học sinh
+
+Tab Điểm danh đọc `GET /me/classes/:classId/attendance?month=&status=&page=&pageSize=20` qua RTK Query. Báo cáo riêng của em: tỷ lệ nghỉ/kế hoạch ban đầu, tổng có mặt/vắng/chưa ghi nhận, lịch tháng, lịch sử phân trang, thông báo ATTENDANCE. Chưa ghi nhận không tính vắng; <10% xanh, 10%–20% cam, >20% đỏ. Học bù thay buổi gốc trong thống kê, không tăng mẫu số hoặc xóa lịch sử. Không có thao tác ghi chuyên cần ở Student Portal.
+
+Thread hiển thị bình luận ghim ngay cả khi đóng regular list; xem thêm nối trang, thích bình luận, reply có tên tác giả. Ảnh đơn full width theo tỷ lệ tự nhiên; ảnh nhiều/file giữ tile, thumbnails qua API authenticated. Giữ các tab báo cáo, tài liệu, điểm động viên và auth hiện có.
+
+Cần backend Core migration 016 + Materials 007 từ image mới. Contract: [attendance-threads.md](https://github.com/vqviet03/ess-edu-api/blob/feat/class-rewards-schedules/docs/attendance-threads.md). Production luôn API thật; dữ liệu HTTP tổng hợp chỉ trong test runner. Không thêm polling; signal ATTENDANCE chỉ refresh Attendance/Rewards liên quan.

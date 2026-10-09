@@ -175,6 +175,31 @@ export const libraryApi = api.injectEndpoints({
       transformResponse: unwrap<CursorPage<Comment>>,
       providesTags: (_, __, q) => [{ type: "Comments", id: q.postId }],
     }),
+    pinComment: b.mutation<
+      Comment,
+      { id: string; postId: string; isPinned: boolean; version: number }
+    >({
+      query: (q) => ({
+        url: `/comments/${q.id}/pin`,
+        method: "PUT",
+        body: { isPinned: q.isPinned, version: q.version },
+      }),
+      transformResponse: unwrap<Comment>,
+      invalidatesTags: (_, e, q) =>
+        e ? [] : [{ type: "Comments", id: q.postId }, "Threads"],
+    }),
+    likeComment: b.mutation<
+      Comment,
+      { id: string; postId: string; liked: boolean }
+    >({
+      query: (q) => ({
+        url: `/comments/${q.id}/like`,
+        method: q.liked ? "PUT" : "DELETE",
+      }),
+      transformResponse: unwrap<Comment>,
+      invalidatesTags: (_, e, q) =>
+        e ? [] : [{ type: "Comments", id: q.postId }, "Threads"],
+    }),
     saveComment: b.mutation<
       Comment,
       {
@@ -355,6 +380,8 @@ export const {
   usePostsQuery,
   useContactsQuery,
   useCommentsQuery,
+  usePinCommentMutation,
+  useLikeCommentMutation,
   useSaveCommentMutation,
   useRemoveCommentMutation,
   useReactionMutation,

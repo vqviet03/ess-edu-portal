@@ -54,6 +54,7 @@ function PostCard({
           targetComment={targetComment}
           expanded={showComments}
           expand={() => setShowComments(true)}
+          collapse={() => setShowComments(false)}
         />
       </PostSurface>
       <Feedback error={error} />
