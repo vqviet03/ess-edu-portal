@@ -95,7 +95,11 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     ["Thích", "rgb(83, 151, 229)"],
     ["Yêu thích", "rgb(231, 106, 145)"],
   ]) {
-    await post.locator('button[aria-haspopup="menu"][aria-pressed]').press("ArrowDown");
+    const reactionButton = post.locator(
+      'button[aria-haspopup="menu"][aria-pressed]',
+    );
+    await expect(reactionButton).toBeEnabled();
+    await reactionButton.press("ArrowDown");
     await page
       .getByRole("menuitem", { name: `Chọn ${label}`, exact: true })
       .click();
@@ -138,14 +142,16 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
   await expect(post.getByTestId("post-comment")).toContainText(
     "Con đã làm bài",
   );
-  await post.getByRole("button", { name: "Trả lời", exact: true }).click();
+  await post
+    .getByRole("button", { name: "Trả lời Học Sinh Kiểm Thử", exact: true })
+    .click();
   await input.fill("Con xin bổ sung");
   await post
     .getByRole("button", { name: "Gửi bình luận", exact: true })
     .click();
   await expect(post.getByTestId("post-comment")).toHaveCount(2);
   await expect(
-    post.getByText("Trả lời bình luận", { exact: true }),
+    post.getByText("Trả lời Học Sinh Kiểm Thử", { exact: true }),
   ).toBeVisible();
   const first = post.getByTestId("post-comment").first();
   await first.getByRole("button", { name: /^Thao tác bình luận/ }).click();
@@ -300,4 +306,105 @@ test("teacher contacts retain real error, retry and empty states", async ({
     0,
   );
   expect(attempts).toBe(2);
+});
+
+test("student keeps pinned comments visible, loads more, likes and sees reply author", async ({
+  page,
+}) => {
+  await installApiFixture(page);
+  const now = new Date().toISOString();
+  const comments = [
+    "Hướng dẫn đã ghim",
+    "Bình luận trang đầu",
+    "Câu trả lời trang sau",
+  ].map((body, i) => ({
+    id: `student-comment-${i}`,
+    postId: "post-one",
+    parentId: i === 2 ? "student-comment-1" : null,
+    parentAuthorName: i === 2 ? "Học Sinh Kiểm Thử" : null,
+    authorId: i === 1 ? "student-test" : "teacher-one",
+    authorName: i === 1 ? "Học Sinh Kiểm Thử" : "Vũ Quốc Việt",
+    body,
+    createdAt: now,
+    version: 1,
+    attachments: [],
+    isPinned: i === 0,
+    likeCount: 0,
+    myLike: false,
+  }));
+  const post = {
+    id: "post-one",
+    classId: "juniors-03",
+    sessionId: "session-one",
+    postType: "SESSION_MATERIAL",
+    title: "Thread Unit 1",
+    body: "Hướng dẫn",
+    status: "PUBLISHED",
+    authorId: "teacher-one",
+    authorName: "Vũ Quốc Việt",
+    publishedBy: "teacher-one",
+    publisherName: "Vũ Quốc Việt",
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    attachments: [],
+    reactions: [],
+    myReaction: null,
+    commentCount: 3,
+    canEdit: false,
+    canDelete: false,
+    canPinComment: false,
+    pinnedComments: [comments[0]],
+  };
+  await page.route("**/v1/classes/juniors-03/threads**", (r) =>
+    r.fulfill({ json: { data: { items: [post], nextCursor: null } } }),
+  );
+  await page.route("**/v1/posts/post-one/comments**", (r) => {
+    const cursor = new URL(r.request().url()).searchParams.get("cursor");
+    return r.fulfill({
+      json: {
+        data: {
+          items: cursor ? [comments[2]] : [comments[1]],
+          nextCursor: cursor ? null : "second",
+        },
+      },
+    });
+  });
+  await page.route("**/v1/comments/student-comment-0/like", (r) => {
+    comments[0].myLike = r.request().method() === "PUT";
+    comments[0].likeCount = comments[0].myLike ? 1 : 0;
+    return r.fulfill({ json: { data: comments[0] } });
+  });
+  await page.goto("login/");
+  await page.getByLabel("ID học sinh").fill("HV000123");
+  await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  const article = page.getByTestId("lesson-post"),
+    pinned = article.getByTestId("pinned-comments");
+  await expect(pinned).toContainText("Hướng dẫn đã ghim");
+  await expect(
+    pinned.getByRole("button", { name: "Thao tác bình luận" }),
+  ).toHaveCount(0);
+  await pinned
+    .getByRole("button", { name: "Thích bình luận", exact: true })
+    .click();
+  await expect(
+    pinned.getByRole("button", { name: "Bỏ thích bình luận", exact: true }),
+  ).toBeVisible();
+  await article.getByRole("button", { name: /^Bình luận/ }).click();
+  await expect(
+    article.getByText("Bình luận trang đầu", { exact: true }),
+  ).toBeVisible();
+  await article
+    .getByRole("button", { name: "Xem thêm bình luận", exact: true })
+    .click();
+  await expect(
+    article.getByText("Câu trả lời trang sau", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    article.getByText("Trả lời Học Sinh Kiểm Thử", { exact: true }),
+  ).toBeVisible();
+  await article.getByRole("button", { name: "Đóng", exact: true }).click();
+  await expect(article.getByTestId("comment-list")).toHaveCount(0);
+  await expect(pinned).toBeVisible();
 });

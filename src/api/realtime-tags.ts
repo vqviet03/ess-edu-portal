@@ -14,6 +14,18 @@ export function realtimeTags(
           { type: "Units", id: classId },
         ]
       : ["Classes", "Report", "Progress", "Units"];
+  if (noticeType === "ATTENDANCE")
+    return [
+      { type: "Attendance", ...(classId ? { id: classId } : {}) },
+      { type: "Rewards", ...(classId ? { id: classId } : {}) },
+    ];
+  if (noticeType === "REWARD" || noticeType === "SCHEDULE")
+    return [
+      { type: "Rewards", ...(classId ? { id: classId } : {}) },
+      ...(noticeType === "SCHEDULE"
+        ? [{ type: "Schedule" as const, ...(classId ? { id: classId } : {}) }]
+        : []),
+    ];
   if (noticeType === "SCORE")
     return classId
       ? [

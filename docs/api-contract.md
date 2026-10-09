@@ -1,5 +1,11 @@
 # Hợp đồng API ESS v1
 
+## Tên trung tâm và cấu hình hiển thị
+
+`GET /application-settings` là endpoint công khai, trả `{data:{appName,classIdPrefix,version,schemaReady?}}` theo cấu hình đã được quản lý phê duyệt. Frontend dùng cùng một RTK Query cache cho header, footer và tiêu đề trình duyệt; không gửi JWT, polling hoặc refetch theo focus/network. Reload trang lấy cấu hình hiện tại. Khi chưa tải được cấu hình, giao diện và title HTML static dùng tên trung tính “Cổng học sinh”. Layout chung quản lý title bằng React để giữ tên khi chuyển route; API chỉ tải ở client, giữ static export.
+
+Ví dụ: `{ "data": { "appName": "Trung tâm Lá Xanh", "classIdPrefix": "lx", "version": 2, "schemaReady": true } }`.
+
 Thread/file authentication bổ sung: [thread-materials.md](thread-materials.md). Binary file access bắt buộc Bearer; không dùng public/signed GET nữa.
 
 Base URL: NEXT_PUBLIC_API_BASE_URL, ví dụ https://api.example.com/v1. Tất cả ID là string, ngày giờ là ISO 8601. Giá trị chưa có là null; danh sách rỗng là items: []. Response thành công có data; lỗi có error. Content-Type và Accept: application/json.
@@ -362,3 +368,5 @@ Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.githu
 Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Frontend chỉ gọi backend qua RTK Query/fetchBaseQuery; cấu hình NEXT_PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai; lỗi hoặc dữ liệu rỗng từ backend được hiển thị trực tiếp, không tạo dữ liệu thay thế. Biến NEXT_PUBLIC_* công khai, không chứa secret.
 
 Thông báo MATERIAL/REPLY/SCORE và đường dẫn đến bài/bình luận/Unit: [student-notifications.md](student-notifications.md). Dùng notification endpoints/socket hiện có; không polling hoặc truyền JWT qua URL.
+
+Điểm động viên/lịch học: [rewards-schedules.md](rewards-schedules.md), đọc `/me/reward-classes`, `/me/classes/:classId/rewards`, `/history`, `/activities`, `/schedule`. Không có endpoint mutation reward dành cho học sinh.

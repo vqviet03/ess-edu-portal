@@ -140,8 +140,8 @@ test("hold reaction gives feedback and does not submit before choosing; image th
   await expect(post.getByText("Ảnh bình luận", { exact: true })).toBeVisible();
   const images = post.locator('img[src^="blob:"]');
   await expect(images).toHaveCount(2);
-  for (const image of await images.all())
-    await expect(image).toHaveCSS("object-fit", "cover");
+  await expect(images.first()).toHaveCSS("object-fit", "contain");
+  await expect(images.last()).toHaveCSS("object-fit", "cover");
   expect(originals).toBe(0);
   const commentPreview = post.getByTestId("comment-thumbnail-frame").last();
   const frame = await commentPreview.boundingBox();
