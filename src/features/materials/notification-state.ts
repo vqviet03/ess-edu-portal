@@ -61,9 +61,9 @@ export function studentNoticeHref(
     const query = new URLSearchParams({
       classId,
       tab:
-        notice.type === "ATTENDANCE"
+        notice.type === "ATTENDANCE" || notice.type === "SCHEDULE"
           ? "attendance"
-          : notice.type === "REWARD" || notice.type === "SCHEDULE"
+          : notice.type === "REWARD"
             ? "rewards"
             : notice.type === "SCORE"
               ? "report"

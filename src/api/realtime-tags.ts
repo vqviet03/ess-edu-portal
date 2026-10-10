@@ -23,7 +23,7 @@ export function realtimeTags(
     return [
       { type: "Rewards", ...(classId ? { id: classId } : {}) },
       ...(noticeType === "SCHEDULE"
-        ? [{ type: "Schedule" as const, ...(classId ? { id: classId } : {}) }]
+        ? [{ type: "Schedule" as const, ...(classId ? { id: classId } : {}) },{type:"Attendance" as const,...(classId?{id:classId}:{})}]
         : []),
     ];
   if (noticeType === "SCORE")
