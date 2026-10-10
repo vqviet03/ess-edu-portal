@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useStore } from 'react-redux';
 import Menu from '@mui/material/Menu';
-import Avatar from '@mui/material/Avatar';
+import NextLink from 'next/link';
+import {ProfileAvatar} from '@/features/profile/avatar';
 import IconButton from '@mui/material/IconButton';
 import { Box, Container, MenuItem, Stack, Typography } from './ui';
 import { AppScale, DisplayTools, GuideLayout, useAppDisplay } from '@/features/help/display';
@@ -37,12 +38,13 @@ export default function Shell({children}: {children: React.ReactNode}) {
       <Stack direction="row" sx={{alignItems: 'center', flexWrap: 'wrap'}}><DisplayTools/>
         <Tooltip title="Ngôn ngữ"><IconButton aria-label="Ngôn ngữ" onClick={e => setMenu({kind: 'language', anchor: e.currentTarget})}><Language fontSize="small" /></IconButton></Tooltip>
         <Tooltip title="Giao diện"><IconButton aria-label="Giao diện" onClick={e => setMenu({kind: 'theme', anchor: e.currentTarget})}><BrightnessAuto fontSize="small" /></IconButton></Tooltip>{student && <NotificationBell/>}
-        {student && <Tooltip title="Tài khoản"><IconButton aria-label="Tài khoản" disabled={logoutState.isLoading} onClick={e => setMenu({kind: 'profile', anchor: e.currentTarget})}><Avatar sx={{width: 30, height: 30, fontSize: 13, bgcolor: 'action.selected', color: 'primary.main'}}>{student.fullName.split(' ').filter(Boolean).slice(-2).map(name => name[0]).join('')}</Avatar></IconButton></Tooltip>}
+        {student && <Tooltip title="Tài khoản"><IconButton aria-label="Tài khoản" disabled={logoutState.isLoading} onClick={e => setMenu({kind: 'profile', anchor: e.currentTarget})}><ProfileAvatar name={student.fullName} value={student.avatar} size={30}/></IconButton></Tooltip>}
       </Stack>
     </Stack>
     <Menu anchorEl={menu?.anchor} open={!!menu} onClose={() => setMenu(null)}>
       {menu?.kind === 'theme' && (['light', 'dark', 'system'] as const).map((mode, i) => <MenuItem key={mode} selected={appearance.preference === mode} onClick={() => {appearance.change(mode); setMenu(null);}}>{['Sáng', 'Tối', 'Theo hệ thống'][i]}</MenuItem>)}
       {menu?.kind === 'language' && <MenuItem selected onClick={() => setMenu(null)}>Tiếng Việt</MenuItem>}
+      {menu?.kind === 'profile' && <MenuItem component={NextLink} href="/profile/" onClick={()=>setMenu(null)}>Hồ sơ cá nhân</MenuItem>}
       {menu?.kind === 'profile' && <MenuItem disabled={logoutState.isLoading} onClick={signOut}>Đăng xuất</MenuItem>}
     </Menu>
     <GuideLayout><Box component="main">{children}</Box></GuideLayout>
