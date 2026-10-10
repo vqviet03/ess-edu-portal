@@ -19,8 +19,9 @@ function DeferredCharts({entries, deltas = false}: {entries: ProgressEntry[]; de
   return <Box ref={container} sx={{minHeight: deltas ? 220 : 330}}>{visible ? <Charts entries={entries} deltas={deltas}/> : <Feedback loading/>}</Box>;
 }
 export default function ReportView({report, entries, unitName, progressLoading, progressError, retryProgress}: {report: Report; entries: ProgressEntry[]; unitName: string; progressLoading: boolean; progressError: unknown; retryProgress: () => void}) {
-  const progressFeedback = progressLoading ? <Feedback loading/> : progressError ? <Feedback error={progressError} retry={retryProgress}/> : !entries.length ? <Feedback empty="Chưa có lịch sử điểm theo Unit."/> : null;
+  const progressFeedback = entries.length ? null : progressLoading ? <Feedback loading/> : progressError ? <Feedback error={progressError} retry={retryProgress}/> : !entries.length ? <Feedback empty="Chưa có lịch sử điểm theo Unit."/> : null;
   return <Box sx={{display: 'grid', gap: 2.5}}>
+    {!!entries.length && <Feedback error={progressError} retry={retryProgress}/>}
     <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', md: '1fr 1fr'}, gap: 2.5, alignItems: 'start'}}>
       <Section title={`Tổng quan kết quả ${unitName}`}>
         <Box sx={{p: 2, bgcolor: 'action.selected', borderRadius: 2, mb: 1.5}}><Typography variant="body2" color="primary" sx={{fontWeight: 700}}>TỔNG ĐIỂM</Typography><Typography sx={{fontSize: '1.75rem', fontWeight: 700}}>{percentage(report.total.percentage)} <Box component="span" sx={{fontSize: '1.1rem'}}>· {report.total.score ?? '—'} / {report.total.maxScore ?? '—'}</Box></Typography></Box>
