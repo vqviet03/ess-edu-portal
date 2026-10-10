@@ -36,20 +36,21 @@ function HomeContent() {
         {auth.student?.nickname ? ` (${auth.student.nickname})` : ""} ·{" "}
         {classroom?.subject ?? "Học sinh"}
       </Typography>
-      {classes.isLoading ? (
+      {!classes.currentData && classes.isLoading ? (
         <Feedback loading />
-      ) : classes.error ? (
+      ) : !classes.currentData && classes.error ? (
         <Feedback error={classes.error} retry={classes.refetch} />
       ) : !classroom ? (
         <Feedback empty="Chưa có lớp học nào." />
       ) : (
         <>
+          <Feedback error={classes.error} retry={classes.refetch} />
           <TextField
             select
             label="Lớp học"
             fullWidth
             value={classroom.id}
-            onChange={(e) => {dispatch(chooseClass(e.target.value));router.replace(`/home/?classId=${encodeURIComponent(e.target.value)}&tab=${params.get("tab") ?? "thread"}`);}}
+            onChange={(e) => {dispatch(chooseClass(e.target.value));router.replace(`/home/?classId=${encodeURIComponent(e.target.value)}&tab=${params.get("tab") ?? "thread"}`, {scroll: false});}}
             sx={{ maxWidth: { md: 480 }, mb: 2 }}
           >
             {classes.currentData?.map((c) => (

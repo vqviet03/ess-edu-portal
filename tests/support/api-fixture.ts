@@ -453,6 +453,16 @@ export async function installApiFixture(
     return fail(404, "NOT_FOUND", "Chưa có báo cáo.");
   });
   return {
+    changeComment(id: string, body: string) {
+      const comment = comments.find(c => c.id === id);
+      if (!comment) throw new Error("Test comment not found");
+      comment.body = body;
+      comment.version++;
+    },
+    resourceChanged(data: {id: string; href: string}) {
+      for (const socket of sockets)
+        socket.send(JSON.stringify({type: "RESOURCE_CHANGED", data}));
+    },
     notify(n: Notification) {
       const at = notices.findIndex((old) => old.id === n.id);
       if (at < 0) notices.unshift({ ...n });
