@@ -29,7 +29,7 @@ export function AuthRuntime({children}: {children: React.ReactNode}) {
     checkExpiry();
     return () => clearTimeout(timer);
   }, [auth.accessToken, auth.expiresAt, dispatch]);
-  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}><UnsavedRuntime/><StudentRealtime/>{children}</CheckContext.Provider>;
+  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}><UnsavedRuntime/><StudentRealtime/><NotificationToast/>{children}</CheckContext.Provider>;
 }
 export function Guard({children}: {children: React.ReactNode}) {
   const status = useAppSelector(s => s.auth.status);

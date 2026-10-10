@@ -1,4 +1,5 @@
 "use client";
+import {NotificationContent} from "./content";
 import { useState } from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
@@ -199,7 +200,7 @@ export function NotificationsPage() {
                     overflowWrap: "anywhere",
                   }}
                 >
-                  {n.title}
+                  <NotificationContent notice={n}/>
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {types[n.type] ?? "Thông báo"} ·{" "}
@@ -244,7 +245,7 @@ export function NotificationsPage() {
                 <Tooltip title="Ẩn thông báo">
                   <span>
                     <IconButton
-                      disabled={changing.isLoading}
+                      disabled={changing.isLoading||(!n.isRead&&n.priority==="IMPORTANT")}
                       aria-label={`Ẩn thông báo: ${n.title}`}
                       onClick={() =>
                         void mark(n.id, n.version, undefined, true)

@@ -175,7 +175,7 @@ function AttendanceReportContent({ classId }: { classId: string }) {
             sx={{ maxWidth: 260 }}
           >
             <MenuItem value="">Tất cả trạng thái</MenuItem>
-            {["PRESENT", "ABSENT", "UNSET", "REPLACED"].map((s) => (
+            {["PRESENT", "ABSENT", "UNSET", "REPLACED", "HOLIDAY", "PLANNED", "CANCELLED"].map((s) => (
               <MenuItem key={s} value={s}>
                 {s === "PRESENT"
                   ? "Có mặt"
