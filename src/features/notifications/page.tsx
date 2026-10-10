@@ -194,14 +194,14 @@ export function NotificationsPage() {
           >
             <Stack direction="row" sx={{ gap: 1, alignItems: "center" }}>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography
+                <Box
                   sx={{
                     fontWeight: n.isRead ? 400 : 700,
                     overflowWrap: "anywhere",
                   }}
                 >
                   <NotificationContent notice={n}/>
-                </Typography>
+                </Box>
                 <Typography variant="caption" color="text.secondary">
                   {types[n.type] ?? "Thông báo"} ·{" "}
                   {new Date(n.createdAt).toLocaleString("vi-VN")}

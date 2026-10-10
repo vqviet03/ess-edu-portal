@@ -134,7 +134,9 @@ export async function installApiFixture(
     `${baseUrl.replace(/^https:/, "wss:").replace(/^http:/, "ws:")}/events/ws`,
     (socket) => {
       sockets.add(socket);
-      socket.onMessage(() => {
+      socket.onMessage(message => {
+        const frame=JSON.parse(String(message)) as {type:string};
+        if(frame.type!=="AUTH")return;
         socket.send(JSON.stringify({ type: "READY", cursor: "0" }));
         socket.send(JSON.stringify(snapshot()));
       });
@@ -163,6 +165,8 @@ export async function installApiFixture(
       send({ error: { code, message } }, status);
     if (req.method() === "OPTIONS")
       return route.fulfill({ status: 204, headers });
+    if (/^\/(posts|comments)\/[^/]+\/view$/.test(url) && req.method()==="POST") return send({data:{recorded:true}});
+    if (/^\/(posts|comments)\/[^/]+\/viewers$/.test(url)) return send({data:{items:[],total:0,page:1,pageSize:30}});
     if (url === "/application-settings")
       return send({ data: { appName: "Trung tâm Ngoại ngữ Lá Xanh", classIdPrefix: "lx", version: 2, schemaReady: true } });
     if (url === "/auth/login") {
