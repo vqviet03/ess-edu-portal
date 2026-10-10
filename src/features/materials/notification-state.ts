@@ -47,10 +47,7 @@ export function mergeNotice(
     else page.items.splice(index, 1);
   } else if (!filter.cursor && matches) {
     page.items.unshift(notice);
-    if (page.items.length > 30) {
-      page.items.pop();
-      page.nextCursor ??= "30";
-    }
+    while(page.items.length>15){const index=page.items.findLastIndex(n=>n.id!==notice.id&&(n.isRead||n.priority!=="IMPORTANT"&&!["APPROVAL","CONSENT"].includes(n.type)));if(index<0)break;const [removed]=page.items.splice(index,1);if(!removed.isRead&&page.unreadCount!==undefined)page.unreadCount=Math.max(0,page.unreadCount-1);}
   }
 }
 export function studentNoticeHref(
@@ -64,9 +61,9 @@ export function studentNoticeHref(
     const query = new URLSearchParams({
       classId,
       tab:
-        notice.type === "ATTENDANCE"
+        notice.type === "ATTENDANCE" || notice.type === "SCHEDULE"
           ? "attendance"
-          : notice.type === "REWARD" || notice.type === "SCHEDULE"
+          : notice.type === "REWARD"
             ? "rewards"
             : notice.type === "SCORE"
               ? "report"

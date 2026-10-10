@@ -17,6 +17,7 @@ test("reward events only invalidate rewards; schedule updates refresh dependent 
   assert.deepEqual(realtimeTags("NOTIFICATION", "class-1", "SCHEDULE"), [
     { type: "Rewards", id: "class-1" },
     { type: "Schedule", id: "class-1" },
+    { type: "Attendance", id: "class-1" },
   ]);
 });
 test("reward notice opens the accumulation tab, keeps classroom scope", () => {

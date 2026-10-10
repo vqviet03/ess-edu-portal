@@ -175,15 +175,9 @@ function AttendanceReportContent({ classId }: { classId: string }) {
             sx={{ maxWidth: 260 }}
           >
             <MenuItem value="">Tất cả trạng thái</MenuItem>
-            {["PRESENT", "ABSENT", "UNSET", "REPLACED"].map((s) => (
+            {["PRESENT", "ABSENT", "UNSET", "REPLACED", "HOLIDAY", "PLANNED", "CANCELLED"].map((s) => (
               <MenuItem key={s} value={s}>
-                {s === "PRESENT"
-                  ? "Có mặt"
-                  : s === "ABSENT"
-                    ? "Vắng"
-                    : s === "REPLACED"
-                      ? "Đã có buổi học bù"
-                      : "Chưa ghi nhận"}
+                {{PRESENT:"Có mặt",ABSENT:"Vắng",REPLACED:"Đã có buổi học bù",UNSET:"Chưa ghi nhận",HOLIDAY:"Nghỉ học",PLANNED:"Lịch dự kiến",CANCELLED:"Đã hủy"}[s]}
               </MenuItem>
             ))}
           </TextField>
@@ -216,7 +210,7 @@ function AttendanceReportContent({ classId }: { classId: string }) {
                     ? "Chờ giảng viên điểm danh"
                     : item.status === "REPLACED"
                       ? "Xem kết quả ở buổi học bù"
-                      : "Đã ghi nhận tham gia")}
+                      : item.status==="HOLIDAY"?"Ngày nghỉ, được bù bằng lịch tiếp theo":item.status==="PLANNED"?"Đến ngày học mới được điểm danh":item.status==="CANCELLED"?"Buổi dự kiến đã hủy":"Đã ghi nhận tham gia")}
               </Typography>
             </Box>
           ))}

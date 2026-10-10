@@ -1,4 +1,7 @@
 "use client";
+import {presenceContext,PRESENCE_CONTEXT_EVENT,receivePresence,presenceConnection,type PresenceSignal} from "@/features/presence/state";
+import {showNoticeToast} from "@/features/notifications/events";
+
 import { useEffect } from "react";
 import type { Notification } from "@/features/materials/models";
 import {
@@ -11,6 +14,7 @@ import { apiConfiguration } from "@/api/config";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { loggedOut } from "@/store/auth";
 type Signal = {
+  classId?:string;userId?:string;connectionId?:string;online?:boolean;seenAt?:string;
   type?: string;
   id?: string;
   version?: number;
@@ -73,7 +77,9 @@ export function StudentRealtime() {
       socket.onopen = null;
       socket.close();
       socket = undefined;
+      presenceConnection(false);
     };
+    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}else if(!disposed&&!document.hidden&&navigator.onLine&&!socket)open();};
     const open = () => {
       if (disposed || document.hidden || !navigator.onLine || socket) return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
@@ -88,6 +94,9 @@ export function StudentRealtime() {
         try {
           const frame = JSON.parse(String(event.data)) as Frame;
           if (frame.cursor) cursor = frame.cursor;
+          if(frame.type==="READY")sendContext();
+          if(frame.type==="PRESENCE_RESET")presenceConnection(false);
+          if(frame.type==="PRESENCE" && frame.data)receivePresence(frame.data as PresenceSignal);
           if (
             (frame.type === "NOTIFICATION" ||
               frame.type === "RESOURCE_CHANGED") &&
@@ -108,7 +117,7 @@ export function StudentRealtime() {
                 dispatch(noticeReceived(item as Notification));
               }
               if (item.id) notices.set(item.id, item.version ?? 1);
-              if (isNew) refresh(item, "NOTIFICATION");
+              if (isNew) {refresh(item, "NOTIFICATION");showNoticeToast(item as Notification);}
             } else refresh(item, "RESOURCE_CHANGED");
           }
           if (frame.type === "NOTIFICATIONS") {
@@ -133,7 +142,7 @@ export function StudentRealtime() {
         }
       };
       current.onclose = (event) => {
-        if (socket === current) socket = undefined;
+        if (socket === current) {socket = undefined;presenceConnection(false);}
         if (event.code === 1008 && event.reason === "UNAUTHORIZED")
           dispatch(loggedOut("Phiên đăng nhập đã hết hạn."));
       };
@@ -142,6 +151,7 @@ export function StudentRealtime() {
       if (document.hidden || !navigator.onLine) pause();
       else open();
     };
+    window.addEventListener(PRESENCE_CONTEXT_EVENT,sendContext);
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("online", resume);
     window.addEventListener("offline", pause);
@@ -151,6 +161,7 @@ export function StudentRealtime() {
     return () => {
       disposed = true;
       pause();
+      window.removeEventListener(PRESENCE_CONTEXT_EVENT,sendContext);
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("online", resume);
       window.removeEventListener("offline", pause);

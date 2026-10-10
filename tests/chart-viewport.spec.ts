@@ -37,14 +37,20 @@ async function exerciseZoom(page: Page, chart: Locator) {
     .toBeGreaterThan(original);
   expect((await surface.boundingBox())!.width).toBe(size.width);
   // Native keyboard pan moves the window, without moving Y ticks or the canvas.
-  const y = surface.locator('svg text[text-anchor="end"]').first();
-  const yBefore = await y.boundingBox();
+  const y = surface.locator('svg text[text-anchor="end"]').filter({ hasText: /^-?\d+(?:[.,]\d+)?%?$/ }).first();
+  await expect(y).toBeVisible();
+  const yBefore = (await y.boundingBox())!;
   await surface.focus();
   await page.keyboard.press("ArrowLeft");
   await expect
     .poll(async () => Number(await surface.getAttribute("data-visible-end")))
     .toBeLessThan(100);
-  if (yBefore) expect((await y.boundingBox())!.x).toBe(yBefore.x);
+  // ECharts replaces SVG labels during pan; measure their stable right anchor
+  // after that render completes instead of dereferencing a removed SVG node.
+  await expect.poll(async () => {
+    const box = await y.boundingBox();
+    return box ? Math.round((box.x + box.width) * 10) / 10 : null;
+  }).toBe(Math.round((yBefore.x + yBefore.width) * 10) / 10);
   // Native drag pan, not a scroll container.
   const beforeDrag = Number(await surface.getAttribute("data-visible-start"));
   const box = (await surface.boundingBox())!;

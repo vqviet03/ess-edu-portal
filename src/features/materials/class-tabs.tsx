@@ -1,4 +1,5 @@
 "use client";
+import {ClassPresenceContext,ClassMembers} from "@/features/presence/roster";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Box from "@mui/material/Box";
@@ -66,7 +67,7 @@ export function ClassTabs({
   classId: string;
   initialTab?: string;
 }) {
-  const first = ["thread", "files", "report", "rewards", "attendance"].includes(
+  const first = ["thread", "files", "report", "rewards", "attendance", "members"].includes(
       initialTab,
     )
       ? initialTab
@@ -75,6 +76,7 @@ export function ClassTabs({
     [visited, setVisited] = useState<string[]>([first]);
   return (
     <>
+      <ClassPresenceContext classId={classId}/>
       <Tabs
         value={tab}
         onChange={(_, v: string) => {
@@ -115,7 +117,9 @@ export function ClassTabs({
           id="class-attendance-tab"
           aria-controls="class-attendance-panel"
         />
+        <Tab label="Thành viên" value="members" id="class-members-tab" aria-controls="class-members-panel"/>
       </Tabs>
+      <Box role="tabpanel" id="class-members-panel" aria-labelledby="class-members-tab" hidden={tab!=="members"} sx={{mt:2}}>{visited.includes("members")&&<ClassMembers classId={classId}/>}</Box>
       <Box
         role="tabpanel"
         id="class-thread-panel"

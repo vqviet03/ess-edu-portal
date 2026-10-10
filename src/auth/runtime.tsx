@@ -1,4 +1,5 @@
 'use client';
+import {NotificationToast} from "@/features/notifications/toast";
 import {UnsavedRuntime} from '@/shared/unsaved';
 import {StudentRealtime} from './realtime';
 import { createContext, useContext, useEffect } from 'react';
@@ -29,7 +30,7 @@ export function AuthRuntime({children}: {children: React.ReactNode}) {
     checkExpiry();
     return () => clearTimeout(timer);
   }, [auth.accessToken, auth.expiresAt, dispatch]);
-  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}><UnsavedRuntime/><StudentRealtime/>{children}</CheckContext.Provider>;
+  return <CheckContext.Provider value={{error: me.error, retry: me.refetch}}><UnsavedRuntime/><StudentRealtime/><NotificationToast key={auth.student?.id??"guest"}/>{children}</CheckContext.Provider>;
 }
 export function Guard({children}: {children: React.ReactNode}) {
   const status = useAppSelector(s => s.auth.status);

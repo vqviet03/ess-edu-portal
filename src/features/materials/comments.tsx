@@ -1,4 +1,5 @@
 "use client";
+import {ContentViews} from "@/features/presence/views";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -190,6 +191,7 @@ export function Comments({
             {c.authorId === post.authorId ? " · Giảng viên" : ""}
           </Typography>
           <Stack direction="row" sx={{ alignItems: "center" }}>
+            <ContentViews kind="COMMENT" id={c.id}/>
             {c.isPinned && (
               <Tooltip title="Bình luận đã ghim — luôn hiển thị">
                 <PushPin sx={{ fontSize: 15, color: "var(--post-green)" }} />

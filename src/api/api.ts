@@ -27,6 +27,7 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
     tagTypes: [
       "ApplicationSettings",
       "Attendance",
+      "Members",
       "Rewards",
       "Schedule",
       "Classes",
