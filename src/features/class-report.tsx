@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 import { Feedback } from "@/components/feedback";
 import { useUnitsQuery, useProgressQuery, useReportQuery } from "@/api/api";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -10,7 +11,10 @@ import { chooseUnit } from "@/store/auth";
 import { selectUnit } from "@/models/report";
 import ReportView from "./report";
 import { useSearchParams } from "next/navigation";
-export function ClassReport({ classId }: { classId: string }) {
+export function ClassReport({classId}: {classId: string}) {
+  return <ClassReportContent key={classId} classId={classId}/>;
+}
+function ClassReportContent({ classId }: { classId: string }) {
   const params = useSearchParams(), [requestedUnit,setRequestedUnit] = useState(params.get("unitId"));
   const id = useAppSelector((s) => s.auth.unitId),
     dispatch = useAppDispatch(),
@@ -24,6 +28,7 @@ export function ClassReport({ classId }: { classId: string }) {
       { skip: !unit?.hasReport },
     ),
     progress = useProgressQuery(classId);
+  const reportData = report.currentData ?? report.data;
   if (!units.currentData && (units.isLoading || units.error))
     return (
       <Feedback
@@ -55,21 +60,26 @@ export function ClassReport({ classId }: { classId: string }) {
           ? new Date(report.currentData.testedAt).toLocaleDateString("vi-VN")
           : "Chưa cập nhật"}
       </Typography>
-      {!report.currentData && report.isLoading ? (
+      {!reportData && report.isFetching ? (
         <Feedback loading />
       ) : !unit.hasReport ? (
         <Feedback empty="Unit này chưa có báo cáo." />
-      ) : !report.currentData && report.error ? (
+      ) : !reportData && report.error ? (
         <Feedback error={report.error} retry={report.refetch} />
-      ) : report.currentData ? (
+      ) : reportData ? (
+        <Box aria-busy={report.isFetching} data-testid="unit-report-content" sx={{position: "relative"}}>
+          {!report.currentData && <Box sx={{position: "absolute", inset: 0, zIndex: 1}}><Feedback loading={report.isFetching} error={report.error} retry={report.refetch}/></Box>}
+          <Box sx={{visibility: report.currentData ? "visible" : "hidden"}}>
         <ReportView
-          report={report.currentData}
+          report={reportData}
           entries={progress.currentData ?? []}
           unitName={unit.name}
           progressLoading={progress.isLoading}
           progressError={progress.error}
           retryProgress={progress.refetch}
         />
+          </Box>
+        </Box>
       ) : null}
     </>
   );

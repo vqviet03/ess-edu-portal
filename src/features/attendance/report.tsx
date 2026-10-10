@@ -23,14 +23,18 @@ import {
   todayDate,
   type AttendanceStatus,
 } from "./models";
-export function AttendanceReport({ classId }: { classId: string }) {
+export function AttendanceReport({classId}: {classId: string}) {
+  return <AttendanceReportContent key={classId} classId={classId}/>;
+}
+function AttendanceReportContent({ classId }: { classId: string }) {
   const [month, setMonth] = useState(todayDate().slice(0, 7)),
     [selected, setSelected] = useState(todayDate()),
     [status, setStatus] = useState(""),
     [page, setPage] = useState(1),
     query = useStudentAttendanceQuery({ classId, month, status, page }),
     notices = useNotificationsQuery({ type: "ATTENDANCE" });
-  if (query.isLoading || query.error || !query.currentData)
+  const data = query.currentData ?? query.data;
+  if (!data)
     return (
       <Feedback
         loading={query.isLoading}
@@ -38,8 +42,7 @@ export function AttendanceReport({ classId }: { classId: string }) {
         retry={() => void query.refetch()}
       />
     );
-  const data = query.currentData,
-    stats = data.stats,
+  const stats = data.stats,
     color =
       stats.warning === "DANGER"
         ? "red"
@@ -49,6 +52,10 @@ export function AttendanceReport({ classId }: { classId: string }) {
     today =
       data.todaySession ?? data.calendar.find((d) => d.date === data.today);
   return (
+    <Box aria-busy={query.isFetching} data-testid="attendance-report-content" sx={{position: "relative"}}>
+      {query.currentData && <Feedback error={query.error} retry={() => void query.refetch()}/>}
+      {!query.currentData && <Box sx={{position: "absolute", inset: 0, zIndex: 1}}><Feedback loading={query.isFetching} error={query.error} retry={() => void query.refetch()}/></Box>}
+      <Box sx={{visibility: query.currentData ? "visible" : "hidden"}}>
     <AttendanceSurface>
       <Typography component="h2" sx={{ fontSize: 24, fontWeight: 700 }}>
         Điểm danh của em
@@ -277,5 +284,7 @@ export function AttendanceReport({ classId }: { classId: string }) {
           ))}
       </Paper>
     </AttendanceSurface>
+      </Box>
+    </Box>
   );
 }
