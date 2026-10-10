@@ -267,6 +267,7 @@ export async function installApiFixture(
           ],
         },
       });
+    if (url === "/me/classes/juniors-03/members") return send({data:{classId:"juniors-03",items:[{userId:student.id,publicId:"HV000123",name:student.fullName,nickname:student.nickname,role:"Học sinh",lastSeenAt:null},{userId:"teacher-one",publicId:"vq.viet",name:"Vũ Quốc Việt",nickname:null,role:"Giảng viên",lastSeenAt:"2026-10-10T08:00:00Z"}]}});
     if (url === "/classes/juniors-03/thread-sessions")
       return send({
         data: {
@@ -462,6 +463,9 @@ export async function installApiFixture(
       if (!comment) throw new Error("Test comment not found");
       comment.body = body;
       comment.version++;
+    },
+    presence(data:{classId:string;userId:string;connectionId:string;online:boolean;seenAt:string}) {
+      for(const socket of sockets)socket.send(JSON.stringify({type:"PRESENCE",data}));
     },
     resourceChanged(data: {id: string; href: string}) {
       for (const socket of sockets)

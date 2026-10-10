@@ -79,7 +79,7 @@ export function StudentRealtime() {
       socket = undefined;
       presenceConnection(false);
     };
-    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}};
+    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}else if(!disposed&&!document.hidden&&navigator.onLine&&!socket)open();};
     const open = () => {
       if (disposed || document.hidden || !navigator.onLine || socket) return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
