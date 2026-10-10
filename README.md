@@ -3,7 +3,7 @@
 Tên trên header, footer và tiêu đề trình duyệt lấy từ API thật `GET /application-settings` (`appName`) như Staff Portal. Tên đã được quản lý đổi/phê duyệt sẽ hiển thị khi mở hoặc reload trang; cấu hình được dùng chung qua RTK Query, không có request định kỳ. Không cần rebuild để thay tên trung tâm.
 
 [Thread, đính kèm bình luận, file private và rollout](docs/thread-materials.md): mặc định tab Thread cho học sinh; liên hệ giảng viên; routing upload theo storage; migration Materials `005_materials.sql` trước triển khai frontend.
-Next.js App Router + TypeScript strict + MUI + Redux Toolkit/RTK Query. Static export cho GitHub Pages; giao diện Sáng/Tối/Theo hệ thống, ưu tiên mobile. Recharts tải khi biểu đồ đi vào vùng nhìn.
+Next.js App Router + TypeScript strict + MUI + Redux Toolkit/RTK Query. Static export cho GitHub Pages; giao diện Sáng/Tối/Theo hệ thống, ưu tiên mobile. Apache ECharts tải khi biểu đồ đi vào vùng nhìn.
 
 ## Chạy với backend thật
 
@@ -122,4 +122,4 @@ Thread hiển thị bình luận ghim ngay cả khi đóng regular list; xem th�
 
 Cần backend Core migration 016 + Materials 007 từ image mới. Contract: [attendance-threads.md](https://github.com/vqviet03/ess-edu-api/blob/feat/class-rewards-schedules/docs/attendance-threads.md). Production luôn API thật; dữ liệu HTTP tổng hợp chỉ trong test runner. Không thêm polling; signal ATTENDANCE chỉ refresh Attendance/Rewards liên quan.
 
-Biểu đồ Unit, chênh lệch và điểm tích luỹ tự mở vùng cuộn ngang khi các mốc quá sát nhau so với chiều rộng khung. Icon −/+/đặt lại cạnh biểu đồ điều chỉnh zoom ngang 50–400%, giữ nguyên chiều cao, toàn bộ điểm, tooltip và các lựa chọn ẩn/hiện. Trục ngày giữ khoảng cách thời gian thực; cuộn bằng cảm ứng, trackpad hoặc bàn phím khi vùng biểu đồ được focus. Zoom/cuộn không gọi thêm API và không thêm interval.
+Biểu đồ Unit, chênh lệch và điểm tích luỹ dùng Apache ECharts 6 (Apache-2.0, không cần license thương mại), tải theo màn hình báo cáo. Zoom/pan và slider là `dataZoom` native trên trục X: khung biểu đồ/trục Y luôn cố định, mặc định hiển thị các mốc mới nhất theo chiều rộng. Kéo biểu đồ/slider để xem lịch sử; chụm hai ngón hoặc Ctrl + lăn chuột để zoom, Shift + lăn chuột để pan. Icon −/+ thu/phóng, icon khung xem toàn bộ, icon cuối về dữ liệu mới nhất. Khi focus biểu đồ: ←/→ pan, +/− zoom, End về mới nhất. Trục ngày giữ khoảng cách thời gian thực và tooltip ngày/tháng/năm; ô null không thành 0. Giữ đủ 7 kỹ năng, 8 biểu đồ chênh lệch và 4 đường điểm tích luỹ, màu/chú thích/nút ẩn hiện theo giao diện MUI. Đường cong monotone-X đi qua điểm, không vượt giá trị hai đầu đoạn. Pan/zoom/ẩn hiện không gọi API và không có interval. GitHub Pages vẫn static export; không thay đổi cấu hình backend hoặc deployment.
