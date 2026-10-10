@@ -129,3 +129,8 @@ Biểu đồ Unit, chênh lệch và điểm tích luỹ dùng Apache ECharts 6 
 API JSON và nội dung file đều đi qua `studentApi`/RTK Query (`fetchBaseQuery`); component không gọi `fetch()` trực tiếp. Upload signed URL dùng XMLHttpRequest bên trong RTK Query `queryFn` để đo tiến trình và hỗ trợ hủy. Không đổi cơ chế này sang request không có tiến trình.
 
 Refetch giữ nội dung lớp/báo cáo đang có và bản nháp khi gặp lỗi tải lại. Liên kết tới bình luận chỉ cuộn đến mục tiêu một lần, không cuộn lại sau mỗi cập nhật cache/realtime. Đổi lớp qua query parameter dùng `scroll: false`. Kiểm thử hồi quy: `tests/refetch-scroll.spec.ts`.
+
+
+## Lịch ngoại lệ, thông báo và thành viên
+
+Xem [hướng dẫn chức năng và API](docs/calendar-notifications-presence.md). Bản này cần migrations mới của backend trước khi dùng. Không có polling presence/notifications hoặc worker quét DB; tab ẩn đóng socket.

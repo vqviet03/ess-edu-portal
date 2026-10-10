@@ -79,7 +79,7 @@ export function StudentRealtime() {
       socket = undefined;
       presenceConnection(false);
     };
-    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}};
+    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}};
     const open = () => {
       if (disposed || document.hidden || !navigator.onLine || socket) return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
@@ -95,6 +95,7 @@ export function StudentRealtime() {
           const frame = JSON.parse(String(event.data)) as Frame;
           if (frame.cursor) cursor = frame.cursor;
           if(frame.type==="READY")sendContext();
+          if(frame.type==="PRESENCE_RESET")presenceConnection(false);
           if(frame.type==="PRESENCE" && frame.data)receivePresence(frame.data as PresenceSignal);
           if (
             (frame.type === "NOTIFICATION" ||
