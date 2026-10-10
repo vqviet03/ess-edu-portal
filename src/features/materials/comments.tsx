@@ -50,11 +50,16 @@ function CommentPage({
 }) {
   const query = useCommentsQuery({ postId, cursor, around }),
     [more, setMore] = useState(false);
+  const located = useRef<string | null>(null);
   useEffect(() => {
-    if (around && query.currentData)
-      document
-        .getElementById(`comment-${around}`)
-        ?.scrollIntoView({ block: "center" });
+    // A deep link scrolls once; cache updates must not move the reader.
+    if (!around) { located.current = null; return; }
+    if (located.current === around || !query.currentData) return;
+    const element = document.getElementById(`comment-${around}`);
+    if (element) {
+      element.scrollIntoView({ block: "center" });
+      located.current = around;
+    }
   }, [around, query.currentData]);
   return (
     <Stack spacing={1.5}>

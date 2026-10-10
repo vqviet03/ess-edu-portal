@@ -123,3 +123,9 @@ Thread hiển thị bình luận ghim ngay cả khi đóng regular list; xem th�
 Cần backend Core migration 016 + Materials 007 từ image mới. Contract: [attendance-threads.md](https://github.com/vqviet03/ess-edu-api/blob/feat/class-rewards-schedules/docs/attendance-threads.md). Production luôn API thật; dữ liệu HTTP tổng hợp chỉ trong test runner. Không thêm polling; signal ATTENDANCE chỉ refresh Attendance/Rewards liên quan.
 
 Biểu đồ Unit, chênh lệch và điểm tích luỹ dùng Apache ECharts 6 (Apache-2.0, không cần license thương mại), tải theo màn hình báo cáo. Zoom/pan và slider là `dataZoom` native trên trục X: khung biểu đồ/trục Y luôn cố định, mặc định hiển thị các mốc mới nhất theo chiều rộng. Kéo biểu đồ/slider để xem lịch sử; chụm hai ngón hoặc Ctrl + lăn chuột để zoom, Shift + lăn chuột để pan. Icon −/+ thu/phóng, icon khung xem toàn bộ, icon cuối về dữ liệu mới nhất. Khi focus biểu đồ: ←/→ pan, +/− zoom, End về mới nhất. Trục ngày giữ khoảng cách thời gian thực và tooltip ngày/tháng/năm; ô null không thành 0. Giữ đủ 7 kỹ năng, 8 biểu đồ chênh lệch và 4 đường điểm tích luỹ, màu/chú thích/nút ẩn hiện theo giao diện MUI. Đường cong monotone-X đi qua điểm, không vượt giá trị hai đầu đoạn. Pan/zoom/ẩn hiện không gọi API và không có interval. GitHub Pages vẫn static export; không thay đổi cấu hình backend hoặc deployment.
+
+### Tải lại dữ liệu và vị trí đọc
+
+API JSON và nội dung file đều đi qua `studentApi`/RTK Query (`fetchBaseQuery`); component không gọi `fetch()` trực tiếp. Upload signed URL dùng XMLHttpRequest bên trong RTK Query `queryFn` để đo tiến trình và hỗ trợ hủy. Không đổi cơ chế này sang request không có tiến trình.
+
+Refetch giữ nội dung lớp/báo cáo đang có và bản nháp khi gặp lỗi tải lại. Liên kết tới bình luận chỉ cuộn đến mục tiêu một lần, không cuộn lại sau mỗi cập nhật cache/realtime. Đổi lớp qua query parameter dùng `scroll: false`. Kiểm thử hồi quy: `tests/refetch-scroll.spec.ts`.

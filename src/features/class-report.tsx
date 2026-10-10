@@ -24,7 +24,7 @@ export function ClassReport({ classId }: { classId: string }) {
       { skip: !unit?.hasReport },
     ),
     progress = useProgressQuery(classId);
-  if (units.isLoading || units.error)
+  if (!units.currentData && (units.isLoading || units.error))
     return (
       <Feedback
         loading={units.isLoading}
@@ -35,6 +35,8 @@ export function ClassReport({ classId }: { classId: string }) {
   if (!unit) return <Feedback empty="Lớp này chưa có Unit học tập." />;
   return (
     <>
+      <Feedback error={units.error} retry={units.refetch} />
+      {report.currentData && <Feedback error={report.error} retry={report.refetch} />}
       <Tabs
         aria-label="Chọn Unit"
         value={unit.id}
@@ -53,11 +55,11 @@ export function ClassReport({ classId }: { classId: string }) {
           ? new Date(report.currentData.testedAt).toLocaleDateString("vi-VN")
           : "Chưa cập nhật"}
       </Typography>
-      {report.isLoading ? (
+      {!report.currentData && report.isLoading ? (
         <Feedback loading />
       ) : !unit.hasReport ? (
         <Feedback empty="Unit này chưa có báo cáo." />
-      ) : report.error ? (
+      ) : !report.currentData && report.error ? (
         <Feedback error={report.error} retry={report.refetch} />
       ) : report.currentData ? (
         <ReportView
