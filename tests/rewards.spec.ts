@@ -127,7 +127,7 @@ test("student reward history and four cumulative curves are read-only, responsiv
   await expect(
     page.getByRole("heading", { name: "Hành trình tích luỹ", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".recharts-line")).toHaveCount(4);
+  await expect(page.locator('[data-testid="chart-surface"] svg path[fill="none"][stroke-width="2.5"]')).toHaveCount(4);
   await page.screenshot({
     path: testInfo.outputPath("student-rewards-desktop.png"),
     fullPage: true,
@@ -139,9 +139,9 @@ test("student reward history and four cumulative curves are read-only, responsiv
     page.getByText("Chưa có hoạt động nào.", { exact: true }).first(),
   ).toBeVisible();
   await page.getByRole("button", { name: "Vi phạm", exact: true }).click();
-  await expect(page.locator(".recharts-line")).toHaveCount(3);
+  await expect(page.locator('[data-testid="chart-surface"] svg path[fill="none"][stroke-width="2.5"]')).toHaveCount(3);
   await page.getByRole("button", { name: "Vi phạm", exact: true }).click();
-  await expect(page.locator(".recharts-line")).toHaveCount(4);
+  await expect(page.locator('[data-testid="chart-surface"] svg path[fill="none"][stroke-width="2.5"]')).toHaveCount(4);
   await expect(
     page.getByRole("button", { name: "Ghi nhận thành tích", exact: true }),
   ).toHaveCount(0);
