@@ -25,7 +25,7 @@ export async function installApiFixture(
     process.env.NEXT_PUBLIC_API_BASE_URL,
   );
   const sessions = new Map<string, string>();
-  let consumed = false;
+  let consumed = false, authFailures = 0, socketConnections = 0;
   const files: MaterialFile[] = materials.slice(0, 2).map((m) => ({
     id: m.id,
     originalName: m.title,
@@ -133,10 +133,12 @@ export async function installApiFixture(
   await page.routeWebSocket(
     `${baseUrl.replace(/^https:/, "wss:").replace(/^http:/, "ws:")}/events/ws`,
     (socket) => {
+      socketConnections++;
       sockets.add(socket);
       socket.onMessage(message => {
         const frame=JSON.parse(String(message)) as {type:string};
         if(frame.type!=="AUTH")return;
+        if(authFailures>0){authFailures--;socket.close({code:1008,reason:"UNAUTHORIZED"});return;}
         socket.send(JSON.stringify({ type: "READY", cursor: "0" }));
         socket.send(JSON.stringify(snapshot()));
       });
@@ -458,6 +460,9 @@ export async function installApiFixture(
     return fail(404, "NOT_FOUND", "Chưa có báo cáo.");
   });
   return {
+    rejectSocketAuth: (count: number) => { authFailures = count; },
+    connectionCount: () => socketConnections,
+    disconnectUnauthorized: () => { for(const socket of sockets)socket.close({code:1008,reason:"UNAUTHORIZED"}); },
     changeComment(id: string, body: string) {
       const comment = comments.find(c => c.id === id);
       if (!comment) throw new Error("Test comment not found");
