@@ -224,6 +224,7 @@ export const statusLabels: Record<string, string> = {
   WITHDRAWN: "Đã thu hồi",
   OVERDUE: "Quá hạn chưa nộp",
   NOT_SUBMITTED: "Chưa nộp",
+  NOT_DUE: "Chưa đến hạn nộp",
   PENDING_GRADING: "Chờ chấm",
   GRADED: "Đã chấm, chờ công bố",
 };

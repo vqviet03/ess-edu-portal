@@ -195,8 +195,7 @@ export function PostSurface({
               {post.status === "DRAFT" && <Chip size="small" label="Nháp" />}
             </Stack>
             <Typography
-              component={NextLink}
-              href={post.assignment ? `/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}` : `/post/?postId=${post.id}&classId=${post.classId}`}
+              component="h2"
               sx={{
                 display: "block", textDecoration: "none", color: "inherit", fontSize: 23,
                 fontWeight: 600,
@@ -204,7 +203,7 @@ export function PostSurface({
                 overflowWrap: "anywhere",
               }}
             >
-              {post.title}
+              {draft ? post.title : <NextLink style={{color:"inherit",textDecoration:"none"}} href={post.assignment ? `/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}` : `/post/?postId=${post.id}&classId=${post.classId}`}>{post.title}</NextLink>}
             </Typography>
             <Typography
               component={NextLink}
