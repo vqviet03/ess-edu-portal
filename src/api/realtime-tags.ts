@@ -5,6 +5,8 @@ export function realtimeTags(
   classId: string | null,
   noticeType?: string,
 ): Parameters<typeof api.util.invalidateTags>[0] {
+  if (noticeType === "ASSIGNMENT") return [{type:"LearningAssignments",...(classId?{id:classId}:{})}, "Threads", "AssignmentReport"];
+  if (noticeType === "ASSIGNMENT_RESULT") return ["AssignmentDraft", "AssignmentReport"];
   if (kind === "RESOURCE_CHANGED")
     return classId
       ? [

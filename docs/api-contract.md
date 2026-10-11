@@ -370,3 +370,7 @@ Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private ph
 Thông báo MATERIAL/REPLY/SCORE và đường dẫn đến bài/bình luận/Unit: [student-notifications.md](student-notifications.md). Dùng notification endpoints/socket hiện có; không polling hoặc truyền JWT qua URL.
 
 Điểm động viên/lịch học: [rewards-schedules.md](rewards-schedules.md), đọc `/me/reward-classes`, `/me/classes/:classId/rewards`, `/history`, `/activities`, `/schedule`. Không có endpoint mutation reward dành cho học sinh.
+
+## Bài tập
+
+Endpoints và lifecycle mới: [assignments](assignments.md), dùng cùng base URL, auth và response contract hiện có. Không có mock cho tính năng này.
