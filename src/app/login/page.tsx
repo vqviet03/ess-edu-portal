@@ -20,7 +20,7 @@ export default function Login() {
     <Stack component="form" spacing={2.5} onSubmit={submit}>
       {auth.reason && <Alert severity="info">{auth.reason}</Alert>}
       {error && <Alert severity="error">{error.message}</Alert>}
-      <TextField label="ID học sinh" autoComplete="username" value={id} onChange={e => setId(e.target.value)} required disabled={result.isLoading} error={!!error?.fieldErrors?.studentId} helperText={error?.fieldErrors?.studentId}/>
+      <TextField label="ID học sinh / email / số điện thoại" autoComplete="username" value={id} onChange={e => setId(e.target.value)} required disabled={result.isLoading} error={!!error?.fieldErrors?.studentId} helperText={error?.fieldErrors?.studentId}/>
       <TextField label="Mật khẩu" type={visible ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required disabled={result.isLoading} error={!!error?.fieldErrors?.password} helperText={error?.fieldErrors?.password} slotProps={{input: {endAdornment: <InputAdornment position="end"><Button aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} onClick={() => setVisible(v => !v)} sx={{minWidth: 44}}>{visible ? 'Ẩn' : 'Hiện'}</Button></InputAdornment>}}}/>
       <Button type="submit" variant="contained" size="large" disabled={result.isLoading} startIcon={result.isLoading ? <CircularProgress size={18} color="inherit"/> : undefined}>{result.isLoading ? 'Đang đăng nhập…' : 'Đăng nhập'}</Button>
     </Stack>

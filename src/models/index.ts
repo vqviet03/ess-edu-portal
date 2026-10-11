@@ -1,6 +1,6 @@
 export const skillCodes = ['vocabulary', 'grammar', 'pronunciation', 'listening', 'reading', 'speaking', 'writing'] as const;
 export type SkillCode = typeof skillCodes[number];
-export interface Student { id: string; studentCode: string; fullName: string; nickname: string | null }
+export interface Student { avatar?: import("@/features/profile/models").AvatarChoice | null; id: string; studentCode: string; fullName: string; nickname: string | null }
 export interface Class { id: string; name: string; subject: string; isActive: boolean }
 export interface Unit { id: string; name: string; order: number; hasReport: boolean }
 export interface Score { score: number | null; maxScore: number | null; percentage: number | null }

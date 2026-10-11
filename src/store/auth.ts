@@ -6,9 +6,10 @@ const slice = createSlice({ name: 'auth', initialState, reducers: {
   restore(state, action: PayloadAction<AuthSession | null>) { return action.payload ? { ...initialState, ...action.payload, status: 'validating' } : { ...initialState, status: 'guest' }; },
   signedIn(state, action: PayloadAction<AuthSession>) { return { ...initialState, ...action.payload, status: 'authenticated' }; },
   validated(state, action: PayloadAction<Student>) { if (state.status === 'validating') { state.student = action.payload; state.status = 'authenticated'; } },
+  profileUpdated(state, action: PayloadAction<import("@/features/profile/models").PersonalProfile>) { if(state.student){ state.student.fullName=action.payload.fullName; state.student.nickname=action.payload.nickname; state.student.avatar=action.payload.avatar; } },
   loggedOut(state, action: PayloadAction<string | undefined>) { return { ...initialState, status: 'guest', reason: action.payload ?? null }; },
   chooseClass(state, action: PayloadAction<string>) { state.classId = action.payload; state.unitId = null; },
   chooseUnit(state, action: PayloadAction<string>) { state.unitId = action.payload; },
 }});
-export const { restore, signedIn, validated, loggedOut, chooseClass, chooseUnit } = slice.actions;
+export const { restore, signedIn, validated, loggedOut, chooseClass, chooseUnit, profileUpdated } = slice.actions;
 export default slice.reducer;

@@ -33,8 +33,9 @@ export interface MaterialFile {
   folderId: string | null;
   authorId: string;
   authorName: string;
+  authorAvatar?: import("@/features/profile/models").AvatarChoice | null;
   uploadedBy: string;
-  uploadSource: "session" | "library" | "comment";
+  uploadSource: "session" | "library" | "comment" | "avatar" | "post";
   sourceSessionId: string | null;
   sourcePostId: string | null;
   storageId?: string;
@@ -74,6 +75,7 @@ export interface Post {
   status: "DRAFT" | "PUBLISHED";
   authorId: string;
   authorName: string;
+  authorAvatar?: import("@/features/profile/models").AvatarChoice | null;
   publishedBy: string;
   publisherName: string;
   createdAt: string;
@@ -107,6 +109,7 @@ export interface Comment {
   parentId: string | null;
   authorId: string;
   authorName: string;
+  authorAvatar?: import("@/features/profile/models").AvatarChoice | null;
   body: string;
   createdAt: string;
   version: number;
@@ -145,6 +148,7 @@ export interface DeletionItem {
   usages: { id: string; title: string; sessionId: string; classId: string }[];
 }
 export interface Notification {
+  actorAvatar?: import("@/features/profile/models").AvatarChoice;
   priority?: "NORMAL" | "IMPORTANT";
   actorName?: string; actorPublicId?: string; actorRole?: string; subject?: string; message?: string;
   id: string;
@@ -161,7 +165,7 @@ export interface UploadInput {
   sizeBytes: number;
   storageId: string;
   folderId: string | null;
-  uploadSource: "session" | "library" | "comment";
+  uploadSource: "session" | "library" | "comment" | "avatar" | "post";
   sourceSessionId?: string;
   sourcePostId?: string;
   thumbnailMime?: string;

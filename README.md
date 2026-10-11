@@ -134,3 +134,8 @@ Refetch giữ nội dung lớp/báo cáo đang có và bản nháp khi gặp l�
 ## Lịch ngoại lệ, thông báo và thành viên
 
 Xem [hướng dẫn chức năng và API](docs/calendar-notifications-presence.md). Bản này cần migrations mới của backend trước khi dùng. Không có polling presence/notifications hoặc worker quét DB; tab ẩn đóng socket.
+
+
+## Hồ sơ, avatar và thông báo
+
+Trang `/profile/` sửa thông tin cá nhân, đổi ID đăng nhập yêu cầu mật khẩu hiện tại; email/số điện thoại cá nhân là alias đăng nhập. Avatar dùng MUI và màu pastel hoặc upload ảnh qua API có xác thực. Xem [hướng dẫn và API](docs/personal-profile-notifications.md). Yêu cầu backend đã áp dụng migration Core 020, Materials 009, Notifications 004. Không thêm dependency hoặc polling.
