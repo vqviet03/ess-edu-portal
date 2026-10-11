@@ -12,7 +12,9 @@ import { realtimeTags } from "@/api/realtime-tags";
 import { api } from "@/api/api";
 import { apiConfiguration } from "@/api/config";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { loggedOut } from "@/store/auth";
+import { useStore } from "react-redux";
+import type { RootState } from "@/store";
+import { createSocketSessionCheck } from "./socket-session";
 type Signal = {
   classId?:string;userId?:string;connectionId?:string;online?:boolean;seenAt?:string;
   type?: string;
@@ -35,6 +37,7 @@ type Frame = {
 };
 export function StudentRealtime() {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const token = useAppSelector((s) =>
     s.auth.status === "authenticated" ? s.auth.accessToken : null,
   );
@@ -42,8 +45,13 @@ export function StudentRealtime() {
     if (!token || apiConfiguration.error) return;
     let socket: WebSocket | undefined,
       disposed = false,
+      authBlocked = false,
       cursor: string | undefined,
       receivedSnapshot = false;
+    const verifySession = createSocketSessionCheck(
+      () => disposed ? null : store.getState().auth.accessToken,
+      () => dispatch(api.endpoints.me.initiate(undefined, { forceRefetch: true, subscribe: false })),
+    );
     const processed = new Set<string>(),
       notices = new Map<string, number>();
     const refresh = (
@@ -81,7 +89,7 @@ export function StudentRealtime() {
     };
     const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}else if(!disposed&&!document.hidden&&navigator.onLine&&!socket)open();};
     const open = () => {
-      if (disposed || document.hidden || !navigator.onLine || socket) return;
+      if (disposed || authBlocked || document.hidden || !navigator.onLine || socket) return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
       const current = new WebSocket(url);
@@ -142,9 +150,13 @@ export function StudentRealtime() {
         }
       };
       current.onclose = (event) => {
-        if (socket === current) {socket = undefined;presenceConnection(false);}
-        if (event.code === 1008 && event.reason === "UNAUTHORIZED")
-          dispatch(loggedOut("Phiên đăng nhập đã hết hạn."));
+        if (disposed || socket !== current) return;
+        socket = undefined;
+        presenceConnection(false);
+        if (event.code === 1008 && event.reason === "UNAUTHORIZED") {
+          authBlocked = true;
+          void verifySession(token).then(valid => { if (valid) { authBlocked = false; open(); } });
+        }
       };
     };
     const resume = () => {
@@ -168,6 +180,6 @@ export function StudentRealtime() {
       window.removeEventListener("pageshow", resume);
       window.removeEventListener("pagehide", pause);
     };
-  }, [token, dispatch]);
+  }, [token, dispatch, store]);
   return null;
 }
