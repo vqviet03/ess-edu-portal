@@ -1,6 +1,10 @@
 "use client";
 import NextLink from "next/link";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import {usePostTarget} from "./post-target";
 import { Comments } from "./comments";
 import { PostSurface } from "./post-surface";
 import { useEffect, useRef, useState } from "react";
@@ -18,10 +22,12 @@ import type { MaterialFile, Post } from "./models";
 import { MaterialViewer } from "./viewer";
 export function PostCard({
   post,
+  detail = false,
   cursor,
   targetComment,
 }: {
   post: Post;
+  detail?: boolean;
   cursor?: string;
   targetComment?: string;
 }) {
@@ -29,9 +35,12 @@ export function PostCard({
     [preview, setPreview] = useState<MaterialFile | null>(null),
     [reaction, state] = useReactionMutation(),
     [error, setError] = useState<unknown>();
+  const [lastTarget,setLastTarget]=useState(targetComment);
+  if(lastTarget!==targetComment){setLastTarget(targetComment);if(targetComment)setShowComments(true);}
   return (
     <>
       <PostSurface
+        detail={detail}
         post={post}
         afterMedia={post.assignment && <Button variant="contained" component={NextLink} href={`/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}`}>Mở bài tập</Button>}
         commentOpen={showComments}
@@ -161,4 +170,4 @@ export function ThreadFeed({
   );
 }
 
-export function PostDetailPage({postId}:{postId:string}) {const q=usePostQuery(postId,{skip:!postId});return <><Feedback loading={q.isLoading} error={q.error} retry={()=>void q.refetch()}/>{q.data&&<PostCard post={q.data}/>}</>;}
+export function PostDetailPage({postId}:{postId:string}) {const q=usePostQuery(postId,{skip:!postId});const target=usePostTarget(postId);return <><Feedback loading={q.isLoading} error={q.error} retry={()=>void q.refetch()}/>{q.data&&target&&<><Tooltip title="Về thread"><IconButton component={NextLink} href={`/materials/?classId=${encodeURIComponent(q.data.classId)}&tab=thread`} aria-label="Về thread"><ArrowBack/></IconButton></Tooltip><PostCard detail targetComment={target?.comment} post={q.data}/></>}</>;}

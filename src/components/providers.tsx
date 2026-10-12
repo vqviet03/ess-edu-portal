@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {PwaRuntime} from "@/features/pwa/runtime";
 import { Provider } from 'react-redux';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -42,5 +43,5 @@ export default function Providers({children}: {children: React.ReactNode}) {
       MuiTab: {styleOverrides: {root: {minHeight: 48, textTransform: 'none', fontSize: '0.9375rem', fontWeight: 600}}},
     },
   }), [mode]);
-  return <Provider store={store}><ApplicationTitle/><Appearance.Provider value={{preference, change}}><ThemeProvider theme={theme}><CssBaseline/><AppDisplayProvider storageKey="ess.student.zoom"><AuthRuntime>{children}</AuthRuntime></AppDisplayProvider></ThemeProvider></Appearance.Provider></Provider>;
+  return <Provider store={store}><ApplicationTitle/><Appearance.Provider value={{preference, change}}><ThemeProvider theme={theme}><CssBaseline/><AppDisplayProvider storageKey="ess.student.zoom"><PwaRuntime/><AuthRuntime>{children}</AuthRuntime></AppDisplayProvider></ThemeProvider></Appearance.Provider></Provider>;
 }
