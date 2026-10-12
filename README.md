@@ -146,3 +146,9 @@ Socket đóng `1008/UNAUTHORIZED` không tự đăng xuất. Client gọi `/me` 
 ## Tên miền riêng
 
 Xem [cấu hình eeslern.com / staff.eeslern.com](docs/custom-domains.md): DNS, GitHub Pages, CORS Cloud Run và deploy lại ở đường dẫn gốc. Không cần migration.
+
+## Bài tập
+
+Xem [hướng dẫn bài tập/API thật](docs/assignments.md): soạn form, làm bài/ghi âm, chấm/công bố, báo cáo riêng và đổi mật khẩu. Backend cần migration trước khi triển khai frontend.
+
+Giao diện bài tập: đối chiếu frame desktop/mobile, theme và icon được ghi trong [docs/assignment-design.md](docs/assignment-design.md). Route `/assignment-report/` dùng query parameters và vẫn hỗ trợ static export.

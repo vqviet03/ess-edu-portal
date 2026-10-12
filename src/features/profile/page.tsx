@@ -1,5 +1,9 @@
 "use client";
+import {ChangePassword} from "@/features/assignments/password";
 import { useState } from "react";
+import dynamic from "next/dynamic";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -15,18 +19,24 @@ import Save from "@mui/icons-material/Save";
 import { usePersonalProfileQuery, useSavePersonalProfileMutation } from "@/api/profile-api";
 import { errorMessage } from "@/api/base-query";
 import { UploadDialog } from "@/features/materials/upload";
-import { useUnsaved } from "@/shared/unsaved";
+import { useUnsaved, confirmLeave } from "@/shared/unsaved";
 import { ProfileAvatar } from "./avatar";
 import { avatarColors, avatarIcons, avatarLabels, profileError, type PersonalProfile } from "./models";
+const AssignmentProfileReport = dynamic(()=>import("@/features/assignments/profile-report").then(m=>m.AssignmentProfileReport));
 export function PersonalProfilePage() {
   const q = usePersonalProfileQuery();
-  const [message,setMessage]=useState("");
+  const [message,setMessage]=useState(""),[tab,setTab]=useState("profile");
   return <Stack spacing={2} sx={{maxWidth:720,mx:"auto"}}>
     <Typography component="h1" variant="h4">Hồ sơ cá nhân</Typography>
+    <Tabs value={tab} onChange={(_,v)=>{if(confirmLeave())setTab(v)}}><Tab value="profile" label="Thông tin cá nhân"/><Tab value="assignments" label="Báo cáo bài tập"/></Tabs>
+    <Box hidden={tab!=="profile"}><Stack spacing={2}>
     {q.isLoading && <LinearProgress />}
     {q.error && <Alert severity="error" action={<Button onClick={()=>void q.refetch()}>Thử lại</Button>}>{errorMessage(q.error)}</Alert>}
     {message&&<Alert severity="success">{message}</Alert>}
     {q.data && <ProfileForm key={q.data.version} initial={q.data} saved={()=>setMessage("Đã lưu hồ sơ.")}/>}
+    <ChangePassword/>
+    </Stack></Box>
+    {tab==="assignments"&&<AssignmentProfileReport/>}
   </Stack>;
 }
 function ProfileForm({initial,saved}:{initial:PersonalProfile;saved:()=>void}) {

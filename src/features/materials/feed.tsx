@@ -1,4 +1,6 @@
 "use client";
+import NextLink from "next/link";
+import Button from "@mui/material/Button";
 import { Comments } from "./comments";
 import { PostSurface } from "./post-surface";
 import { useEffect, useRef, useState } from "react";
@@ -14,7 +16,7 @@ import { useThreadsQuery, usePostQuery } from "@/api/library-api";
 import type { MaterialFile, Post } from "./models";
 
 import { MaterialViewer } from "./viewer";
-function PostCard({
+export function PostCard({
   post,
   cursor,
   targetComment,
@@ -31,6 +33,7 @@ function PostCard({
     <>
       <PostSurface
         post={post}
+        afterMedia={post.assignment && <Button variant="contained" component={NextLink} href={`/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}`}>Mở bài tập</Button>}
         commentOpen={showComments}
         openComments={() => setShowComments((s) => !s)}
         preview={setPreview}
@@ -49,13 +52,13 @@ function PostCard({
           }
         }}
       >
-        <Comments
+        {!post.assignment && <Comments
           post={post}
           targetComment={targetComment}
           expanded={showComments}
           expand={() => setShowComments(true)}
           collapse={() => setShowComments(false)}
-        />
+        />}
       </PostSurface>
       <Feedback error={error} />
       {preview && (
@@ -157,3 +160,5 @@ export function ThreadFeed({
     </Stack>
   );
 }
+
+export function PostDetailPage({postId}:{postId:string}) {const q=usePostQuery(postId,{skip:!postId});return <><Feedback loading={q.isLoading} error={q.error} retry={()=>void q.refetch()}/>{q.data&&<PostCard post={q.data}/>}</>;}

@@ -33,6 +33,7 @@ const types: Record<string, string> = {
   MATERIAL: "Bài đăng / tài liệu",
   REPLY: "Trả lời bình luận",
   SCORE: "Công bố điểm",
+  ASSIGNMENT: "Bài tập mới", SUBMISSION: "Nộp bài tập", ASSIGNMENT_RESULT: "Kết quả bài tập",
   ATTENDANCE: "Điểm danh",
   REWARD: "Điểm động viên",
   SCHEDULE: "Lịch học",
