@@ -107,7 +107,7 @@ export function ThreadFeed({
     }
   }, [targetId, inPage, pinned]);
   return (
-    <Stack spacing={2} sx={{ maxWidth: 680, mx: "auto", width: "100%" }}>
+    <Stack spacing={2} sx={{ mx: "auto", width: "100%" }}>
       {targetId && (
         <Feedback
           loading={target.isLoading}

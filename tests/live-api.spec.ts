@@ -44,7 +44,7 @@ test.describe('ASP.NET + PostgreSQL integration (opt-in, isolated demo backend)'
     const token = await page.evaluate(() => JSON.parse(sessionStorage.getItem('learnleaf.session')!).accessToken as string);
     await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
-    await expect(page).toHaveURL(/\/login\/$/);
+    await expect(page).toHaveURL(/\/login\/(?:\?.*)?$/);
     expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
     expect((await request.get(`${baseUrl}/me`, { headers: { Authorization: `Bearer ${token}` } })).status()).toBe(401);
 
@@ -52,7 +52,7 @@ test.describe('ASP.NET + PostgreSQL integration (opt-in, isolated demo backend)'
     const currentToken = await page.evaluate(() => JSON.parse(sessionStorage.getItem('learnleaf.session')!).accessToken as string);
     expect((await request.post(`${baseUrl}/auth/logout`, { headers: { Authorization: `Bearer ${currentToken}` } })).status()).toBe(200);
     await page.reload();
-    await expect(page).toHaveURL(/\/login\/$/);
+    await expect(page).toHaveURL(/\/login\/(?:\?.*)?$/);
     expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
     expect(errors).toEqual([]);
     await login(page, 'HV000124');
@@ -82,7 +82,7 @@ test.describe('ASP.NET + PostgreSQL integration (opt-in, isolated demo backend)'
     await expect(page.getByRole('heading', { name: 'Tổng quan kết quả Unit 3' })).toBeVisible();
     await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
-    await expect(page).toHaveURL(/\/login\/$/);
+    await expect(page).toHaveURL(/\/login\/(?:\?.*)?$/);
     await page.goto(`auth/link/${fragment}`);
     await expect(page.locator('.MuiAlert-root')).toContainText(/đã.*sử dụng/i);
     expect(new URL(page.url()).hash).toBe('');

@@ -3,6 +3,7 @@ import {NotificationToast} from "@/features/notifications/toast";
 import {UnsavedRuntime} from '@/shared/unsaved';
 import {StudentRealtime} from './realtime';
 import { createContext, useContext, useEffect } from 'react';
+import {loginRedirect} from "@/shared/auth-navigation";
 import { useRouter } from 'next/navigation';
 import { useStore } from 'react-redux';
 import { type RootState, useAppDispatch, useAppSelector } from '@/store';
@@ -36,7 +37,7 @@ export function Guard({children}: {children: React.ReactNode}) {
   const status = useAppSelector(s => s.auth.status);
   const check = useContext(CheckContext);
   const router = useRouter();
-  useEffect(() => { if (status === 'guest') router.replace('/login/'); }, [status, router]);
+  useEffect(() => { if (status === 'guest') router.replace(loginRedirect(location.pathname + location.search + location.hash, process.env.NEXT_PUBLIC_BASE_PATH)); }, [status, router]);
   if (status === 'validating' && check.error) return <Feedback error={check.error} retry={check.retry}/>;
   if (status !== 'authenticated') return <Feedback loading/>;
   return children;

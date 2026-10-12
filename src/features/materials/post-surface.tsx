@@ -1,5 +1,6 @@
 "use client";
 import NextLink from "next/link";
+import {postShareUrl,currentPortalUrl} from "./share-links";
 import { ContentViews } from "@/features/presence/views";
 import { useState, type ReactNode } from "react";
 import {ProfileAvatar} from "@/features/profile/avatar";
@@ -72,6 +73,11 @@ export function PostSurface({
     [downloads, setDownloads] = useState<HTMLElement | null>(null),
     [error, setError] = useState<unknown>();
   const [download, downloadState] = useLazyContentQuery();
+  async function copyLink(portalUrl: string) {
+    setMenu(null); setError(undefined);
+    try { await navigator.clipboard.writeText(postShareUrl(post,portalUrl)); }
+    catch (e) {setError(e);}
+  }
   const files = post.attachments
     .filter((a) => a.available && a.file)
     .map((a) => a.file!);
@@ -81,7 +87,6 @@ export function PostSurface({
       data-testid="lesson-post"
       sx={{
         width: "100%",
-        maxWidth: 600,
         alignSelf: "center",
         mx: "auto",
         p: { xs: "20px 18px", sm: "26px" },
@@ -101,7 +106,8 @@ export function PostSurface({
         "& .MuiTypography-root": { lineHeight: 1.55 },
       }}
     >
-      <Stack spacing={2}>
+      <Box data-testid="post-columns" sx={{display:"grid",gridTemplateColumns:{xs:"minmax(0,1fr)",lg:draft?"minmax(0,1fr)":"minmax(0,1fr) minmax(280px,0.5fr)"},gap:{xs:2,lg:3}}}>
+      <Stack data-testid="post-content" spacing={2} sx={{minWidth:0}}>
         {!draft && <Box sx={{alignSelf:"flex-end"}}><ContentViews kind="POST" id={post.id}/></Box>}
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
           <ProfileAvatar name={post.authorName} value={post.authorAvatar} size={44}/>
@@ -142,7 +148,7 @@ export function PostSurface({
                 </IconButton>
               </Tooltip>
               <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)}>
-                <MenuItem onClick={async()=>{setMenu(null);try{const path = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/post/?postId=${post.id}&classId=${post.classId}`; await navigator.clipboard.writeText(new URL(path,location.origin).href);}catch(e){setError(e);}}}>Sao chép liên kết</MenuItem>
+                <MenuItem onClick={() => void copyLink(process.env.NEXT_PUBLIC_STUDENT_PORTAL_URL || currentPortalUrl())}>Sao chép liên kết</MenuItem>
                 {onEdit && (
                   <MenuItem
                     onClick={() => {
@@ -336,6 +342,8 @@ export function PostSurface({
             <InlineAudio key={f.id} file={f} />
           ))}
         {afterMedia}
+      </Stack>
+      <Stack data-testid="post-interactions" spacing={2} sx={{minWidth:0,borderLeft:{lg:draft?0:"1px solid var(--post-border)"},pl:{lg:draft?0:3}}}>
         <Stack
           direction="row"
           sx={{ justifyContent: "space-between", color: "var(--post-muted)" }}
@@ -435,6 +443,7 @@ export function PostSurface({
         <Divider sx={{ borderColor: "var(--post-border)" }} />
         {children}
       </Stack>
+      </Box>
     </Paper>
   );
 }
