@@ -41,19 +41,19 @@ test.describe('ASP.NET + PostgreSQL integration (opt-in, isolated demo backend)'
     await expect(page.getByRole('heading', { name: /Tổng quan kết quả/ })).toHaveCount(0);
     await expect(page.getByText('Lớp này chưa có Unit học tập.')).toBeVisible();
 
-    const token = await page.evaluate(() => JSON.parse(sessionStorage.getItem('learnleaf.session')!).accessToken as string);
+    const token = await page.evaluate(() => JSON.parse(localStorage.getItem('learnleaf.session')!).accessToken as string);
     await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
     await expect(page).toHaveURL(/\/login\/(?:\?.*)?$/);
-    expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('learnleaf.session'))).toBeNull();
     expect((await request.get(`${baseUrl}/me`, { headers: { Authorization: `Bearer ${token}` } })).status()).toBe(401);
 
     await login(page);
-    const currentToken = await page.evaluate(() => JSON.parse(sessionStorage.getItem('learnleaf.session')!).accessToken as string);
+    const currentToken = await page.evaluate(() => JSON.parse(localStorage.getItem('learnleaf.session')!).accessToken as string);
     expect((await request.post(`${baseUrl}/auth/logout`, { headers: { Authorization: `Bearer ${currentToken}` } })).status()).toBe(200);
     await page.reload();
     await expect(page).toHaveURL(/\/login\/(?:\?.*)?$/);
-    expect(await page.evaluate(() => sessionStorage.getItem('learnleaf.session'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('learnleaf.session'))).toBeNull();
     expect(errors).toEqual([]);
     await login(page, 'HV000124');
     await expect(page.getByText('Lớp này chưa có Unit học tập.')).toBeVisible();

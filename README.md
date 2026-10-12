@@ -32,7 +32,7 @@ Có thể dùng URL gốc `https://<cloud-run-host>`; frontend tự thêm `/v1`.
 
 - `src/models`: types, lựa chọn lớp/Unit mặc định và tính chênh lệch.
 - `src/api`: cấu hình, typed endpoints, `fetchBaseQuery`, Bearer headers, timeout và xử lý lỗi.
-- `src/store`, `src/auth`: Redux, JWT trong sessionStorage, khôi phục phiên rồi xác minh `GET /me`.
+- `src/store`, `src/auth`: Redux, JWT trong localStorage, khôi phục phiên rồi xác minh `GET /me`.
 - `src/features`, `src/components`, `src/app`: báo cáo, biểu đồ và routes.
 
 Đăng nhập dùng `POST /auth/login {studentId,password}`. Link học sinh dùng `/auth/link/#code=<mã-backend-cấp>` và `POST /auth/exchange`; xóa fragment ngay, đổi mã một lần. Mọi mã đăng nhập phải do backend cấp và xác thực; frontend không tạo hoặc chấp nhận mã offline. Không dùng endpoint trao đổi mã dành cho staff `/auth/link/exchange`.
@@ -154,3 +154,5 @@ Xem [hướng dẫn bài tập/API thật](docs/assignments.md): soạn form, l�
 Giao diện bài tập: đối chiếu frame desktop/mobile, theme và icon được ghi trong [docs/assignment-design.md](docs/assignment-design.md). Route `/assignment-report/` dùng query parameters và vẫn hỗ trợ static export.
 
 Liên kết qua đăng nhập, chia sẻ theo portal và preview toàn màn hình: [hướng dẫn](docs/post-links-preview.md).
+
+[Giữ đăng nhập khi đóng/mở web](docs/persistent-session.md).

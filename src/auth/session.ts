@@ -19,15 +19,16 @@ export function expiryTime(expiresAt: string | null, token?: string | null) {
 export const expired = (expiresAt: string | null, token?: string | null) => expiryTime(expiresAt, token) <= Date.now();
 export function readSession(): AuthSession | null {
   try {
-    const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-    if (!value || typeof value.accessToken !== 'string' || !value.accessToken || typeof value.expiresAt !== 'string' || value.tokenType !== 'Bearer' || expired(value.expiresAt, value.accessToken)) return null;
-    if (!value.student || typeof value.student.id !== 'string' || typeof value.student.studentCode !== 'string' || typeof value.student.fullName !== 'string') return null;
-    if (value.apiBaseUrl !== apiConfiguration.baseUrl) return null;
-    return { accessToken: value.accessToken, tokenType: 'Bearer', expiresAt: value.expiresAt, student: value.student };
-  } catch { return null; }
+    const value = JSON.parse(localStorage.getItem(SESSION_KEY) ?? sessionStorage.getItem(SESSION_KEY) ?? 'null');
+    if (!value || typeof value.accessToken !== 'string' || !value.accessToken || typeof value.expiresAt !== 'string' || value.tokenType !== 'Bearer' || expired(value.expiresAt, value.accessToken) || !value.student || typeof value.student.id !== 'string' || typeof value.student.studentCode !== 'string' || typeof value.student.fullName !== 'string' || value.apiBaseUrl !== apiConfiguration.baseUrl) { writeSession(null); return null; }
+    const session: AuthSession = { accessToken: value.accessToken, tokenType: 'Bearer', expiresAt: value.expiresAt, student: value.student };
+    writeSession(session);
+    return session;
+  } catch { writeSession(null); return null; }
 }
 export function writeSession(value: AuthSession | null) {
-  try { if (value) sessionStorage.setItem(SESSION_KEY, JSON.stringify({...value, apiBaseUrl: apiConfiguration.baseUrl})); else sessionStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
+  try { if (value) localStorage.setItem(SESSION_KEY, JSON.stringify({...value, apiBaseUrl: apiConfiguration.baseUrl})); else localStorage.removeItem(SESSION_KEY); } catch { /* Redux keeps the current in-memory session if storage is unavailable. */ }
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
 }
 export function consumeLinkCode(): string | null {
   const hash = window.location.hash.slice(1);

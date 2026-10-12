@@ -19,12 +19,12 @@ import { resolveApiConfiguration } from "../../src/api/config";
 // Only the test runner imports this. Browser code always sends HTTP requests.
 export async function installApiFixture(
   page: Page,
-  options: { images?: boolean } = {},
+  options: { images?: boolean; sessions?: Map<string,string> } = {},
 ) {
   const { baseUrl } = resolveApiConfiguration(
     process.env.NEXT_PUBLIC_API_BASE_URL,
   );
-  const sessions = new Map<string, string>();
+  const sessions = options.sessions ?? new Map<string, string>();
   let consumed = false, authFailures = 0, socketConnections = 0;
   const files: MaterialFile[] = materials.slice(0, 2).map((m) => ({
     id: m.id,

@@ -12,7 +12,7 @@ Base URL: NEXT_PUBLIC_API_BASE_URL, ví dụ https://api.example.com/v1. Tất c
 
 ## Xác thực
 
-POST /auth/login và /auth/exchange là public; POST /auth/logout và mọi endpoint /me yêu cầu Authorization: Bearer <accessToken>. Frontend lưu session trong sessionStorage, đồng bộ Redux, rồi xác minh /me khi khôi phục. Backend luôn xác minh chữ ký JWT, issuer, audience, exp và quyền học sinh/lớp/unit/tài liệu. Không tin studentId, classId hoặc dữ liệu client để cấp quyền. 401 xóa phiên/cache và chuyển về login; 403 hiển thị không có quyền, không logout tự động. Không tự refresh/retry 401 và không log token/mật khẩu.
+POST /auth/login và /auth/exchange là public; POST /auth/logout và mọi endpoint /me yêu cầu Authorization: Bearer <accessToken>. Frontend lưu session trong localStorage, đồng bộ Redux, rồi xác minh /me khi khôi phục. Backend luôn xác minh chữ ký JWT, issuer, audience, exp và quyền học sinh/lớp/unit/tài liệu. Không tin studentId, classId hoặc dữ liệu client để cấp quyền. 401 xóa phiên/cache và chuyển về login; 403 hiển thị không có quyền, không logout tự động. Không tự refresh/retry 401 và không log token/mật khẩu.
 
 ## Link một lần
 

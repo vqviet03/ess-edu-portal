@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { useStore } from 'react-redux';
 import { type RootState, useAppDispatch, useAppSelector } from '@/store';
 import { loggedOut, restore, validated } from '@/store/auth';
-import { useMeQuery } from '@/api/api';
-import { expired, expiryTime, readSession, writeSession } from './session';
+import { api, useMeQuery } from '@/api/api';
+import { SESSION_KEY, expired, expiryTime, readSession, writeSession } from './session';
 import { Feedback } from '@/components/feedback';
 const CheckContext = createContext<{error: unknown; retry: () => void}>({error: null, retry: () => {}});
 export function AuthRuntime({children}: {children: React.ReactNode}) {
@@ -18,6 +18,17 @@ export function AuthRuntime({children}: {children: React.ReactNode}) {
   const auth = useAppSelector(s => s.auth);
   const me = useMeQuery(undefined, {skip: auth.status !== 'validating'});
   useEffect(() => { if (store.getState().auth.status !== 'booting') return; const saved = readSession(); if (!saved) writeSession(null); dispatch(restore(saved)); }, [dispatch, store]);
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if ((event.key !== null && event.key !== SESSION_KEY) || event.storageArea !== localStorage) return;
+      const session = readSession();
+      if (store.getState().auth.accessToken === (session?.accessToken ?? null)) return;
+      dispatch(restore(session));
+      dispatch(api.util.resetApiState());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [dispatch, store]);
   useEffect(() => { if (me.currentData && auth.status === 'validating') dispatch(validated(me.currentData)); }, [me.currentData, auth.status, dispatch]);
   useEffect(() => {
     if (!auth.accessToken) return;
