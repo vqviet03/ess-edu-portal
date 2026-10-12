@@ -281,11 +281,11 @@ export const libraryApi = api.injectEndpoints({
     }),
     content: b.query<
       { url: string; mimeType: string },
-      { id: string; purpose: "preview" | "download" | "thumbnail" }
+      { id: string; purpose: "preview" | "download" | "thumbnail"; width?:number }
     >({
       query: (q) => ({
         url: `/materials/${q.id}/content`,
-        params: { purpose: q.purpose },
+        params: { purpose: q.purpose, width:q.width },
         responseHandler: async (res) => {
           if (!res.ok) return res.json();
           const blob = await res.blob();
@@ -352,6 +352,7 @@ export const libraryApi = api.injectEndpoints({
             );
           const result = await base({
             url: `/material-uploads/${arg.ticket.uploadId}/complete`,
+            timeout:90000,
             method: "POST",
             body: { version: arg.ticket.version },
           });

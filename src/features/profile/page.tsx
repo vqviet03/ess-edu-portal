@@ -1,4 +1,5 @@
 "use client";
+import {NotificationPreferencesPanel} from "@/features/pwa/preferences";
 import {ChangePassword} from "@/features/assignments/password";
 import { useState } from "react";
 import dynamic from "next/dynamic";
@@ -34,7 +35,7 @@ export function PersonalProfilePage() {
     {q.error && <Alert severity="error" action={<Button onClick={()=>void q.refetch()}>Thử lại</Button>}>{errorMessage(q.error)}</Alert>}
     {message&&<Alert severity="success">{message}</Alert>}
     {q.data && <ProfileForm key={q.data.version} initial={q.data} saved={()=>setMessage("Đã lưu hồ sơ.")}/>}
-    <ChangePassword/>
+    <ChangePassword/><NotificationPreferencesPanel/>
     </Stack></Box>
     {tab==="assignments"&&<AssignmentProfileReport/>}
   </Stack>;
