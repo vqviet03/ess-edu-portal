@@ -47,7 +47,12 @@ export function AssignmentSurface({
         components: {
           MuiPaper: {
             styleOverrides: {
-              root: { border: 0, borderRadius: 16, boxShadow: "none" },
+              root: {
+                border: 0,
+                borderRadius: 16,
+                boxShadow: "none",
+                minWidth: 0,
+              },
             },
           },
           MuiButton: {
@@ -58,10 +63,10 @@ export function AssignmentSurface({
               },
               root: {
                 borderRadius: 8,
-                minHeight: 36,
+                minHeight: 40,
                 padding: "8px 10px",
                 fontSize: 14,
-                "@media (pointer: coarse)": { minHeight: 36 },
+                "@media (pointer: coarse)": { minHeight: 40 },
               },
               text: { backgroundColor: dark ? "#284737" : "#e2f1e7" },
               outlined: {
@@ -82,6 +87,10 @@ export function AssignmentSurface({
                 color: dark ? "#9dd5b6" : "#2b7c59",
                 backgroundColor: dark ? "#284737" : "#e2f1e7",
                 "@media (pointer: coarse)": { minWidth: 40, minHeight: 40 },
+                "&.MuiIconButton-colorError": {
+                  color: parent.palette.error.main,
+                  backgroundColor: dark ? "#41262a" : "#fcecef",
+                },
               },
             },
           },
@@ -90,6 +99,7 @@ export function AssignmentSurface({
               root: {
                 borderRadius: 6,
                 fontSize: 14,
+                "&:not(.MuiInputBase-multiline)": { height: 40 },
                 "&.MuiInputBase-multiline": { padding: 0 },
               },
               input: { padding: "9px 10px" },
@@ -143,6 +153,8 @@ export function AssignmentSurface({
           fontFamily: theme.typography.fontFamily,
           color: "text.primary",
           minWidth: 0,
+          width: "100%",
+          overflowWrap: "anywhere",
           "--a-bg": dark ? "#101c17" : "#f4f8f5",
           "--a-surface": dark ? "#1a2b23" : "#ffffff",
           "--a-tint": dark ? "#284737" : "#e2f1e7",
@@ -162,13 +174,6 @@ export function AssignmentSurface({
             backgroundColor: "var(--a-info)",
             color: "var(--a-blue)",
           },
-          "& .assignment-topbar > :first-child": {
-            flex: { xs: "1 1 auto", md: "0 1 650px" },
-          },
-          "& .assignment-topbar > button": {
-            width: { md: 280 },
-            justifyContent: { md: "flex-start" },
-          },
           "& .assignment-bordered": {
             border: "1px solid var(--a-border)",
             borderRadius: "12px",
@@ -182,6 +187,7 @@ export function AssignmentSurface({
             marginBottom: "4px",
             lineHeight: 1.45,
           },
+          "& .assignment-labels .MuiOutlinedInput-notchedOutline": { top: 0 },
           "& .assignment-labels .MuiOutlinedInput-notchedOutline legend": {
             display: "none",
           },
