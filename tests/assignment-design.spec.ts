@@ -102,6 +102,12 @@ test("mobile player uses inline chips and compact options; draft and submit keep
   await page.goto(
     "assignment/?assignmentId=assignment-design&classId=juniors-03",
   );
+  const header = page.locator("header");
+  await expect(header.getByRole("button", { name: "Giao diện", exact: true })).toBeVisible();
+  await expect(header.getByRole("button", { name: "Tài khoản", exact: true })).toBeVisible();
+  await expect(page.locator("footer")).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Menu học sinh" })).toHaveCount(0);
+  expect(await header.evaluate((el) => el.closest("[data-assignment-surface]") === null)).toBe(true);
   await expect(
     page.getByRole("heading", { name: "1. Which animal lives in the sea?" }),
   ).toBeVisible();

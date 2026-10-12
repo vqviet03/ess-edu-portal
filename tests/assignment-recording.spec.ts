@@ -37,7 +37,6 @@ test('recording stops its microphone and countdown on stop and client navigation
   await page.getByRole('button',{name:'Ghi lại',exact:true}).click();
   await page.getByRole('button',{name:'Bắt đầu ghi âm'}).click();
   await expect.poll(live).toBe(1);
-  await page.getByRole('button',{name:'Tuỳ chọn giao diện và tài khoản',exact:true}).click();
   await page.getByRole('button',{name:'Tài khoản',exact:true}).click();
   page.once('dialog',dialog=>dialog.accept());
   await page.getByRole('menuitem',{name:'Hồ sơ cá nhân'}).click();
