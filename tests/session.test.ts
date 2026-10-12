@@ -5,8 +5,8 @@ import { testSession } from './support/data';
 
 test('browser session restores only a valid JWT for the configured backend and logout clears it', () => {
   const values = new Map<string, string>();
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
-  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
     getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => values.set(key, value),
     removeItem: (key: string) => values.delete(key),
@@ -22,7 +22,7 @@ test('browser session restores only a valid JWT for the configured backend and l
     writeSession(testSession('expired', Date.now() - 1000)); assert.equal(readSession(), null);
     writeSession(null); assert.equal(values.has(SESSION_KEY), false); assert.equal(readSession(), null);
   } finally {
-    if (previous) Object.defineProperty(globalThis, 'sessionStorage', previous);
-    else Reflect.deleteProperty(globalThis, 'sessionStorage');
+    if (previous) Object.defineProperty(globalThis, 'localStorage', previous);
+    else Reflect.deleteProperty(globalThis, 'localStorage');
   }
 });
