@@ -8,13 +8,14 @@ import { useLoginMutation } from '@/api/api';
 import { errorDetails } from '@/api/errors';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { signedIn } from '@/store/auth';
+import {loginDestination} from "@/shared/auth-navigation";
 export default function Login() {
   const [id, setId] = useState(''); const [password, setPassword] = useState(''); const [visible, setVisible] = useState(false);
   const [login, result] = useLoginMutation();
   const auth = useAppSelector(s => s.auth); const dispatch = useAppDispatch(); const router = useRouter();
-  useEffect(() => { if (auth.status === 'authenticated') router.replace('/home/'); }, [auth.status, router]);
+  useEffect(() => { if (auth.status === 'authenticated') router.replace(loginDestination(location.search, process.env.NEXT_PUBLIC_BASE_PATH)); }, [auth.status, router]);
   const error = result.error ? errorDetails(result.error) : null;
-  async function submit(e: FormEvent<HTMLFormElement>) { e.preventDefault(); try { const data = await login({studentId: id.trim(), password}).unwrap(); setPassword(''); dispatch(signedIn(data)); router.replace('/home/'); } catch {} }
+  async function submit(e: FormEvent<HTMLFormElement>) { e.preventDefault(); try { const data = await login({studentId: id.trim(), password}).unwrap(); setPassword(''); dispatch(signedIn(data)); } catch {} }
   return <Shell><Box sx={{minHeight: '70dvh', display: 'grid', placeItems: 'center'}}><Paper sx={{p: {xs: 3, sm: 4}, width: '100%', maxWidth: 440}}>
     <Typography variant="h4" component="h1">Chào mừng trở lại</Typography><Typography color="text.secondary" sx={{mt: 1, mb: 3}}>Đăng nhập để theo dõi kết quả học tập.</Typography>
     <Stack component="form" spacing={2.5} onSubmit={submit}>
