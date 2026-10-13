@@ -102,6 +102,7 @@ test("mobile player uses inline chips and compact options; draft and submit keep
   await page.goto(
     "assignment/?assignmentId=assignment-design&classId=juniors-03",
   );
+  await expect(page).toHaveTitle("Trung tâm Ngoại ngữ Lá Xanh · Khám phá đại dương");
   const header = page.locator("header");
   await expect(header.getByRole("button", { name: "Giao diện", exact: true })).toBeVisible();
   await expect(header.getByRole("button", { name: "Tài khoản", exact: true })).toBeVisible();

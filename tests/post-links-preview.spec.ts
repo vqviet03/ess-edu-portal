@@ -25,6 +25,11 @@ test("guest post deep link survives login reload and preserves its query and fra
  await setup(page);let protectedReads=0;page.on("request",r=>{if(r.method()==="GET"&&new URL(r.url()).pathname.endsWith("/posts/link-post"))protectedReads++;});await page.goto(base+target);await expect(page).toHaveURL(/login\/\?next=/);expect(protectedReads).toBe(0);
  await page.reload();await credentials(page);await expect(page).toHaveURL(new RegExp("/post/\\?postId=link-post&classId=juniors-03#comment-one$"));
  await expect(page.getByRole("link",{name:post.title,exact:true})).toBeVisible();
+ await expect(page).toHaveTitle(`Trung tâm Ngoại ngữ Lá Xanh · ${post.title}`);
+ await page.reload();
+ await expect(page).toHaveTitle(`Trung tâm Ngoại ngữ Lá Xanh · ${post.title}`);
+ await page.getByRole("link",{name:"Về thread",exact:true}).click();
+ await expect(page).toHaveTitle("Trung tâm Ngoại ngữ Lá Xanh · Báo cáo học tập");
 });
 test("one-time link login returns to the requested post and removes the code",async({page})=>{
  await setup(page);await page.goto(`${base}/auth/link/?next=${encodeURIComponent(target)}#code=valid-test-code`);
