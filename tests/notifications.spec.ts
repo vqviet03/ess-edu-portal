@@ -32,10 +32,14 @@ test("student receives notifications via socket without polling, deduplicates an
     version: 1,
     createdAt: new Date().toISOString(),
   };
+  const beforeEvent = threads;
   fixture.notify(n);
   await expect(
     page.getByRole("link", { name: "Thông báo (1 chưa đọc)" }),
   ).toBeVisible();
+  // The inbox badge updates before RTK Query's delayed invalidation finishes.
+  // Observe the first event's refresh before measuring duplicate/idle traffic.
+  await expect.poll(() => threads).toBe(beforeEvent + 1);
   const afterEvent = threads;
   fixture.notify(n);
   await page.clock.fastForward(30000);
