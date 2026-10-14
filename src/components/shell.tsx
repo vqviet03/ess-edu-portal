@@ -1,4 +1,6 @@
 "use client";
+import { usePathname } from "next/navigation";
+import { BackAction } from "@/shared/back-action";
 import { useState } from "react";
 import { useStore } from "react-redux";
 import Menu from "@mui/material/Menu";
@@ -24,6 +26,7 @@ import { useLogoutMutation } from "@/api/api";
 import { useApplicationName } from "@/features/settings/hooks";
 export default function Shell({ children }: { children: React.ReactNode }) {
   const appName = useApplicationName();
+  const pathname = usePathname();
   const [menu, setMenu] = useState<{
     kind: "theme" | "language" | "profile";
     anchor: HTMLElement;
@@ -62,7 +65,20 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             flexWrap: "wrap",
           }}
         >
-          <Brand name={appName} />
+          <Stack
+            direction="row"
+            sx={{ alignItems: "center", minWidth: 0, maxWidth: "100%" }}
+          >
+            {![
+              "/home/",
+              "/login/",
+              "/activate/",
+              "/login/link/",
+              "/post/",
+              "/notifications/",
+            ].includes(pathname) && <BackAction />}
+            <Brand name={appName} />
+          </Stack>
           <Stack
             direction="row"
             sx={{ alignItems: "center", flexWrap: "wrap" }}

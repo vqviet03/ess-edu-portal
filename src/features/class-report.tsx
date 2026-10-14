@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
@@ -10,13 +10,15 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { chooseUnit } from "@/store/auth";
 import { selectUnit } from "@/models/report";
 import ReportView from "./report";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 export function ClassReport({ classId }: { classId: string }) {
   return <ClassReportContent key={classId} classId={classId} />;
 }
 function ClassReportContent({ classId }: { classId: string }) {
   const params = useSearchParams(),
-    [requestedUnit, setRequestedUnit] = useState(params.get("unitId"));
+    requestedUnit = params.get("unitId"),
+    router = useRouter(),
+    pathname = usePathname();
   const id = useAppSelector((s) => s.auth.unitId),
     dispatch = useAppDispatch(),
     units = useUnitsQuery(classId),
@@ -51,8 +53,9 @@ function ClassReportContent({ classId }: { classId: string }) {
         variant="scrollable"
         scrollButtons="auto"
         onChange={(_, value: string) => {
-          setRequestedUnit(null);
-          dispatch(chooseUnit(value));
+          const search = new URLSearchParams(params.toString());
+          search.set("unitId", value);
+          router.push(`${pathname}?${search}`, { scroll: false });
         }}
         sx={{ mb: 2 }}
       >

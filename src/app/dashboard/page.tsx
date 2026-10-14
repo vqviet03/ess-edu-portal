@@ -1,11 +1,19 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Feedback } from "@/components/feedback";
-export default function LegacyDashboard() {
-  const router = useRouter();
+function Redirect() {
+  const router = useRouter(),
+    params = useSearchParams();
   useEffect(() => {
-    router.replace("/home/");
-  }, [router]);
+    router.replace(`/home/?${params}`);
+  }, [router, params]);
   return <Feedback loading />;
+}
+export default function Page() {
+  return (
+    <Suspense fallback={<Feedback loading />}>
+      <Redirect />
+    </Suspense>
+  );
 }

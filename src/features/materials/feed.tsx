@@ -1,9 +1,8 @@
 "use client";
+import { useRouteState } from "@/shared/route-state";
 import NextLink from "next/link";
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import ArrowBack from "@mui/icons-material/ArrowBack";
+import { BackAction } from "@/shared/back-action";
 import { usePostTarget } from "./post-target";
 import { Comments } from "./comments";
 import { PostSurface } from "./post-surface";
@@ -102,7 +101,10 @@ export function ThreadFeed({
   postType?: Post["postType"];
   enabled?: boolean;
 }) {
-  const [cursor, setCursor] = useState<string>(),
+  const [cursor, setCursor] = useRouteState<string | undefined>(
+      `threads:${classId}:${sessionId ?? ""}:${postType ?? ""}:cursor`,
+      undefined,
+    ),
     list = useThreadsQuery(
       { classId, cursor, sessionId, postType },
       { skip: !enabled },
@@ -197,15 +199,10 @@ export function PostDetailPage({ postId }: { postId: string }) {
       />
       {q.data && target && (
         <>
-          <Tooltip title="Về thread">
-            <IconButton
-              component={NextLink}
-              href={`/materials/?classId=${encodeURIComponent(q.data.classId)}&tab=thread`}
-              aria-label="Về thread"
-            >
-              <ArrowBack />
-            </IconButton>
-          </Tooltip>
+          <BackAction
+            label="Về thread"
+            fallback={`/home/thread/?classId=${encodeURIComponent(q.data.classId)}`}
+          />
           <PostCard detail targetComment={target?.comment} post={q.data} />
         </>
       )}

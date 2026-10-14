@@ -16,7 +16,7 @@ import MarkEmailRead from "@mui/icons-material/MarkEmailRead";
 import MarkEmailUnread from "@mui/icons-material/MarkEmailUnread";
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
-import ArrowBack from "@mui/icons-material/ArrowBack";
+import { BackAction } from "@/shared/back-action";
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import FirstPage from "@mui/icons-material/FirstPage";
 import {
@@ -92,11 +92,7 @@ export function NotificationsPage() {
         }}
       >
         <Stack direction="row" sx={{ alignItems: "center", gap: 1 }}>
-          <Tooltip title="Về lớp học">
-            <IconButton component={Link} href="/home/" aria-label="Về lớp học">
-              <ArrowBack fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <BackAction label="Về lớp học" />
           <Box>
             <Typography component="h1" variant="h4">
               Thông báo

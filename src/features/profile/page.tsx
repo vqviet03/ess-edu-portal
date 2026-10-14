@@ -1,4 +1,5 @@
 "use client";
+import { useSectionTab } from "@/shared/page-navigation";
 import { NotificationPreferencesPanel } from "@/features/pwa/preferences";
 import { ChangePassword } from "@/features/assignments/password";
 import { useState } from "react";
@@ -23,7 +24,7 @@ import {
 } from "@/api/profile-api";
 import { errorMessage } from "@/api/base-query";
 import { UploadDialog } from "@/features/materials/upload";
-import { useUnsaved, confirmLeave } from "@/shared/unsaved";
+import { useUnsaved } from "@/shared/unsaved";
 import { ProfileAvatar } from "./avatar";
 import {
   avatarColors,
@@ -40,7 +41,11 @@ const AssignmentProfileReport = dynamic(() =>
 export function PersonalProfilePage() {
   const q = usePersonalProfileQuery();
   const [message, setMessage] = useState(""),
-    [tab, setTab] = useState("profile");
+    [tab, setTab] = useSectionTab(
+      "profile",
+      ["profile", "assignments"] as const,
+      "profile",
+    );
   return (
     <Stack spacing={2} sx={{ maxWidth: 720, mx: "auto" }}>
       <Typography component="h1" variant="h4">
@@ -49,7 +54,7 @@ export function PersonalProfilePage() {
       <Tabs
         value={tab}
         onChange={(_, v) => {
-          if (confirmLeave()) setTab(v);
+          setTab(v);
         }}
       >
         <Tab value="profile" label="Thông tin cá nhân" />

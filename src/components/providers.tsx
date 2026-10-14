@@ -1,4 +1,6 @@
 "use client";
+import { RouteStateProvider } from "@/shared/route-state";
+import { NavigationRuntime } from "@/shared/page-navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { PwaRuntime } from "@/features/pwa/runtime";
 import { Provider } from "react-redux";
@@ -112,16 +114,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <Provider store={store}>
-      <ApplicationTitle />
-      <Appearance.Provider value={{ preference, change }}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <AppDisplayProvider storageKey="ess.student.zoom">
-            <PwaRuntime />
-            <AuthRuntime>{children}</AuthRuntime>
-          </AppDisplayProvider>
-        </ThemeProvider>
-      </Appearance.Provider>
+      <NavigationRuntime />
+      <RouteStateProvider>
+        <ApplicationTitle />
+        <Appearance.Provider value={{ preference, change }}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AppDisplayProvider storageKey="ess.student.zoom">
+              <PwaRuntime />
+              <AuthRuntime>{children}</AuthRuntime>
+            </AppDisplayProvider>
+          </ThemeProvider>
+        </Appearance.Provider>
+      </RouteStateProvider>
     </Provider>
   );
 }

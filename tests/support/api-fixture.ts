@@ -19,7 +19,11 @@ import { resolveApiConfiguration } from "../../src/api/config";
 // Only the test runner imports this. Browser code always sends HTTP requests.
 export async function installApiFixture(
   page: Page,
-  options: { images?: boolean; sessions?: Map<string, string> } = {},
+  options: {
+    images?: boolean;
+    sessions?: Map<string, string>;
+    assignmentDeadline?: string;
+  } = {},
 ) {
   const { baseUrl } = resolveApiConfiguration(
     process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -77,6 +81,15 @@ export async function installApiFixture(
     myReaction: null,
     commentCount: 0,
   };
+  if (options.assignmentDeadline) {
+    thread.postType = "ASSIGNMENT";
+    thread.assignment = {
+      id: "assignment-one",
+      deadline: options.assignmentDeadline,
+      unitNumber: 1,
+      status: "PUBLISHED",
+    };
+  }
   const comments: Comment[] = [];
   if (options.images) {
     files[0].thumbnailUrl = "/protected-thumbnail";

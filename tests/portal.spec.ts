@@ -256,7 +256,14 @@ test.describe("mobile", () => {
     await page
       .getByRole("button", { name: "Tạm dừng Âm thanh minh họa", exact: true })
       .click();
-    await page.getByRole("link", { name: "← Về báo cáo" }).click();
+    await page.getByRole("link", { name: "Quay lại", exact: true }).click();
+    await expect(
+      page.getByRole("tab", { name: "Thread", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("link", { name: "Quay lại", exact: true }).click();
+    await expect(
+      page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
     await page.getByRole("button", { name: "Giao diện", exact: true }).click();
     await page.getByRole("menuitem", { name: "Sáng", exact: true }).click();
     await page.setViewportSize({ width: 1440, height: 1000 });
