@@ -25,7 +25,11 @@ export const createStudentApi = (config: ApiConfiguration = apiConfiguration) =>
     refetchOnFocus: false,
     refetchOnReconnect: false,
     tagTypes: [
-      "LearningAssignments", "AssignmentForm", "AssignmentDraft", "AssignmentSubmissions", "AssignmentReport",
+      "LearningAssignments",
+      "AssignmentForm",
+      "AssignmentDraft",
+      "AssignmentSubmissions",
+      "AssignmentReport",
       "ApplicationSettings",
       "Attendance",
       "Members",

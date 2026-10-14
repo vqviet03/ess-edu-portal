@@ -9,14 +9,18 @@ async function login(page: import("@playwright/test").Page) {
   await expect(page).toHaveURL(/\/home\//);
 }
 const meUrl = process.env.NEXT_PUBLIC_API_BASE_URL! + "/me";
-const connections = (fixture: Awaited<ReturnType<typeof installApiFixture>>) => fixture.connectionCount();
+const connections = (fixture: Awaited<ReturnType<typeof installApiFixture>>) =>
+  fixture.connectionCount();
 
-test("socket rejection verifies HTTP auth once and does not log out or loop when session is valid", async ({page}) => {
-  
+test("socket rejection verifies HTTP auth once and does not log out or loop when session is valid", async ({
+  page,
+}) => {
   const fixture = await installApiFixture(page);
   fixture.rejectSocketAuth(10);
   let reads = 0;
-  page.on("request", r => {if(r.method()==="GET" && r.url()===meUrl)reads++;});
+  page.on("request", (r) => {
+    if (r.method() === "GET" && r.url() === meUrl) reads++;
+  });
   await page.clock.install();
   await login(page);
   await expect.poll(() => reads).toBe(1);
@@ -25,37 +29,67 @@ test("socket rejection verifies HTTP auth once and does not log out or loop when
   expect(reads).toBe(1);
   expect(connections(fixture)).toBe(2);
   await expect(page).toHaveURL(/\/home\//);
-  expect(await page.evaluate(() => localStorage.getItem("learnleaf.session"))).not.toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("learnleaf.session")),
+  ).not.toBeNull();
 });
 
-test("socket rejection waits for API 401 before clearing session", async ({page}) => {
-  
+test("socket rejection waits for API 401 before clearing session", async ({
+  page,
+}) => {
   const fixture = await installApiFixture(page);
   await login(page);
   await expect.poll(() => connections(fixture)).toBe(1);
   let finish!: () => void;
-  const gate = new Promise<void>(resolve => { finish = resolve; });
-  await page.route(meUrl, async route => {
-    await gate;
-    await route.fulfill({status:401, contentType:"application/json", headers:{"access-control-allow-origin":"*"}, body:JSON.stringify({error:{code:"UNAUTHORIZED",message:"Phiên không hợp lệ."}})});
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
   });
-  const checked = page.waitForRequest(r => r.method()==="GET" && r.url()===meUrl);
+  await page.route(meUrl, async (route) => {
+    await gate;
+    await route.fulfill({
+      status: 401,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        error: { code: "UNAUTHORIZED", message: "Phiên không hợp lệ." },
+      }),
+    });
+  });
+  const checked = page.waitForRequest(
+    (r) => r.method() === "GET" && r.url() === meUrl,
+  );
   fixture.disconnectUnauthorized();
   await checked;
   await expect(page).toHaveURL(/\/home\//);
-  expect(await page.evaluate(() => localStorage.getItem("learnleaf.session"))).not.toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("learnleaf.session")),
+  ).not.toBeNull();
   finish();
   await expect(page).toHaveURL(/\/login\//);
-  expect(await page.evaluate(() => localStorage.getItem("learnleaf.session"))).toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("learnleaf.session")),
+  ).toBeNull();
 });
 
-test("failed auth verification preserves login without repeated HTTP attempts", async ({page}) => {
-  
+test("failed auth verification preserves login without repeated HTTP attempts", async ({
+  page,
+}) => {
   const fixture = await installApiFixture(page);
-  await page.route(meUrl, route => route.fulfill({status:503, contentType:"application/json", headers:{"access-control-allow-origin":"*"}, body:JSON.stringify({error:{code:"UNAVAILABLE",message:"Tạm thời không khả dụng."}})}));
+  await page.route(meUrl, (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        error: { code: "UNAVAILABLE", message: "Tạm thời không khả dụng." },
+      }),
+    }),
+  );
   fixture.rejectSocketAuth(10);
   let reads = 0;
-  page.on("request", r => {if(r.method()==="GET" && r.url()===meUrl)reads++;});
+  page.on("request", (r) => {
+    if (r.method() === "GET" && r.url() === meUrl) reads++;
+  });
   await page.clock.install();
   await login(page);
   await expect.poll(() => reads).toBe(1);
@@ -63,5 +97,7 @@ test("failed auth verification preserves login without repeated HTTP attempts", 
   expect(reads).toBe(1);
   expect(connections(fixture)).toBe(1);
   await expect(page).toHaveURL(/\/home\//);
-  expect(await page.evaluate(() => localStorage.getItem("learnleaf.session"))).not.toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem("learnleaf.session")),
+  ).not.toBeNull();
 });

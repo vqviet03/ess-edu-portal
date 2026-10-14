@@ -130,17 +130,16 @@ API JSON và nội dung file đều đi qua `studentApi`/RTK Query (`fetchBaseQu
 
 Refetch giữ nội dung lớp/báo cáo đang có và bản nháp khi gặp lỗi tải lại. Liên kết tới bình luận chỉ cuộn đến mục tiêu một lần, không cuộn lại sau mỗi cập nhật cache/realtime. Đổi lớp qua query parameter dùng `scroll: false`. Kiểm thử hồi quy: `tests/refetch-scroll.spec.ts`.
 
-
 ## Lịch ngoại lệ, thông báo và thành viên
 
 Xem [hướng dẫn chức năng và API](docs/calendar-notifications-presence.md). Bản này cần migrations mới của backend trước khi dùng. Không có polling presence/notifications hoặc worker quét DB; tab ẩn đóng socket.
-
 
 ## Hồ sơ, avatar và thông báo
 
 Trang `/profile/` sửa thông tin cá nhân, đổi ID đăng nhập yêu cầu mật khẩu hiện tại; email/số điện thoại cá nhân là alias đăng nhập. Avatar dùng MUI và màu pastel hoặc upload ảnh qua API có xác thực. Xem [hướng dẫn và API](docs/personal-profile-notifications.md). Yêu cầu backend đã áp dụng migration Core 020, Materials 009, Notifications 004. Không thêm dependency hoặc polling.
 
 ### Xác minh phiên khi socket lỗi
+
 Socket đóng `1008/UNAUTHORIZED` không tự đăng xuất. Client gọi `/me` qua RTK Query một lần, dùng chung request đang chạy. Chỉ HTTP 401 mới xóa phiên/cache; 403, lỗi mạng và 5xx giữ phiên. Nếu xác minh thành công, nối lại socket tối đa một lần trong vòng đời phiên/socket. Không polling, không retry timer; socket cũ không ảnh hưởng phiên mới.
 
 ## Tên miền riêng
@@ -157,7 +156,6 @@ Liên kết qua đăng nhập, chia sẻ theo portal và preview toàn màn hìn
 
 [Giữ đăng nhập khi đóng/mở web](docs/persistent-session.md).
 
-
 ### Post, ảnh và ứng dụng trên màn hình chính
 
 Thread: tiêu đề một dòng, nội dung tối đa tám dòng; tiêu đề/nội dung/“Xem thêm” mở trang post đầy đủ. Trang post có icon về thread. Desktop dùng cột tương tác bên phải, bình luận cuộn riêng; mobile xếp dọc. Preview fullscreen, PDF cuộn dọc; ảnh rộng theo vùng xem.
@@ -169,3 +167,7 @@ Manifest/icon lấy từ API public branding; manager đổi tên/icon/màu riê
 Backend cần migration Core022, Materials011, Logs002, Notifications005 và VAPID/EncryptionKey trong Secret Manager cho push. Xem `ess-edu-api/docs/portal-media-pwa.md`. File cũ fallback thumbnail cũ; server tạo ba thumbnail cho ảnh upload mới và kiểm tra quyền mọi lần access. Chế độ review/build của bản này dùng API thật; fixtures chỉ dùng trong kiểm thử.
 
 Chuyển API project mới và proxy cùng host học sinh: [hướng dẫn](docs/student-api-proxy.md).
+
+## Page navigation and formatting
+
+See [page architecture and navigation](docs/navigation.md) for static tab routes, Back behavior, draft/cache lifecycle, assignment deadlines and Prettier commands.

@@ -1,10 +1,9 @@
 "use client";
+import { useRouteState } from "@/shared/route-state";
 import NextLink from "next/link";
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import ArrowBack from "@mui/icons-material/ArrowBack";
-import {usePostTarget} from "./post-target";
+import { BackAction } from "@/shared/back-action";
+import { usePostTarget } from "./post-target";
 import { Comments } from "./comments";
 import { PostSurface } from "./post-surface";
 import { useEffect, useRef, useState } from "react";
@@ -35,14 +34,27 @@ export function PostCard({
     [preview, setPreview] = useState<MaterialFile | null>(null),
     [reaction, state] = useReactionMutation(),
     [error, setError] = useState<unknown>();
-  const [lastTarget,setLastTarget]=useState(targetComment);
-  if(lastTarget!==targetComment){setLastTarget(targetComment);if(targetComment)setShowComments(true);}
+  const [lastTarget, setLastTarget] = useState(targetComment);
+  if (lastTarget !== targetComment) {
+    setLastTarget(targetComment);
+    if (targetComment) setShowComments(true);
+  }
   return (
     <>
       <PostSurface
         detail={detail}
         post={post}
-        afterMedia={post.assignment && <Button variant="contained" component={NextLink} href={`/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}`}>Mở bài tập</Button>}
+        afterMedia={
+          post.assignment && (
+            <Button
+              variant="contained"
+              component={NextLink}
+              href={`/assignment/?assignmentId=${post.assignment.id}&classId=${post.classId}`}
+            >
+              Mở bài tập
+            </Button>
+          )
+        }
         commentOpen={showComments}
         openComments={() => setShowComments((s) => !s)}
         preview={setPreview}
@@ -61,13 +73,15 @@ export function PostCard({
           }
         }}
       >
-        {!post.assignment && <Comments
-          post={post}
-          targetComment={targetComment}
-          expanded={showComments}
-          expand={() => setShowComments(true)}
-          collapse={() => setShowComments(false)}
-        />}
+        {!post.assignment && (
+          <Comments
+            post={post}
+            targetComment={targetComment}
+            expanded={showComments}
+            expand={() => setShowComments(true)}
+            collapse={() => setShowComments(false)}
+          />
+        )}
       </PostSurface>
       <Feedback error={error} />
       {preview && (
@@ -87,7 +101,10 @@ export function ThreadFeed({
   postType?: Post["postType"];
   enabled?: boolean;
 }) {
-  const [cursor, setCursor] = useState<string>(),
+  const [cursor, setCursor] = useRouteState<string | undefined>(
+      `threads:${classId}:${sessionId ?? ""}:${postType ?? ""}:cursor`,
+      undefined,
+    ),
     list = useThreadsQuery(
       { classId, cursor, sessionId, postType },
       { skip: !enabled },
@@ -170,4 +187,25 @@ export function ThreadFeed({
   );
 }
 
-export function PostDetailPage({postId}:{postId:string}) {const q=usePostQuery(postId,{skip:!postId});const target=usePostTarget(postId);return <><Feedback loading={q.isLoading} error={q.error} retry={()=>void q.refetch()}/>{q.data&&target&&<><Tooltip title="Về thread"><IconButton component={NextLink} href={`/materials/?classId=${encodeURIComponent(q.data.classId)}&tab=thread`} aria-label="Về thread"><ArrowBack/></IconButton></Tooltip><PostCard detail targetComment={target?.comment} post={q.data}/></>}</>;}
+export function PostDetailPage({ postId }: { postId: string }) {
+  const q = usePostQuery(postId, { skip: !postId });
+  const target = usePostTarget(postId);
+  return (
+    <>
+      <Feedback
+        loading={q.isLoading}
+        error={q.error}
+        retry={() => void q.refetch()}
+      />
+      {q.data && target && (
+        <>
+          <BackAction
+            label="Về thread"
+            fallback={`/home/thread/?classId=${encodeURIComponent(q.data.classId)}`}
+          />
+          <PostCard detail targetComment={target?.comment} post={q.data} />
+        </>
+      )}
+    </>
+  );
+}

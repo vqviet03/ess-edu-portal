@@ -1,7 +1,7 @@
 "use client";
-import {ContentViews} from "@/features/presence/views";
+import { ContentViews } from "@/features/presence/views";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import {ProfileAvatar} from "@/features/profile/avatar";
+import { ProfileAvatar } from "@/features/profile/avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -53,7 +53,10 @@ function CommentPage({
   const located = useRef<string | null>(null);
   useEffect(() => {
     // A deep link scrolls once; cache updates must not move the reader.
-    if (!around) { located.current = null; return; }
+    if (!around) {
+      located.current = null;
+      return;
+    }
     if (located.current === around || !query.currentData) return;
     const element = document.getElementById(`comment-${around}`);
     if (element) {
@@ -104,7 +107,12 @@ export function Comments({
 }) {
   const student = useAppSelector((s) => s.auth.student),
     me = student
-      ? { id: student.id, name: student.fullName, avatar: student.avatar, roles: [] as string[] }
+      ? {
+          id: student.id,
+          name: student.fullName,
+          avatar: student.avatar,
+          roles: [] as string[],
+        }
       : null;
   const [body, setBody] = useState(""),
     [upload, setUpload] = useState(false),
@@ -161,7 +169,7 @@ export function Comments({
       spacing={1}
       sx={{ ml: c.parentId ? 2 : 0, alignItems: "flex-start" }}
     >
-      <ProfileAvatar name={c.authorName} value={c.authorAvatar}/>
+      <ProfileAvatar name={c.authorName} value={c.authorAvatar} />
       <Box
         sx={{
           flex: 1,
@@ -182,7 +190,7 @@ export function Comments({
             {c.authorId === post.authorId ? " · Giảng viên" : ""}
           </Typography>
           <Stack direction="row" sx={{ alignItems: "center" }}>
-            <ContentViews kind="COMMENT" id={c.id}/>
+            <ContentViews kind="COMMENT" id={c.id} />
             {c.isPinned && (
               <Tooltip title="Bình luận đã ghim — luôn hiển thị">
                 <PushPin sx={{ fontSize: 15, color: "var(--post-green)" }} />
@@ -345,7 +353,7 @@ export function Comments({
         </Stack>
       )}
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <ProfileAvatar name={me?.name??"Bạn"} value={me?.avatar}/>
+        <ProfileAvatar name={me?.name ?? "Bạn"} value={me?.avatar} />
         <Box
           component="form"
           aria-label="Soạn bình luận"

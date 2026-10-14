@@ -4,6 +4,4 @@ Route tĩnh /profile/ dùng cùng JWT/localStorage, guard và RTK Query. Tự ch
 
 Avatar dùng icon MUI/màu pastel hoặc upload JPG/PNG/WebP. Blob tải qua API xác thực; không public storage URL. File vào Chung/Ảnh avatar; upload trực tiếp post/session vào Chung/Bài đăng/thư mục theo MIME. Kho/bình luận giữ luồng hiện có. Không thêm thư viện, API polling hay interval.
 
-
-
 Cần backend PR33 và migrations Core020, Materials009, Notifications004 trước rollout FE. Workflow deploy hiện có giữ nguyên, chỉ sau merge dev; không tự merge. Không có thay đổi secret/GCP queue. Kiểm tra qua CI do môi trường local không khởi tạo được.

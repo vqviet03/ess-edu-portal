@@ -141,7 +141,14 @@ export function UploadDialog({
           sizeBytes: row.file.size,
           storageId: postId ? "" : row.area,
           folderId,
-          uploadSource: source === "avatar" ? "avatar" : postId ? "comment" : sessionId ? "session" : source ?? "library",
+          uploadSource:
+            source === "avatar"
+              ? "avatar"
+              : postId
+                ? "comment"
+                : sessionId
+                  ? "session"
+                  : (source ?? "library"),
           sourcePostId: postId,
           sourceSessionId: sessionId,
           thumbnailMime: thumb?.type,
@@ -182,7 +189,16 @@ export function UploadDialog({
       fullWidth
       maxWidth="md"
     >
-      <DialogTitle>{source === "avatar" ? "Tải ảnh đại diện" : "Upload " + (postId ? "đính kèm bình luận" : sessionId ? "vào phiên học" : "vào kho")}</DialogTitle>
+      <DialogTitle>
+        {source === "avatar"
+          ? "Tải ảnh đại diện"
+          : "Upload " +
+            (postId
+              ? "đính kèm bình luận"
+              : sessionId
+                ? "vào phiên học"
+                : "vào kho")}
+      </DialogTitle>
       <DialogContent>
         <Feedback
           loading={settings.isLoading}
@@ -201,7 +217,11 @@ export function UploadDialog({
                 Chọn nhiều file
                 <input
                   type="file"
-                accept={source === "avatar" ? "image/jpeg,image/png,image/webp" : undefined}
+                  accept={
+                    source === "avatar"
+                      ? "image/jpeg,image/png,image/webp"
+                      : undefined
+                  }
                   multiple={source !== "avatar"}
                   hidden
                   onChange={(e) => {

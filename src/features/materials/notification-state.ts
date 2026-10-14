@@ -47,7 +47,19 @@ export function mergeNotice(
     else page.items.splice(index, 1);
   } else if (!filter.cursor && matches) {
     page.items.unshift(notice);
-    while(page.items.length>15){const index=page.items.findLastIndex(n=>n.id!==notice.id&&(n.isRead||n.priority!=="IMPORTANT"&&!["APPROVAL","CONSENT"].includes(n.type)));if(index<0)break;const [removed]=page.items.splice(index,1);if(!removed.isRead&&page.unreadCount!==undefined)page.unreadCount=Math.max(0,page.unreadCount-1);}
+    while (page.items.length > 15) {
+      const index = page.items.findLastIndex(
+        (n) =>
+          n.id !== notice.id &&
+          (n.isRead ||
+            (n.priority !== "IMPORTANT" &&
+              !["APPROVAL", "CONSENT"].includes(n.type))),
+      );
+      if (index < 0) break;
+      const [removed] = page.items.splice(index, 1);
+      if (!removed.isRead && page.unreadCount !== undefined)
+        page.unreadCount = Math.max(0, page.unreadCount - 1);
+    }
   }
 }
 export function studentNoticeHref(

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
@@ -10,12 +10,15 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { chooseUnit } from "@/store/auth";
 import { selectUnit } from "@/models/report";
 import ReportView from "./report";
-import { useSearchParams } from "next/navigation";
-export function ClassReport({classId}: {classId: string}) {
-  return <ClassReportContent key={classId} classId={classId}/>;
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+export function ClassReport({ classId }: { classId: string }) {
+  return <ClassReportContent key={classId} classId={classId} />;
 }
 function ClassReportContent({ classId }: { classId: string }) {
-  const params = useSearchParams(), [requestedUnit,setRequestedUnit] = useState(params.get("unitId"));
+  const params = useSearchParams(),
+    requestedUnit = params.get("unitId"),
+    router = useRouter(),
+    pathname = usePathname();
   const id = useAppSelector((s) => s.auth.unitId),
     dispatch = useAppDispatch(),
     units = useUnitsQuery(classId),
@@ -41,13 +44,19 @@ function ClassReportContent({ classId }: { classId: string }) {
   return (
     <>
       <Feedback error={units.error} retry={units.refetch} />
-      {report.currentData && <Feedback error={report.error} retry={report.refetch} />}
+      {report.currentData && (
+        <Feedback error={report.error} retry={report.refetch} />
+      )}
       <Tabs
         aria-label="Chọn Unit"
         value={unit.id}
         variant="scrollable"
         scrollButtons="auto"
-        onChange={(_, value: string) => {setRequestedUnit(null);dispatch(chooseUnit(value));}}
+        onChange={(_, value: string) => {
+          const search = new URLSearchParams(params.toString());
+          search.set("unitId", value);
+          router.push(`${pathname}?${search}`, { scroll: false });
+        }}
         sx={{ mb: 2 }}
       >
         {units.currentData?.map((u) => (
@@ -67,17 +76,29 @@ function ClassReportContent({ classId }: { classId: string }) {
       ) : !reportData && report.error ? (
         <Feedback error={report.error} retry={report.refetch} />
       ) : reportData ? (
-        <Box aria-busy={report.isFetching} data-testid="unit-report-content" sx={{position: "relative"}}>
-          {!report.currentData && <Box sx={{position: "absolute", inset: 0, zIndex: 1}}><Feedback loading={report.isFetching} error={report.error} retry={report.refetch}/></Box>}
-          <Box sx={{visibility: report.currentData ? "visible" : "hidden"}}>
-        <ReportView
-          report={reportData}
-          entries={progress.currentData ?? []}
-          unitName={unit.name}
-          progressLoading={progress.isLoading}
-          progressError={progress.error}
-          retryProgress={progress.refetch}
-        />
+        <Box
+          aria-busy={report.isFetching}
+          data-testid="unit-report-content"
+          sx={{ position: "relative" }}
+        >
+          {!report.currentData && (
+            <Box sx={{ position: "absolute", inset: 0, zIndex: 1 }}>
+              <Feedback
+                loading={report.isFetching}
+                error={report.error}
+                retry={report.refetch}
+              />
+            </Box>
+          )}
+          <Box sx={{ visibility: report.currentData ? "visible" : "hidden" }}>
+            <ReportView
+              report={reportData}
+              entries={progress.currentData ?? []}
+              unitName={unit.name}
+              progressLoading={progress.isLoading}
+              progressError={progress.error}
+              retryProgress={progress.refetch}
+            />
           </Box>
         </Box>
       ) : null}

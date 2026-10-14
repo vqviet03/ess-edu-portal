@@ -1,6 +1,7 @@
 "use client";
-import {ClassPresenceContext,ClassMembers} from "@/features/presence/roster";
-import { useState } from "react";
+import { useRouteState } from "@/shared/route-state";
+import { useSectionTab } from "@/shared/page-navigation";
+import { ClassPresenceContext, ClassMembers } from "@/features/presence/roster";
 import dynamic from "next/dynamic";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
@@ -13,7 +14,11 @@ import { useThreadSessionsQuery } from "@/api/library-api";
 import { confirmLeave } from "@/shared/unsaved";
 import { ThreadFeed } from "./feed";
 import type { ThreadSession } from "./models";
-const AssignmentReport = dynamic(()=>import("@/features/assignments/report").then(m=>m.AssignmentReportView),{loading:()=> <Feedback loading/>});
+const AssignmentReport = dynamic(
+  () =>
+    import("@/features/assignments/report").then((m) => m.AssignmentReportView),
+  { loading: () => <Feedback loading /> },
+);
 const Report = dynamic(
   () => import("@/features/class-report").then((m) => m.ClassReport),
   { loading: () => <Feedback loading /> },
@@ -28,7 +33,10 @@ const Attendance = dynamic(
 );
 function SessionMaterials({ classId }: { classId: string }) {
   const sessions = useThreadSessionsQuery(classId),
-    [session, setSession] = useState<ThreadSession | null>(null);
+    [session, setSession] = useRouteState<ThreadSession | null>(
+      `materials:${classId}:session`,
+      null,
+    );
   return (
     <Stack spacing={2}>
       <Autocomplete
@@ -68,21 +76,29 @@ export function ClassTabs({
   classId: string;
   initialTab?: string;
 }) {
-  const first = ["thread", "files", "report", "rewards", "attendance", "members", "assignments"].includes(
-      initialTab,
-    )
-      ? initialTab
+  const values = [
+    "thread",
+    "files",
+    "report",
+    "rewards",
+    "attendance",
+    "members",
+    "assignments",
+  ] as const;
+  const [tab, setTab] = useSectionTab(
+    "home",
+    values,
+    values.includes(initialTab as (typeof values)[number])
+      ? (initialTab as (typeof values)[number])
       : "thread",
-    [tab, setTab] = useState(first),
-    [visited, setVisited] = useState<string[]>([first]);
+  );
   return (
     <>
-      <ClassPresenceContext classId={classId}/>
+      <ClassPresenceContext classId={classId} />
       <Tabs
         value={tab}
-        onChange={(_, v: string) => {
+        onChange={(_, v: (typeof values)[number]) => {
           setTab(v);
-          setVisited((old) => (old.includes(v) ? old : [...old, v]));
         }}
         aria-label="Nội dung lớp"
         variant="scrollable"
@@ -118,11 +134,39 @@ export function ClassTabs({
           id="class-attendance-tab"
           aria-controls="class-attendance-panel"
         />
-        <Tab label="Thành viên" value="members" id="class-members-tab" aria-controls="class-members-panel"/>
-        <Tab label="Bài tập" value="assignments" id="class-assignments-tab" aria-controls="class-assignments-panel"/>
+        <Tab
+          label="Thành viên"
+          value="members"
+          id="class-members-tab"
+          aria-controls="class-members-panel"
+        />
+        <Tab
+          label="Bài tập"
+          value="assignments"
+          id="class-assignments-tab"
+          aria-controls="class-assignments-panel"
+        />
       </Tabs>
-      <Box role="tabpanel" id="class-members-panel" aria-labelledby="class-members-tab" hidden={tab!=="members"} sx={{mt:2}}>{visited.includes("members")&&<ClassMembers classId={classId}/>}</Box>
-      <Box role="tabpanel" id="class-assignments-panel" aria-labelledby="class-assignments-tab" hidden={tab!=="assignments"} sx={{mt:2}}>{visited.includes("assignments")&&<AssignmentReport classId={classId} enabled={tab==="assignments"}/>}</Box>
+      <Box
+        role="tabpanel"
+        id="class-members-panel"
+        aria-labelledby="class-members-tab"
+        hidden={tab !== "members"}
+        sx={{ mt: 2 }}
+      >
+        {tab === "members" && <ClassMembers classId={classId} />}
+      </Box>
+      <Box
+        role="tabpanel"
+        id="class-assignments-panel"
+        aria-labelledby="class-assignments-tab"
+        hidden={tab !== "assignments"}
+        sx={{ mt: 2 }}
+      >
+        {tab === "assignments" && (
+          <AssignmentReport classId={classId} enabled={tab === "assignments"} />
+        )}
+      </Box>
       <Box
         role="tabpanel"
         id="class-thread-panel"
@@ -130,7 +174,7 @@ export function ClassTabs({
         hidden={tab !== "thread"}
         sx={{ mt: 2 }}
       >
-        {visited.includes("thread") && <ThreadFeed classId={classId} />}
+        {tab === "thread" && <ThreadFeed classId={classId} />}
       </Box>
       <Box
         role="tabpanel"
@@ -139,7 +183,7 @@ export function ClassTabs({
         hidden={tab !== "files"}
         sx={{ mt: 2 }}
       >
-        {visited.includes("files") && <SessionMaterials classId={classId} />}
+        {tab === "files" && <SessionMaterials classId={classId} />}
       </Box>
       <Box
         role="tabpanel"
@@ -148,7 +192,7 @@ export function ClassTabs({
         hidden={tab !== "report"}
         sx={{ mt: 2 }}
       >
-        {visited.includes("report") && <Report classId={classId} />}
+        {tab === "report" && <Report classId={classId} />}
       </Box>
       <Box
         role="tabpanel"
@@ -157,7 +201,7 @@ export function ClassTabs({
         hidden={tab !== "attendance"}
         sx={{ mt: 2 }}
       >
-        {visited.includes("attendance") && <Attendance classId={classId} />}
+        {tab === "attendance" && <Attendance classId={classId} />}
       </Box>
       <Box
         role="tabpanel"
@@ -166,7 +210,7 @@ export function ClassTabs({
         hidden={tab !== "rewards"}
         sx={{ mt: 2 }}
       >
-        {visited.includes("rewards") && <Rewards classId={classId} />}
+        {tab === "rewards" && <Rewards classId={classId} />}
       </Box>
     </>
   );

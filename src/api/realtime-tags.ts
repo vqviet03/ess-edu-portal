@@ -5,8 +5,14 @@ export function realtimeTags(
   classId: string | null,
   noticeType?: string,
 ): Parameters<typeof api.util.invalidateTags>[0] {
-  if (noticeType === "ASSIGNMENT") return [{type:"LearningAssignments",...(classId?{id:classId}:{})}, "Threads", "AssignmentReport"];
-  if (noticeType === "ASSIGNMENT_RESULT") return ["AssignmentDraft", "AssignmentReport"];
+  if (noticeType === "ASSIGNMENT")
+    return [
+      { type: "LearningAssignments", ...(classId ? { id: classId } : {}) },
+      "Threads",
+      "AssignmentReport",
+    ];
+  if (noticeType === "ASSIGNMENT_RESULT")
+    return ["AssignmentDraft", "AssignmentReport"];
   if (kind === "RESOURCE_CHANGED")
     return classId
       ? [
@@ -25,7 +31,13 @@ export function realtimeTags(
     return [
       { type: "Rewards", ...(classId ? { id: classId } : {}) },
       ...(noticeType === "SCHEDULE"
-        ? [{ type: "Schedule" as const, ...(classId ? { id: classId } : {}) },{type:"Attendance" as const,...(classId?{id:classId}:{})}]
+        ? [
+            { type: "Schedule" as const, ...(classId ? { id: classId } : {}) },
+            {
+              type: "Attendance" as const,
+              ...(classId ? { id: classId } : {}),
+            },
+          ]
         : []),
     ];
   if (noticeType === "SCORE")
