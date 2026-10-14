@@ -8,7 +8,22 @@ export const metadata: Metadata = {
   icons: { icon: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/favicon.svg` },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="vi"><head><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="default"/></head>
-      <body><AppRouterCacheProvider><Providers>{children}</Providers></AppRouterCacheProvider></body></html>;
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="vi">
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
+      <body>
+        <AppRouterCacheProvider>
+          <Providers>{children}</Providers>
+        </AppRouterCacheProvider>
+      </body>
+    </html>
+  );
 }

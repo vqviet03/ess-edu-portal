@@ -1,4 +1,13 @@
-* { box-sizing: border-box; }
-body { margin: 0; }
-a { color: inherit; }
-::selection { background: #b5dec2; color: #163624; }
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+::selection {
+  background: #b5dec2;
+  color: #163624;
+}

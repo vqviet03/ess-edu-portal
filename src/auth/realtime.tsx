@@ -1,6 +1,12 @@
 "use client";
-import {presenceContext,PRESENCE_CONTEXT_EVENT,receivePresence,presenceConnection,type PresenceSignal} from "@/features/presence/state";
-import {showNoticeToast} from "@/features/notifications/events";
+import {
+  presenceContext,
+  PRESENCE_CONTEXT_EVENT,
+  receivePresence,
+  presenceConnection,
+  type PresenceSignal,
+} from "@/features/presence/state";
+import { showNoticeToast } from "@/features/notifications/events";
 
 import { useEffect } from "react";
 import type { Notification } from "@/features/materials/models";
@@ -16,7 +22,11 @@ import { useStore } from "react-redux";
 import type { RootState } from "@/store";
 import { createSocketSessionCheck } from "./socket-session";
 type Signal = {
-  classId?:string;userId?:string;connectionId?:string;online?:boolean;seenAt?:string;
+  classId?: string;
+  userId?: string;
+  connectionId?: string;
+  online?: boolean;
+  seenAt?: string;
   type?: string;
   id?: string;
   version?: number;
@@ -49,8 +59,14 @@ export function StudentRealtime() {
       cursor: string | undefined,
       receivedSnapshot = false;
     const verifySession = createSocketSessionCheck(
-      () => disposed ? null : store.getState().auth.accessToken,
-      () => dispatch(api.endpoints.me.initiate(undefined, { forceRefetch: true, subscribe: false })),
+      () => (disposed ? null : store.getState().auth.accessToken),
+      () =>
+        dispatch(
+          api.endpoints.me.initiate(undefined, {
+            forceRefetch: true,
+            subscribe: false,
+          }),
+        ),
     );
     const processed = new Set<string>(),
       notices = new Map<string, number>();
@@ -87,9 +103,25 @@ export function StudentRealtime() {
       socket = undefined;
       presenceConnection(false);
     };
-    const sendContext=()=>{if(socket?.readyState===WebSocket.OPEN){presenceConnection(false);presenceConnection(true);socket.send(JSON.stringify({type:"PRESENCE",classId:presenceContext()}));}else if(!disposed&&!document.hidden&&navigator.onLine&&!socket)open();};
+    const sendContext = () => {
+      if (socket?.readyState === WebSocket.OPEN) {
+        presenceConnection(false);
+        presenceConnection(true);
+        socket.send(
+          JSON.stringify({ type: "PRESENCE", classId: presenceContext() }),
+        );
+      } else if (!disposed && !document.hidden && navigator.onLine && !socket)
+        open();
+    };
     const open = () => {
-      if (disposed || authBlocked || document.hidden || !navigator.onLine || socket) return;
+      if (
+        disposed ||
+        authBlocked ||
+        document.hidden ||
+        !navigator.onLine ||
+        socket
+      )
+        return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
       const current = new WebSocket(url);
@@ -102,9 +134,10 @@ export function StudentRealtime() {
         try {
           const frame = JSON.parse(String(event.data)) as Frame;
           if (frame.cursor) cursor = frame.cursor;
-          if(frame.type==="READY")sendContext();
-          if(frame.type==="PRESENCE_RESET")presenceConnection(false);
-          if(frame.type==="PRESENCE" && frame.data)receivePresence(frame.data as PresenceSignal);
+          if (frame.type === "READY") sendContext();
+          if (frame.type === "PRESENCE_RESET") presenceConnection(false);
+          if (frame.type === "PRESENCE" && frame.data)
+            receivePresence(frame.data as PresenceSignal);
           if (
             (frame.type === "NOTIFICATION" ||
               frame.type === "RESOURCE_CHANGED") &&
@@ -125,7 +158,10 @@ export function StudentRealtime() {
                 dispatch(noticeReceived(item as Notification));
               }
               if (item.id) notices.set(item.id, item.version ?? 1);
-              if (isNew) {refresh(item, "NOTIFICATION");showNoticeToast(item as Notification);}
+              if (isNew) {
+                refresh(item, "NOTIFICATION");
+                showNoticeToast(item as Notification);
+              }
             } else refresh(item, "RESOURCE_CHANGED");
           }
           if (frame.type === "NOTIFICATIONS") {
@@ -155,7 +191,12 @@ export function StudentRealtime() {
         presenceConnection(false);
         if (event.code === 1008 && event.reason === "UNAUTHORIZED") {
           authBlocked = true;
-          void verifySession(token).then(valid => { if (valid) { authBlocked = false; open(); } });
+          void verifySession(token).then((valid) => {
+            if (valid) {
+              authBlocked = false;
+              open();
+            }
+          });
         }
       };
     };
@@ -163,7 +204,7 @@ export function StudentRealtime() {
       if (document.hidden || !navigator.onLine) pause();
       else open();
     };
-    window.addEventListener(PRESENCE_CONTEXT_EVENT,sendContext);
+    window.addEventListener(PRESENCE_CONTEXT_EVENT, sendContext);
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("online", resume);
     window.addEventListener("offline", pause);
@@ -173,7 +214,7 @@ export function StudentRealtime() {
     return () => {
       disposed = true;
       pause();
-      window.removeEventListener(PRESENCE_CONTEXT_EVENT,sendContext);
+      window.removeEventListener(PRESENCE_CONTEXT_EVENT, sendContext);
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("online", resume);
       window.removeEventListener("offline", pause);

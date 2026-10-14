@@ -25,6 +25,7 @@ URL frontend: /<basePath>/auth/link/#code=<one-time-code>. Backend phát mã ng�
 Lớp mặc định: phần tử isActive đầu tiên theo thứ tự API, nếu không có chọn lớp đầu. Unit mặc định: order lớn nhất; list unit là các unit của học sinh trong lớp. hasReport=false không gọi report. API progress trả theo unitOrder; frontend cũng sắp tăng để ổn định. Tổng điểm do backend cung cấp, không lấy trung bình đơn giản 7 phần trăm. Chênh lệch = percentage sau - percentage trước, làm tròn 1 chữ số, đơn vị điểm phần trăm. Nhãn biểu đồ giữ % như mẫu, tooltip giải thích đơn vị. Các giá trị null không chuyển thành 0 hoặc nối đường qua điểm thiếu.
 
 ## Request/response mẫu
+
 ### POST /auth/login
 
 Request
@@ -345,15 +346,15 @@ Response lỗi chuẩn:
 }
 ```
 
-| HTTP | code mẫu | Khi sử dụng |
-| --- | --- | --- |
-| 400 | VALIDATION_ERROR / INVALID_CODE | Body sai, thiếu dữ liệu hoặc mã link không hợp lệ |
-| 401 | INVALID_CREDENTIALS / TOKEN_EXPIRED / INVALID_TOKEN | Sai thông tin đăng nhập; JWT thiếu, hết hạn hoặc không hợp lệ |
-| 403 | FORBIDDEN | Học sinh không có quyền với lớp/unit/tài liệu |
-| 404 | NOT_FOUND | Không tồn tại đối tượng; có thể dùng để không tiết lộ tài nguyên |
-| 410 | CODE_EXPIRED / CODE_USED | Mã link hết hạn hoặc đã tiêu thụ |
-| 429 | RATE_LIMITED | Rate limit login/exchange/access, gửi Retry-After |
-| 500 | INTERNAL_ERROR | Lỗi backend; không trả stack trace hoặc thông tin nhạy cảm |
+| HTTP | code mẫu                                            | Khi sử dụng                                                      |
+| ---- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| 400  | VALIDATION_ERROR / INVALID_CODE                     | Body sai, thiếu dữ liệu hoặc mã link không hợp lệ                |
+| 401  | INVALID_CREDENTIALS / TOKEN_EXPIRED / INVALID_TOKEN | Sai thông tin đăng nhập; JWT thiếu, hết hạn hoặc không hợp lệ    |
+| 403  | FORBIDDEN                                           | Học sinh không có quyền với lớp/unit/tài liệu                    |
+| 404  | NOT_FOUND                                           | Không tồn tại đối tượng; có thể dùng để không tiết lộ tài nguyên |
+| 410  | CODE_EXPIRED / CODE_USED                            | Mã link hết hạn hoặc đã tiêu thụ                                 |
+| 429  | RATE_LIMITED                                        | Rate limit login/exchange/access, gửi Retry-After                |
+| 500  | INTERNAL_ERROR                                      | Lỗi backend; không trả stack trace hoặc thông tin nhạy cảm       |
 
 Mỗi lỗi dùng cùng envelope error với code và thông báo phù hợp tiếng Việt; fieldErrors tùy chọn. Frontend có timeout cấu hình bằng NEXT_PUBLIC_API_TIMEOUT_MS (mặc định 15s), loading/empty/error và retry cho query; không tự phát lại mutation exchange/access.
 
@@ -365,7 +366,7 @@ Endpoint access tương thích trả URL application; preview/download/thumbnail
 
 Production dùng HTTPS. Allow-Origin cho GitHub Pages là https://vqviet03.github.io (không có /ess-edu-portal); thêm đúng origin custom domain nếu dùng. Cho phép GET, POST, PUT, PATCH, DELETE, OPTIONS và headers Authorization, Content-Type, Accept; xử lý preflight OPTIONS. Dev thêm http://localhost:3000. Không dùng wildcard để thay kiểm tra quyền; ứng dụng dùng Bearer, không yêu cầu credential cookie cross-site.
 
-Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Frontend chỉ gọi backend qua RTK Query/fetchBaseQuery; cấu hình NEXT_PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai; lỗi hoặc dữ liệu rỗng từ backend được hiển thị trực tiếp, không tạo dữ liệu thay thế. Biến NEXT_PUBLIC_* công khai, không chứa secret.
+Auth/exchange, /me và báo cáo dùng Cache-Control: no-store hoặc private phù hợp. Rate-limit login/exchange, hạn chế brute force; redact Authorization, password, code trong logs. Thử nghiệm quyền bằng học sinh A truy cập tài nguyên B trên mọi endpoint. Frontend chỉ gọi backend qua RTK Query/fetchBaseQuery; cấu hình NEXT*PUBLIC_API_BASE_URL rồi build lại để kết nối. URL gốc tự thêm /v1; URL đã có /v1 không bị thêm hai lần. Production build từ chối cấu hình thiếu/sai; lỗi hoặc dữ liệu rỗng từ backend được hiển thị trực tiếp, không tạo dữ liệu thay thế. Biến NEXT_PUBLIC*\* công khai, không chứa secret.
 
 Thông báo MATERIAL/REPLY/SCORE và đường dẫn đến bài/bình luận/Unit: [student-notifications.md](student-notifications.md). Dùng notification endpoints/socket hiện có; không polling hoặc truyền JWT qua URL.
 

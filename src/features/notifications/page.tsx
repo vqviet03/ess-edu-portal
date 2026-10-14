@@ -1,5 +1,5 @@
 "use client";
-import {NotificationContent} from "./content";
+import { NotificationContent } from "./content";
 import { useState } from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
@@ -33,7 +33,9 @@ const types: Record<string, string> = {
   MATERIAL: "Bài đăng / tài liệu",
   REPLY: "Trả lời bình luận",
   SCORE: "Công bố điểm",
-  ASSIGNMENT: "Bài tập mới", SUBMISSION: "Nộp bài tập", ASSIGNMENT_RESULT: "Kết quả bài tập",
+  ASSIGNMENT: "Bài tập mới",
+  SUBMISSION: "Nộp bài tập",
+  ASSIGNMENT_RESULT: "Kết quả bài tập",
   ATTENDANCE: "Điểm danh",
   REWARD: "Điểm động viên",
   SCHEDULE: "Lịch học",
@@ -201,7 +203,7 @@ export function NotificationsPage() {
                     overflowWrap: "anywhere",
                   }}
                 >
-                  <NotificationContent notice={n}/>
+                  <NotificationContent notice={n} />
                 </Box>
                 <Typography variant="caption" color="text.secondary">
                   {types[n.type] ?? "Thông báo"} ·{" "}
@@ -246,7 +248,10 @@ export function NotificationsPage() {
                 <Tooltip title="Ẩn thông báo">
                   <span>
                     <IconButton
-                      disabled={changing.isLoading||(!n.isRead&&n.priority==="IMPORTANT")}
+                      disabled={
+                        changing.isLoading ||
+                        (!n.isRead && n.priority === "IMPORTANT")
+                      }
                       aria-label={`Ẩn thông báo: ${n.title}`}
                       onClick={() =>
                         void mark(n.id, n.version, undefined, true)

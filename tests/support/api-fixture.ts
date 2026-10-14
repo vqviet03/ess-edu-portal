@@ -19,13 +19,15 @@ import { resolveApiConfiguration } from "../../src/api/config";
 // Only the test runner imports this. Browser code always sends HTTP requests.
 export async function installApiFixture(
   page: Page,
-  options: { images?: boolean; sessions?: Map<string,string> } = {},
+  options: { images?: boolean; sessions?: Map<string, string> } = {},
 ) {
   const { baseUrl } = resolveApiConfiguration(
     process.env.NEXT_PUBLIC_API_BASE_URL,
   );
   const sessions = options.sessions ?? new Map<string, string>();
-  let consumed = false, authFailures = 0, socketConnections = 0;
+  let consumed = false,
+    authFailures = 0,
+    socketConnections = 0;
   const files: MaterialFile[] = materials.slice(0, 2).map((m) => ({
     id: m.id,
     originalName: m.title,
@@ -135,10 +137,14 @@ export async function installApiFixture(
     (socket) => {
       socketConnections++;
       sockets.add(socket);
-      socket.onMessage(message => {
-        const frame=JSON.parse(String(message)) as {type:string};
-        if(frame.type!=="AUTH")return;
-        if(authFailures>0){authFailures--;socket.close({code:1008,reason:"UNAUTHORIZED"});return;}
+      socket.onMessage((message) => {
+        const frame = JSON.parse(String(message)) as { type: string };
+        if (frame.type !== "AUTH") return;
+        if (authFailures > 0) {
+          authFailures--;
+          socket.close({ code: 1008, reason: "UNAUTHORIZED" });
+          return;
+        }
         socket.send(JSON.stringify({ type: "READY", cursor: "0" }));
         socket.send(JSON.stringify(snapshot()));
       });
@@ -167,10 +173,22 @@ export async function installApiFixture(
       send({ error: { code, message } }, status);
     if (req.method() === "OPTIONS")
       return route.fulfill({ status: 204, headers });
-    if (/^\/(posts|comments)\/[^/]+\/view$/.test(url) && req.method()==="POST") return send({data:{recorded:true}});
-    if (/^\/(posts|comments)\/[^/]+\/viewers$/.test(url)) return send({data:{items:[],total:0,page:1,pageSize:30}});
+    if (
+      /^\/(posts|comments)\/[^/]+\/view$/.test(url) &&
+      req.method() === "POST"
+    )
+      return send({ data: { recorded: true } });
+    if (/^\/(posts|comments)\/[^/]+\/viewers$/.test(url))
+      return send({ data: { items: [], total: 0, page: 1, pageSize: 30 } });
     if (url === "/application-settings")
-      return send({ data: { appName: "Trung tâm Ngoại ngữ Lá Xanh", classIdPrefix: "lx", version: 2, schemaReady: true } });
+      return send({
+        data: {
+          appName: "Trung tâm Ngoại ngữ Lá Xanh",
+          classIdPrefix: "lx",
+          version: 2,
+          schemaReady: true,
+        },
+      });
     if (url === "/auth/login") {
       const body = req.postDataJSON();
       if (req.headers().authorization)
@@ -269,7 +287,30 @@ export async function installApiFixture(
           ],
         },
       });
-    if (url === "/me/classes/juniors-03/members") return send({data:{classId:"juniors-03",items:[{userId:student.id,publicId:"HV000123",name:student.fullName,nickname:student.nickname,role:"Học sinh",lastSeenAt:null},{userId:"teacher-one",publicId:"vq.viet",name:"Vũ Quốc Việt",nickname:null,role:"Giảng viên",lastSeenAt:"2026-10-10T08:00:00Z"}]}});
+    if (url === "/me/classes/juniors-03/members")
+      return send({
+        data: {
+          classId: "juniors-03",
+          items: [
+            {
+              userId: student.id,
+              publicId: "HV000123",
+              name: student.fullName,
+              nickname: student.nickname,
+              role: "Học sinh",
+              lastSeenAt: null,
+            },
+            {
+              userId: "teacher-one",
+              publicId: "vq.viet",
+              name: "Vũ Quốc Việt",
+              nickname: null,
+              role: "Giảng viên",
+              lastSeenAt: "2026-10-10T08:00:00Z",
+            },
+          ],
+        },
+      });
     if (url === "/classes/juniors-03/thread-sessions")
       return send({
         data: {
@@ -460,21 +501,33 @@ export async function installApiFixture(
     return fail(404, "NOT_FOUND", "Chưa có báo cáo.");
   });
   return {
-    rejectSocketAuth: (count: number) => { authFailures = count; },
+    rejectSocketAuth: (count: number) => {
+      authFailures = count;
+    },
     connectionCount: () => socketConnections,
-    disconnectUnauthorized: () => { for(const socket of sockets)socket.close({code:1008,reason:"UNAUTHORIZED"}); },
+    disconnectUnauthorized: () => {
+      for (const socket of sockets)
+        socket.close({ code: 1008, reason: "UNAUTHORIZED" });
+    },
     changeComment(id: string, body: string) {
-      const comment = comments.find(c => c.id === id);
+      const comment = comments.find((c) => c.id === id);
       if (!comment) throw new Error("Test comment not found");
       comment.body = body;
       comment.version++;
     },
-    presence(data:{classId:string;userId:string;connectionId:string;online:boolean;seenAt:string}) {
-      for(const socket of sockets)socket.send(JSON.stringify({type:"PRESENCE",data}));
-    },
-    resourceChanged(data: {id: string; href: string}) {
+    presence(data: {
+      classId: string;
+      userId: string;
+      connectionId: string;
+      online: boolean;
+      seenAt: string;
+    }) {
       for (const socket of sockets)
-        socket.send(JSON.stringify({type: "RESOURCE_CHANGED", data}));
+        socket.send(JSON.stringify({ type: "PRESENCE", data }));
+    },
+    resourceChanged(data: { id: string; href: string }) {
+      for (const socket of sockets)
+        socket.send(JSON.stringify({ type: "RESOURCE_CHANGED", data }));
     },
     notify(n: Notification) {
       const at = notices.findIndex((old) => old.id === n.id);

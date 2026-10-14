@@ -1,6 +1,10 @@
 import type { MaterialFile } from "@/features/materials/models";
 export type QuestionType =
-  "SINGLE" | "MULTIPLE" | "TEXT" | "LINK_FILE" | "SPEAKING";
+  | "SINGLE"
+  | "MULTIPLE"
+  | "TEXT"
+  | "LINK_FILE"
+  | "SPEAKING";
 export const questionLabels: Record<QuestionType, string> = {
   SINGLE: "Chọn một đáp án",
   MULTIPLE: "Chọn nhiều đáp án",
@@ -265,6 +269,13 @@ export function schemaWrite(a: Assignment): AssignmentWrite {
   };
 }
 
-export const blockMedia = (content:string,media:Media[]) => media.filter(m=>!content.includes(`[file:${m.materialId}]`));
+export const blockMedia = (content: string, media: Media[]) =>
+  media.filter((m) => !content.includes(`[file:${m.materialId}]`));
 
-export interface RecordingConfirmation {id:string;status:"CONFIRMED"|"CANCELLED";materialId:string|null;verifiedDurationSeconds:number|null;version:number}
+export interface RecordingConfirmation {
+  id: string;
+  status: "CONFIRMED" | "CANCELLED";
+  materialId: string | null;
+  verifiedDurationSeconds: number | null;
+  version: number;
+}

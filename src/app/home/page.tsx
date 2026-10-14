@@ -19,9 +19,13 @@ function HomeContent() {
   const auth = useAppSelector((s) => s.auth),
     dispatch = useAppDispatch(),
     classes = useClassesQuery(),
-    params = useSearchParams(), router = useRouter(),
-    requestedClass = classes.currentData?.find(c=>c.id===params.get("classId")),
-    classroom = requestedClass ?? selectClass(classes.currentData ?? [], auth.classId);
+    params = useSearchParams(),
+    router = useRouter(),
+    requestedClass = classes.currentData?.find(
+      (c) => c.id === params.get("classId"),
+    ),
+    classroom =
+      requestedClass ?? selectClass(classes.currentData ?? [], auth.classId);
   useEffect(() => {
     if (classroom && auth.classId !== classroom.id)
       dispatch(chooseClass(classroom.id));
@@ -50,7 +54,13 @@ function HomeContent() {
             label="Lớp học"
             fullWidth
             value={classroom.id}
-            onChange={(e) => {dispatch(chooseClass(e.target.value));router.replace(`/home/?classId=${encodeURIComponent(e.target.value)}&tab=${params.get("tab") ?? "thread"}`, {scroll: false});}}
+            onChange={(e) => {
+              dispatch(chooseClass(e.target.value));
+              router.replace(
+                `/home/?classId=${encodeURIComponent(e.target.value)}&tab=${params.get("tab") ?? "thread"}`,
+                { scroll: false },
+              );
+            }}
             sx={{ maxWidth: { md: 480 }, mb: 2 }}
           >
             {classes.currentData?.map((c) => (
@@ -60,7 +70,15 @@ function HomeContent() {
               </MenuItem>
             ))}
           </TextField>
-          <Tooltip title="Tài liệu học tập"><IconButton component={NextLink} aria-label="Tài liệu học tập" href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}><FolderOutlined fontSize="small"/></IconButton></Tooltip>
+          <Tooltip title="Tài liệu học tập">
+            <IconButton
+              component={NextLink}
+              aria-label="Tài liệu học tập"
+              href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}
+            >
+              <FolderOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <TeacherContacts classId={classroom.id} />
           <ClassTabs
             key={`${classroom.id}:${params.get("tab") ?? "thread"}:${params.get("unitId") ?? ""}`}
