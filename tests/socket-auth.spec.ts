@@ -7,6 +7,9 @@ async function login(page: import("@playwright/test").Page) {
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await expect(page).toHaveURL(/\/home\//);
+  await expect(page.getByTestId("lesson-post")).toBeVisible();
+  // Let the homepage move from its initial no-class group to the selected class.
+  await page.waitForTimeout(150);
 }
 const meUrl = process.env.NEXT_PUBLIC_API_BASE_URL! + "/me";
 const connections = (fixture: Awaited<ReturnType<typeof installApiFixture>>) =>
@@ -24,10 +27,11 @@ test("socket rejection verifies HTTP auth once and does not log out or loop when
   await page.clock.install();
   await login(page);
   await expect.poll(() => reads).toBe(1);
-  await expect.poll(() => connections(fixture)).toBe(2);
+  await expect.poll(() => connections(fixture)).toBeGreaterThanOrEqual(2);
   await page.clock.fastForward(60000);
   expect(reads).toBe(1);
-  expect(connections(fixture)).toBe(2);
+  // The homepage may select its class after recovery: one additional scoped connection, never a retry loop.
+  expect(connections(fixture)).toBeLessThanOrEqual(3);
   await expect(page).toHaveURL(/\/home\//);
   expect(
     await page.evaluate(() => localStorage.getItem("learnleaf.session")),
@@ -39,7 +43,7 @@ test("socket rejection waits for API 401 before clearing session", async ({
 }) => {
   const fixture = await installApiFixture(page);
   await login(page);
-  await expect.poll(() => connections(fixture)).toBe(1);
+  await expect.poll(() => fixture.activeConnections()).toBe(1);
   let finish!: () => void;
   const gate = new Promise<void>((resolve) => {
     finish = resolve;

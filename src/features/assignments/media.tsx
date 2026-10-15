@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useMediaCleanup } from "@/shared/media-lifecycle";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -28,13 +29,21 @@ function MediaItem({ item }: { item: Media }) {
     [url, setUrl] = useState(""),
     [view, setView] = useState(false),
     host = useRef<HTMLDivElement>(null);
+  useMediaCleanup(host);
   useEffect(() => {
     if (!f || !f.mimeType.startsWith("image/")) return;
     let live = true;
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)) {
         observer.disconnect();
-        void load({ id: f.id, purpose: "preview" }, true)
+        void load(
+          {
+            id: f.id,
+            purpose: f.thumbnailUrl ? "thumbnail" : "preview",
+            ...(f.thumbnailUrl ? { width: 1280 } : {}),
+          },
+          true,
+        )
           .unwrap()
           .then((value) => {
             if (live) setUrl(value.url);
@@ -82,7 +91,7 @@ function MediaItem({ item }: { item: Media }) {
                 component={f.mimeType.startsWith("image/") ? "img" : "video"}
                 src={url}
                 controls={f.mimeType.startsWith("video/")}
-                preload="metadata"
+                preload="none"
                 alt={
                   f.mimeType.startsWith("image/")
                     ? "Minh họa bài tập"
