@@ -1,4 +1,9 @@
 "use client";
+import { REALTIME_ACTIVITY, realtimeAwake } from "@/shared/realtime-activity";
+import {
+  createRealtimeSocket,
+  type RealtimeSocket,
+} from "@/shared/realtime-socket";
 import {
   presenceContext,
   PRESENCE_CONTEXT_EVENT,
@@ -53,7 +58,8 @@ export function StudentRealtime() {
   );
   useEffect(() => {
     if (!token || apiConfiguration.error) return;
-    let socket: WebSocket | undefined,
+    let socket: RealtimeSocket | undefined,
+      socketContext: string | null = null,
       disposed = false,
       authBlocked = false,
       cursor: string | undefined,
@@ -104,19 +110,31 @@ export function StudentRealtime() {
       presenceConnection(false);
     };
     const sendContext = () => {
+      if (socket && socketContext !== presenceContext()) {
+        pause();
+        open();
+        return;
+      }
       if (socket?.readyState === WebSocket.OPEN) {
         presenceConnection(false);
         presenceConnection(true);
         socket.send(
           JSON.stringify({ type: "PRESENCE", classId: presenceContext() }),
         );
-      } else if (!disposed && !document.hidden && navigator.onLine && !socket)
+      } else if (
+        !disposed &&
+        !document.hidden &&
+        navigator.onLine &&
+        realtimeAwake() &&
+        !socket
+      )
         open();
     };
     const open = () => {
       if (
         disposed ||
         authBlocked ||
+        !realtimeAwake() ||
         document.hidden ||
         !navigator.onLine ||
         socket
@@ -124,7 +142,12 @@ export function StudentRealtime() {
         return;
       const url = new URL(apiConfiguration.baseUrl + "/events/ws");
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-      const current = new WebSocket(url);
+      socketContext = presenceContext();
+      const current = createRealtimeSocket(
+        url.toString(),
+        token,
+        socketContext,
+      );
       socket = current;
       current.onopen = () =>
         current.send(
@@ -201,10 +224,11 @@ export function StudentRealtime() {
       };
     };
     const resume = () => {
-      if (document.hidden || !navigator.onLine) pause();
+      if (document.hidden || !navigator.onLine || !realtimeAwake()) pause();
       else open();
     };
     window.addEventListener(PRESENCE_CONTEXT_EVENT, sendContext);
+    window.addEventListener(REALTIME_ACTIVITY, resume);
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("online", resume);
     window.addEventListener("offline", pause);
@@ -215,6 +239,7 @@ export function StudentRealtime() {
       disposed = true;
       pause();
       window.removeEventListener(PRESENCE_CONTEXT_EVENT, sendContext);
+      window.removeEventListener(REALTIME_ACTIVITY, resume);
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("online", resume);
       window.removeEventListener("offline", pause);

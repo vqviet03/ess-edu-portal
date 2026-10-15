@@ -518,6 +518,7 @@ export async function installApiFixture(
       authFailures = count;
     },
     connectionCount: () => socketConnections,
+    activeConnections: () => sockets.size,
     disconnectUnauthorized: () => {
       for (const socket of sockets)
         socket.close({ code: 1008, reason: "UNAUTHORIZED" });

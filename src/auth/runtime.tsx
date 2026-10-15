@@ -1,4 +1,5 @@
 "use client";
+import { RealtimeBoundary } from "@/shared/realtime-activity";
 import { NotificationToast } from "@/features/notifications/toast";
 import { UnsavedRuntime } from "@/shared/unsaved";
 import { StudentRealtime } from "./realtime";
@@ -70,10 +71,12 @@ export function AuthRuntime({ children }: { children: React.ReactNode }) {
   }, [auth.accessToken, auth.expiresAt, dispatch]);
   return (
     <CheckContext.Provider value={{ error: me.error, retry: me.refetch }}>
-      <UnsavedRuntime />
-      <StudentRealtime />
-      <NotificationToast key={auth.student?.id ?? "guest"} />
-      {children}
+      <RealtimeBoundary>
+        <UnsavedRuntime />
+        <StudentRealtime />
+        <NotificationToast key={auth.student?.id ?? "guest"} />
+        {children}
+      </RealtimeBoundary>
     </CheckContext.Provider>
   );
 }
