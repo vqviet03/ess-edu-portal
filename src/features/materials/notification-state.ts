@@ -70,6 +70,12 @@ export function studentNoticeHref(
     if (target.origin !== "https://portal.invalid") return null;
     const classId = target.searchParams.get("classId");
     if (!classId) return null;
+    if (target.pathname === "/home/rewards/gifts/") {
+      const query = new URLSearchParams({ classId, tab: "history" });
+      const redemptionId = target.searchParams.get("redemptionId");
+      if (redemptionId) query.set("redemptionId", redemptionId);
+      return `/home/rewards/gifts/?${query}`;
+    }
     const query = new URLSearchParams({
       classId,
       tab:

@@ -1,4 +1,5 @@
 "use client";
+import { compactControls } from "@/theme/compact";
 import { RouteStateProvider } from "@/shared/route-state";
 import { NavigationRuntime } from "@/shared/page-navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -108,6 +109,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               },
             },
           },
+
+          ...compactControls,
         },
       }),
     [mode],

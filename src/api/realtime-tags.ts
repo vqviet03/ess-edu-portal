@@ -27,7 +27,14 @@ export function realtimeTags(
       { type: "Attendance", ...(classId ? { id: classId } : {}) },
       { type: "Rewards", ...(classId ? { id: classId } : {}) },
     ];
-  if (noticeType === "REWARD" || noticeType === "SCHEDULE")
+  if (noticeType === "REWARD")
+    return [
+      { type: "Rewards", ...(classId ? { id: classId } : {}) },
+      { type: "GiftCart", ...(classId ? { id: classId } : {}) },
+      { type: "Gift", ...(classId ? { id: classId } : {}) },
+      { type: "Redemption", ...(classId ? { id: classId } : {}) },
+    ];
+  if (noticeType === "SCHEDULE")
     return [
       { type: "Rewards", ...(classId ? { id: classId } : {}) },
       ...(noticeType === "SCHEDULE"
