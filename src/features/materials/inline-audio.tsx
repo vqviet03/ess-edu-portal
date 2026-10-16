@@ -66,6 +66,37 @@ export function InlineAudio({
       setError(e);
     }
   };
+  const speedControl = (
+    <TextField
+      select
+      value={speed}
+      onChange={(e) => {
+        const v = Number(e.target.value);
+        setSpeed(v);
+        if (audio.current) audio.current.playbackRate = v;
+      }}
+      size="small"
+      slotProps={{
+        select: { "aria-label": `Tốc độ audio ${label}` },
+      }}
+      sx={{
+        width: submission ? 52 : 68,
+        flexShrink: 0,
+        "& .MuiInputBase-root": {
+          height: submission ? 28 : undefined,
+          color: submission ? "inherit" : undefined,
+        },
+        "& fieldset": { border: 0 },
+        "& .MuiSelect-select": { fontSize: 12, p: 0.5 },
+      }}
+    >
+      {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((v) => (
+        <MenuItem key={v} value={v}>
+          {v}x
+        </MenuItem>
+      ))}
+    </TextField>
+  );
   return (
     <Box
       sx={{
@@ -103,7 +134,11 @@ export function InlineAudio({
           >
             {label}
           </Typography>
-          <Stack direction="row" sx={{ alignItems: "center" }} spacing={1}>
+          <Stack
+            direction={submission ? "column" : "row"}
+            sx={{ alignItems: submission ? "stretch" : "center" }}
+            spacing={submission ? 0 : 1}
+          >
             <Slider
               size="small"
               aria-label={`Tua ${label}`}
@@ -123,41 +158,24 @@ export function InlineAudio({
                 p: "12px 0",
               }}
             />
-            <Typography
-              sx={{
-                fontSize: 10,
-                color: submission ? "inherit" : "var(--post-muted)",
-                whiteSpace: "nowrap",
-              }}
+            <Stack
+              direction="row"
+              sx={{ alignItems: "center", justifyContent: "space-between" }}
             >
-              {time(current)} / {duration ? time(duration) : "--:--"}
-            </Typography>
+              <Typography
+                sx={{
+                  fontSize: 10,
+                  color: submission ? "inherit" : "var(--post-muted)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {time(current)} / {duration ? time(duration) : "--:--"}
+              </Typography>
+              {submission && speedControl}
+            </Stack>
           </Stack>
         </Box>
-        <TextField
-          select
-          value={speed}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            setSpeed(v);
-            if (audio.current) audio.current.playbackRate = v;
-          }}
-          size="small"
-          slotProps={{
-            select: { "aria-label": `Tốc độ audio ${label}` },
-          }}
-          sx={{
-            width: 68,
-            "& fieldset": { border: 0 },
-            "& .MuiSelect-select": { fontSize: 12, p: 0.5 },
-          }}
-        >
-          {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((v) => (
-            <MenuItem key={v} value={v}>
-              {v}x
-            </MenuItem>
-          ))}
-        </TextField>
+        {!submission && speedControl}
       </Stack>
       <audio
         ref={audio}

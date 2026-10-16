@@ -333,6 +333,11 @@ test("student permanently deletes a saved recording from its draft, retries safe
     .click();
   expect(contentRequests).toBe(1);
   expect(
+    (await page
+      .getByRole("slider", { name: "Tua Bản ghi bài nộp" })
+      .boundingBox())!.width,
+  ).toBeGreaterThan(80);
+  expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
