@@ -1,4 +1,5 @@
 "use client";
+import { useAudioTimeline } from "@/shared/audio-timeline";
 import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -18,10 +19,9 @@ export const recordingTime = (s: number) =>
 export function RecordingAudio({ source }: { source: string }) {
   const ref = useRef<HTMLAudioElement>(null),
     [playing, setPlaying] = useState(false),
-    [position, setPosition] = useState(0),
-    [duration, setDuration] = useState(0),
     [speed, setSpeed] = useState(1),
     [error, setError] = useState(false);
+  const { position, duration, play, pause } = useAudioTimeline(ref, source);
   useEffect(() => {
     const node = ref.current;
     return () => {
@@ -33,7 +33,8 @@ export function RecordingAudio({ source }: { source: string }) {
     <Box
       sx={{
         p: 1.5,
-        bgcolor: "var(--a-tint)",
+        bgcolor: "var(--a-recording-bg)",
+        color: "var(--a-recording-fg)",
         borderRadius: "12px",
         maxWidth: 460,
       }}
@@ -43,21 +44,21 @@ export function RecordingAudio({ source }: { source: string }) {
           aria-label={playing ? "Tạm dừng bản ghi" : "Nghe bản ghi"}
           sx={{
             borderRadius: "50%",
-            bgcolor: "var(--a-green)",
-            color: "var(--a-surface)",
+            bgcolor: "var(--a-recording-accent)",
+            color: "var(--a-recording-bg)",
           }}
           onClick={() => {
             const a = ref.current;
             if (!a) return;
-            if (a.paused) void a.play().catch(() => setError(true));
-            else a.pause();
+            if (a.paused) void play().catch(() => setError(true));
+            else pause();
           }}
         >
           {playing ? <Pause /> : <PlayArrow />}
         </IconButton>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, mb: 1 }}>
-            Bản ghi của em
+            Bản ghi bài nộp
           </Typography>
           <Stack
             direction="row"
@@ -67,17 +68,18 @@ export function RecordingAudio({ source }: { source: string }) {
             <Slider
               aria-label="Tua bản ghi"
               size="small"
-              sx={{ flex: 1, minWidth: 80 }}
+              sx={{ flex: 1, minWidth: 80, color: "var(--a-recording-accent)" }}
               min={0}
-              max={duration || 1}
-              value={Math.min(position, duration || 1)}
+              disabled={!duration}
+              max={duration || Math.max(position, 1)}
+              value={Math.min(position, duration || position)}
               onChange={(_, v) => {
                 if (ref.current) ref.current.currentTime = v as number;
-                setPosition(v as number);
               }}
             />
             <Typography variant="body2">
-              {recordingTime(position)} / {recordingTime(duration)}
+              {recordingTime(position)} /{" "}
+              {duration ? recordingTime(duration) : "--:--"}
             </Typography>
             <Select
               variant="standard"
@@ -104,17 +106,6 @@ export function RecordingAudio({ source }: { source: string }) {
         ref={ref}
         src={source}
         preload="metadata"
-        onLoadedMetadata={() => {
-          const d = ref.current?.duration ?? 0;
-          if (Number.isFinite(d)) setDuration(d);
-        }}
-        onTimeUpdate={() => {
-          const a = ref.current;
-          if (a) {
-            setPosition(a.currentTime);
-            if (Number.isFinite(a.duration)) setDuration(a.duration);
-          }
-        }}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}

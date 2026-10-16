@@ -1,3 +1,4 @@
+import path from "node:path";
 import { test, expect, type Page } from "@playwright/test";
 import { installApiFixture } from "./support/api-fixture";
 import type { Assignment } from "../src/features/assignments/models";
@@ -108,6 +109,7 @@ test("recording stops its microphone and countdown on stop and client navigation
   const timer = await page.getByRole("timer").textContent();
   await page.waitForTimeout(1100);
   await expect(page.getByRole("timer")).toHaveText(timer!);
+  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Ghi lại", exact: true }).click();
   await page.getByRole("button", { name: "Bắt đầu ghi âm" }).click();
   await expect.poll(live).toBe(1);
@@ -127,6 +129,9 @@ test("retry after audio verification failure keeps one upload and confirms the r
     completions = 0,
     confirmations = 0;
   await page.route("**/assignments/assignment-recording/uploads", (route) => {
+    expect(route.request().postDataJSON().originalName).toMatch(
+      /^Bài nộp 1 - Bài nói kiểm thử - Unit 1\.(webm|m4a|ogg)$/,
+    );
     initiations++;
     return route.fulfill({
       json: {
@@ -288,13 +293,70 @@ test("student permanently deletes a saved recording from its draft, retries safe
       });
     },
   );
+  await page.setViewportSize({ width: 390, height: 844 });
+  let contentRequests = 0;
+  await page.route("**/materials/saved-recording/content?*", (route) => {
+    contentRequests++;
+    return route.fulfill({
+      path: path.resolve("tests/fixtures/live-recording.webm"),
+      contentType: "audio/webm",
+    });
+  });
   await page.reload();
+  await expect(
+    page.getByText("Bản ghi bài nộp", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Bản ghi cũ", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Ghi âm lại", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Phát Bản ghi bài nộp", exact: true })
+    .click();
+  const player = page.locator("audio").last();
+  await expect
+    .poll(() =>
+      player.evaluate((a: HTMLAudioElement) =>
+        Number.isFinite(a.duration) ? a.duration : 0,
+      ),
+    )
+    .toBeGreaterThan(2);
+  await expect
+    .poll(() => player.evaluate((a: HTMLAudioElement) => a.currentTime))
+    .toBeGreaterThan(0.1);
+  await expect(page.getByText(/\/ 0:03$/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Tạm dừng Bản ghi bài nộp", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Phát Bản ghi bài nộp", exact: true })
+    .click();
+  expect(contentRequests).toBe(1);
+  expect(
+    await page
+      .getByRole("slider", { name: "Tua Bản ghi bài nộp" })
+      .evaluate(
+        (input) =>
+          input.closest(".MuiSlider-root")!.getBoundingClientRect().width,
+      ),
+  ).toBeGreaterThan(80);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: test.info().outputPath("submission-audio-mobile.png"),
+  });
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page
+    .getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true })
+    .click();
+  expect(deletions).toBe(0);
+
   page.on("dialog", (dialog) => dialog.accept());
   await page
-    .getByRole("button", { name: "Xóa Bản ghi cũ", exact: true })
+    .getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true })
     .click();
   await expect(
     page.getByText("Chưa thể xóa. Hãy thử lại.", { exact: true }),
@@ -315,14 +377,14 @@ test("student permanently deletes a saved recording from its draft, retries safe
     page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+    page.getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true }),
   ).toHaveCount(0);
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+    page.getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true }),
   ).toHaveCount(0);
   draft.submittedAt = new Date().toISOString();
   draft.answers[0].files = [file];
@@ -332,6 +394,6 @@ test("student permanently deletes a saved recording from its draft, retries safe
     page.getByRole("button", { name: "Ghi âm lại", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+    page.getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true }),
   ).toHaveCount(0);
 });

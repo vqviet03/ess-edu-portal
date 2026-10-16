@@ -34,6 +34,8 @@ import { useUnsaved } from "@/shared/unsaved";
 import { errorMessage } from "@/api/base-query";
 import { AssignmentMedia, RichContent } from "./media";
 import { AssignmentUpload } from "./upload";
+import { InlineAudio } from "@/features/materials/inline-audio";
+import { submissionAudioBase } from "./submission-file-name";
 import { SpeakingRecorder } from "./recorder";
 import {
   answered,
@@ -52,6 +54,8 @@ const QuestionCard = memo(function QuestionCard({
   a,
   index,
   assignmentId,
+  assignmentTitle,
+  unitNumber,
   readOnly,
   onChange,
   onBusy,
@@ -64,6 +68,8 @@ const QuestionCard = memo(function QuestionCard({
   a: Answer;
   index: number;
   assignmentId: string;
+  assignmentTitle: string;
+  unitNumber: number | null;
   readOnly: boolean;
   onChange: (id: string, patch: Partial<Answer>) => void;
   onBusy: (id: string, busy: boolean) => void;
@@ -300,6 +306,11 @@ const QuestionCard = memo(function QuestionCard({
               <SpeakingRecorder
                 assignmentId={assignmentId}
                 questionId={q.id}
+                fileName={submissionAudioBase(
+                  assignmentTitle,
+                  index + 1,
+                  unitNumber,
+                )}
                 maxSeconds={q.maxDurationSeconds}
                 onBusy={(v) => onBusy(q.id, v)}
                 onConfirmed={(file, recordingId) =>
@@ -315,6 +326,11 @@ const QuestionCard = memo(function QuestionCard({
                   assignmentId={assignmentId}
                   questionId={q.id}
                   accept="audio/*"
+                  fileName={submissionAudioBase(
+                    assignmentTitle,
+                    index + 1,
+                    unitNumber,
+                  )}
                   onBusy={(v) => onBusy(q.id, v)}
                   onFile={(f) =>
                     onChange(q.id, {
@@ -335,17 +351,21 @@ const QuestionCard = memo(function QuestionCard({
             sx={{ alignItems: "center" }}
           >
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <AssignmentMedia
-                media={[
-                  {
-                    materialId: f.id,
-                    file: f,
-                    displayWidth: null,
-                    displayHeight: null,
-                    keepAspectRatio: true,
-                  },
-                ]}
-              />
+              {q.type === "SPEAKING" && f.mimeType.startsWith("audio/") ? (
+                <InlineAudio file={f} submission />
+              ) : (
+                <AssignmentMedia
+                  media={[
+                    {
+                      materialId: f.id,
+                      file: f,
+                      displayWidth: null,
+                      displayHeight: null,
+                      keepAspectRatio: true,
+                    },
+                  ]}
+                />
+              )}
             </Box>
             {!readOnly && !preview && (
               <Stack direction="row">
@@ -365,7 +385,14 @@ const QuestionCard = memo(function QuestionCard({
                 <Tooltip title="Xóa vĩnh viễn tệp đã tải lên">
                   <span>
                     <IconButton
-                      aria-label={`Xóa ${f.displayName}`}
+                      aria-label={
+                        q.type === "SPEAKING"
+                          ? "Xóa bản ghi bài nộp"
+                          : `Xóa ${f.displayName}`
+                      }
+                      color="error"
+                      size="small"
+                      sx={{ minWidth: 44, minHeight: 44 }}
                       disabled={deleting}
                       onClick={() => onDeleteFile(q.id, f)}
                     >
@@ -775,6 +802,8 @@ export function AssignmentPlayer({
                   a={answers[i]}
                   index={i}
                   assignmentId={assignment.id}
+                  assignmentTitle={assignment.title}
+                  unitNumber={assignment.unitNumber}
                   readOnly={readOnly}
                   onChange={change}
                   onBusy={changeBusy}
