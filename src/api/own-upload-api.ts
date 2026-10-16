@@ -28,8 +28,16 @@ export const ownUploadApi = api.injectEndpoints({
       ) {
         if (version == null) {
           const detail = await base(`/materials/${fileId}`);
-          if (detail.error) return { error: detail.error };
-          version = (detail.data as Envelope<{ version: number }>).data.version;
+          if (
+            detail.error &&
+            !(source === "avatar" && detail.error.status === 404)
+          )
+            return { error: detail.error };
+          // A previous DELETE may have committed before its response was lost.
+          // The scoped endpoint still verifies ownership of the deletion record.
+          version = detail.error
+            ? 0
+            : (detail.data as Envelope<{ version: number }>).data.version;
         }
         const url =
           source === "submission"
