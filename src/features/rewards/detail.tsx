@@ -1,4 +1,10 @@
 "use client";
+import Link from "next/link";
+import { useAppSelector } from "@/store";
+import { GiftCatalogView } from "@/features/gifts/catalog";
+import { GiftHistory } from "@/features/gifts/shared";
+import Button from "@mui/material/Button";
+import Redeem from "@mui/icons-material/Redeem";
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -41,6 +47,14 @@ function ClassRewardDetail({ classId }: { classId: string }) {
     });
   return (
     <Stack spacing={2.5}>
+      <Button
+        component={Link}
+        href={`/home/rewards/gifts/?classId=${classId}`}
+        startIcon={<Redeem />}
+        sx={{ alignSelf: "flex-start" }}
+      >
+        Góc đổi quà
+      </Button>
       <Feedback
         loading={detail.isLoading || (detail.isFetching && !detail.currentData)}
         error={detail.error}
@@ -203,6 +217,8 @@ function ClassRewardDetail({ classId }: { classId: string }) {
   );
 }
 export function StudentRewards({ classId }: { classId: string }) {
+  const [section, setSection] = useState("points"),
+    studentId = useAppSelector((s) => s.auth.student?.id ?? "");
   const query = useRewardClassesQuery(),
     [selected, setSelected] = useState(classId),
     classes = query.currentData ?? [],
@@ -230,7 +246,29 @@ export function StudentRewards({ classId }: { classId: string }) {
               <Tab key={c.id} label={c.name} value={c.id} />
             ))}
           </Tabs>
-          <ClassRewardDetail key={valid} classId={valid} />
+          <Tabs
+            value={section}
+            onChange={(_, v: string) => setSection(v)}
+            variant="scrollable"
+            sx={rewardTabs}
+            aria-label="Điểm thưởng và quà"
+          >
+            <Tab value="points" label="Tích lũy" />
+            <Tab value="history" label="Quà đã đổi" />
+            <Tab value="favorites" label="Quà yêu thích" />
+          </Tabs>
+          {section === "points" ? (
+            <ClassRewardDetail key={valid} classId={valid} />
+          ) : section === "history" ? (
+            <GiftHistory classId={valid} studentId={studentId} />
+          ) : (
+            <GiftCatalogView
+              key={valid}
+              classId={valid}
+              studentId={studentId}
+              initialTab="favorites"
+            />
+          )}
         </>
       ) : !query.isLoading && !query.error ? (
         <Feedback empty="Chưa có lớp để xem điểm tích luỹ." />

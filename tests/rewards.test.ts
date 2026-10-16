@@ -10,9 +10,12 @@ test("reward dates are Vietnam local dates, no timezone shift in day windows", (
     to: "2026-03-01",
   });
 });
-test("reward events only invalidate rewards; schedule updates refresh dependent chart", () => {
+test("reward events refresh class points, gift balance and redemption state; schedule updates refresh dependent chart", () => {
   assert.deepEqual(realtimeTags("NOTIFICATION", "class-1", "REWARD"), [
     { type: "Rewards", id: "class-1" },
+    { type: "GiftCart", id: "class-1" },
+    { type: "Gift", id: "class-1" },
+    { type: "Redemption", id: "class-1" },
   ]);
   assert.deepEqual(realtimeTags("NOTIFICATION", "class-1", "SCHEDULE"), [
     { type: "Rewards", id: "class-1" },
