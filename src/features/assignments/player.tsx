@@ -429,6 +429,10 @@ export function AssignmentPlayer({
     dirty = serial !== saved,
     readOnly = !!submission?.submittedAt;
   useUnsaved(!preview && !readOnly && (dirty || busy.length > 0));
+  const latestDeleteInput = useRef({ answers, serial, busy: busy.length });
+  useEffect(() => {
+    latestDeleteInput.current = { answers, serial, busy: busy.length };
+  }, [answers, serial, busy.length]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -481,12 +485,13 @@ export function AssignmentPlayer({
   );
   const deleteFile = useCallback(
     async (questionId: string, file: MaterialFile) => {
+      const { answers, serial, busy: activeWork } = latestDeleteInput.current;
       if (
         preview ||
         readOnly ||
         deletingFile.current ||
         submitting.current ||
-        busy.length > 0
+        activeWork > 0
       )
         return;
       if (
@@ -537,17 +542,7 @@ export function AssignmentPlayer({
         changeBusy(questionId, false);
       }
     },
-    [
-      preview,
-      readOnly,
-      busy.length,
-      answers,
-      serial,
-      persist,
-      assignment.id,
-      deleteUpload,
-      changeBusy,
-    ],
+    [preview, readOnly, persist, assignment.id, deleteUpload, changeBusy],
   );
   useEffect(() => {
     if (
@@ -783,7 +778,7 @@ export function AssignmentPlayer({
                   readOnly={readOnly}
                   onChange={change}
                   onBusy={changeBusy}
-                  onDeleteFile={(id, file) => void deleteFile(id, file)}
+                  onDeleteFile={deleteFile}
                   deleting={removing}
                 />
                 {submission?.publishedAt && (
