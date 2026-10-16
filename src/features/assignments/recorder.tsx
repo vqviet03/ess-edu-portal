@@ -40,6 +40,7 @@ export function SpeakingRecorder({
     [audio, setAudio] = useState<File>(),
     [send, setSend] = useState<File>(),
     [uploaded, setUploaded] = useState<MaterialFile>(),
+    [uploadBusy, setUploadBusy] = useState(false),
     [error, setError] = useState<unknown>();
   const recorder = useRef<MediaRecorder | null>(null),
     stream = useRef<MediaStream | null>(null),
@@ -281,9 +282,21 @@ export function SpeakingRecorder({
           questionId={questionId}
           recordingSessionId={session.id}
           fileToUpload={send}
-          onBusy={onBusy}
+          onBusy={(busy) => {
+            setUploadBusy(busy);
+            onBusy(busy);
+          }}
           onFile={(file) => void confirmFile(file)}
         />
+      )}
+      {phase === "uploading" && !uploaded && !uploadBusy && (
+        <Button
+          startIcon={<Replay />}
+          disabled={state.isLoading}
+          onClick={() => void again()}
+        >
+          Ghi lại
+        </Button>
       )}
       {phase === "uploading" && uploaded && error != null && (
         <Button
