@@ -21,7 +21,7 @@ export function RecordingAudio({ source }: { source: string }) {
     [playing, setPlaying] = useState(false),
     [speed, setSpeed] = useState(1),
     [error, setError] = useState(false);
-  const { position, duration } = useAudioTimeline(ref, source);
+  const { position, duration, play, pause } = useAudioTimeline(ref, source);
   useEffect(() => {
     const node = ref.current;
     return () => {
@@ -50,8 +50,8 @@ export function RecordingAudio({ source }: { source: string }) {
           onClick={() => {
             const a = ref.current;
             if (!a) return;
-            if (a.paused) void a.play().catch(() => setError(true));
-            else a.pause();
+            if (a.paused) void play().catch(() => setError(true));
+            else pause();
           }}
         >
           {playing ? <Pause /> : <PlayArrow />}

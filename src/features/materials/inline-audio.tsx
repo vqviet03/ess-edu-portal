@@ -32,7 +32,12 @@ export function InlineAudio({
     [speed, setSpeed] = useState(1),
     [error, setError] = useState<unknown>(),
     [load, state] = useLazyContentQuery();
-  const { position: current, duration } = useAudioTimeline(audio, source);
+  const {
+    position: current,
+    duration,
+    play: playAudio,
+    pause: pauseAudio,
+  } = useAudioTimeline(audio, source);
   useEffect(() => {
     const element = audio.current;
     return () => {
@@ -40,9 +45,8 @@ export function InlineAudio({
     };
   }, []);
   useEffect(() => {
-    if (source && audio.current)
-      void audio.current.play().catch((e) => setError(e));
-  }, [source]);
+    if (source && audio.current) void playAudio().catch((e) => setError(e));
+  }, [source, playAudio]);
   const play = async () => {
     setError(undefined);
     try {
@@ -59,8 +63,8 @@ export function InlineAudio({
               : undefined,
         );
       } else if (audio.current) {
-        if (playing) audio.current.pause();
-        else await audio.current.play();
+        if (playing) pauseAudio();
+        else await playAudio();
       }
     } catch (e) {
       setError(e);

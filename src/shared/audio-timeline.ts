@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 
 // Live WebM recordings may omit Duration. One native seek discovers the end;
 // no decoding, second download, polling or perpetual timer is needed.
@@ -9,13 +15,34 @@ export function useAudioTimeline(
 ) {
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const wantsPlay = useRef(false);
+  const discovered = useRef(false);
+  const play = useCallback(async () => {
+    wantsPlay.current = true;
+    try {
+      await ref.current?.play();
+    } catch (error) {
+      // Seeking to discover a live container can interrupt the initial play.
+      if (
+        !(
+          discovered.current &&
+          error instanceof DOMException &&
+          error.name === "AbortError"
+        )
+      )
+        throw error;
+    }
+  }, [ref]);
+  const pause = useCallback(() => {
+    wantsPlay.current = false;
+    ref.current?.pause();
+  }, [ref]);
   useEffect(() => {
     const node = ref.current;
     if (!node || !source) return;
-    let probing = false,
-      attempted = false,
-      restore = 0,
-      resume = false;
+    let stage: "idle" | "discovering" | "restoring" = "idle";
+    let restore = 0;
+    discovered.current = false;
     const finite = (n: number) => Number.isFinite(n) && n > 0 && n < 1e10;
     const readDuration = () => {
       if (finite(node.duration)) setDuration(node.duration);
@@ -26,33 +53,40 @@ export function useAudioTimeline(
     };
     const metadata = () => {
       readDuration();
-      if (node.duration !== Infinity || attempted) return;
-      attempted = true;
+      if (node.duration !== Infinity || discovered.current) return;
+      discovered.current = true;
       restore = node.currentTime;
-      resume = !node.paused;
-      probing = true;
+      wantsPlay.current ||= !node.paused;
+      stage = "discovering";
       try {
         node.currentTime = 1e10;
       } catch {
-        probing = false;
+        stage = "idle";
       }
     };
     const seeked = () => {
-      if (!probing) return;
+      if (stage === "restoring") {
+        stage = "idle";
+        if (wantsPlay.current) void play().catch(() => {});
+        return;
+      }
+      if (stage !== "discovering") return;
       readDuration();
       if (!finite(node.duration) && finite(node.currentTime))
         setDuration(node.currentTime);
-      probing = false;
+      stage = "restoring";
       node.currentTime = restore;
-      if (resume) void node.play().catch(() => {});
     };
     const update = () => {
-      if (probing) return;
+      if (stage !== "idle") return;
       readDuration();
       setPosition(Number.isFinite(node.currentTime) ? node.currentTime : 0);
     };
     const ended = () => {
-      if (!probing && finite(node.currentTime)) setDuration(node.currentTime);
+      if (stage === "idle" && finite(node.currentTime)) {
+        setDuration(node.currentTime);
+        wantsPlay.current = false;
+      }
     };
     node.addEventListener("loadedmetadata", metadata);
     node.addEventListener("durationchange", readDuration);
@@ -69,6 +103,6 @@ export function useAudioTimeline(
       node.removeEventListener("timeupdate", update);
       node.removeEventListener("ended", ended);
     };
-  }, [ref, source]);
-  return { position, duration };
+  }, [ref, source, play]);
+  return { position, duration, play, pause };
 }
