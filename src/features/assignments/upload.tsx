@@ -6,6 +6,8 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Alert from "@mui/material/Alert";
 import AttachFile from "@mui/icons-material/AttachFile";
 import Close from "@mui/icons-material/Close";
+import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
+import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
 import { useAssignmentUploadMutation } from "@/api/assignment-api";
 import { uploadBuffers } from "@/features/materials/upload-transport";
 import { compressImage } from "@/features/materials/image-compression";
@@ -46,6 +48,7 @@ export function AssignmentUpload({
   onFile: (file: MaterialFile) => void;
   onBusy?: (busy: boolean) => void;
 }) {
+  const [deleteUpload, deleting] = useDeleteOwnUploadMutation();
   const [upload, state] = useAssignmentUploadMutation(),
     [progress, setProgress] = useState(0),
     [error, setError] = useState<unknown>(),
@@ -162,6 +165,41 @@ export function AssignmentUpload({
             Hủy tải
           </Button>
         </>
+      )}
+      {error != null && !fileToUpload && (
+        <Button
+          size="small"
+          startIcon={<DeleteOutlined />}
+          disabled={deleting.isLoading}
+          onClick={async () => {
+            if (!window.confirm("Xóa vĩnh viễn lượt tải tệp này?")) return;
+            onBusy?.(true);
+            try {
+              const entry =
+                buffer.current && uploadBuffers.get(buffer.current.id);
+              const ticket = entry?.assignment?.ticket;
+              if (ticket)
+                await deleteUpload({
+                  source: "submission",
+                  contextId: assignmentId,
+                  questionId,
+                  fileId: ticket.uploadId,
+                  version: ticket.version,
+                }).unwrap();
+              if (buffer.current) uploadBuffers.delete(buffer.current.id);
+              buffer.current = null;
+              setRetry(undefined);
+              setError(undefined);
+              setProgress(0);
+            } catch (e) {
+              setError(e);
+            } finally {
+              onBusy?.(false);
+            }
+          }}
+        >
+          Xóa tệp tải lên
+        </Button>
       )}
       {error != null && (
         <Alert
