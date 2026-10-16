@@ -4,11 +4,15 @@ export function realtimeTags(
   kind: "NOTIFICATION" | "RESOURCE_CHANGED",
   classId: string | null,
   noticeType?: string,
+  assignmentId?: string | null,
 ): Parameters<typeof api.util.invalidateTags>[0] {
   if (noticeType === "ASSIGNMENT")
     return [
-      "AssignmentForm",
-      "AssignmentDraft",
+      { type: "AssignmentForm", ...(assignmentId ? { id: assignmentId } : {}) },
+      {
+        type: "AssignmentDraft",
+        ...(assignmentId ? { id: assignmentId } : {}),
+      },
       { type: "LearningAssignments", ...(classId ? { id: classId } : {}) },
       "Threads",
       "AssignmentReport",

@@ -20,3 +20,16 @@ test("academic operations target class reports and units, not the library", () =
     { type: "Units", id: "class-a" },
   ]);
 });
+
+test("assignment reopen refreshes only its form and draft", () => {
+  const tags = realtimeTags(
+    "NOTIFICATION",
+    "class-a",
+    "ASSIGNMENT",
+    "assignment-a",
+  );
+  assert.deepEqual(tags.slice(0, 2), [
+    { type: "AssignmentForm", id: "assignment-a" },
+    { type: "AssignmentDraft", id: "assignment-a" },
+  ]);
+});
