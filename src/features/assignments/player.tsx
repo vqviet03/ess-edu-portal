@@ -20,7 +20,12 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { AssignmentSurface } from "./surface";
-import Close from "@mui/icons-material/Close";
+import DeleteOutline from "@mui/icons-material/DeleteOutlined";
+import Replay from "@mui/icons-material/Replay";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
+import type { MaterialFile } from "@/features/materials/models";
 import {
   useSaveAssignmentDraftMutation,
   useSubmitAssignmentMutation,
@@ -50,6 +55,8 @@ const QuestionCard = memo(function QuestionCard({
   readOnly,
   onChange,
   onBusy,
+  onDeleteFile,
+  deleting,
   preview = false,
 }: {
   preview?: boolean;
@@ -60,6 +67,8 @@ const QuestionCard = memo(function QuestionCard({
   readOnly: boolean;
   onChange: (id: string, patch: Partial<Answer>) => void;
   onBusy: (id: string, busy: boolean) => void;
+  onDeleteFile: (questionId: string, file: MaterialFile) => void;
+  deleting: boolean;
 }) {
   const [textUpload, setTextUpload] = useState(false),
     [linkOpen, setLinkOpen] = useState(false),
@@ -74,9 +83,13 @@ const QuestionCard = memo(function QuestionCard({
   };
   return (
     <Paper
+      component="fieldset"
+      disabled={deleting}
       id={`question-${q.id}`}
       variant="outlined"
       sx={{
+        minWidth: 0,
+        m: 0,
         p: { xs: 2, sm: 3 },
         border: 0,
         borderRadius: "16px",
@@ -124,13 +137,13 @@ const QuestionCard = memo(function QuestionCard({
                   q.type === "SINGLE" ? (
                     <Radio
                       checked={a.optionIds.includes(o.id)}
-                      disabled={readOnly}
+                      disabled={readOnly || deleting}
                       onChange={() => onChange(q.id, { optionIds: [o.id] })}
                     />
                   ) : (
                     <Checkbox
                       checked={a.optionIds.includes(o.id)}
-                      disabled={readOnly}
+                      disabled={readOnly || deleting}
                       onChange={(_, checked) =>
                         onChange(q.id, {
                           optionIds: checked
@@ -152,7 +165,7 @@ const QuestionCard = memo(function QuestionCard({
               label="Câu trả lời của em"
               value={a.text}
               onChange={(text) => onChange(q.id, { text })}
-              disabled={readOnly}
+              disabled={readOnly || deleting}
               inputRef={textRef}
               minRows={3}
               media={(a.files ?? []).map((file) => ({
@@ -261,7 +274,7 @@ const QuestionCard = memo(function QuestionCard({
               size="small"
               label="Liên kết http/https"
               value={a.link}
-              disabled={readOnly}
+              disabled={readOnly || deleting}
               onChange={(e) => onChange(q.id, { link: e.target.value })}
             />
             {!readOnly && !preview && (
@@ -334,20 +347,33 @@ const QuestionCard = memo(function QuestionCard({
                 ]}
               />
             </Box>
-            {!readOnly && (
-              <Button
-                aria-label={`Bỏ ${f.displayName}`}
-                onClick={() =>
-                  onChange(q.id, {
-                    text: a.text.replaceAll(`[file:${f.id}]`, ""),
-                    materialIds: a.materialIds.filter((id) => id !== f.id),
-                    files: a.files?.filter((x) => x.id !== f.id),
-                    recordingSessionId: null,
-                  })
-                }
-              >
-                <Close fontSize="small" />
-              </Button>
+            {!readOnly && !preview && (
+              <Stack direction="row">
+                {q.type === "SPEAKING" && (
+                  <Tooltip title="Xóa bản ghi cũ và ghi âm lại">
+                    <span>
+                      <IconButton
+                        aria-label="Ghi âm lại"
+                        disabled={deleting}
+                        onClick={() => onDeleteFile(q.id, f)}
+                      >
+                        <Replay />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                )}
+                <Tooltip title="Xóa vĩnh viễn tệp đã tải lên">
+                  <span>
+                    <IconButton
+                      aria-label={`Xóa ${f.displayName}`}
+                      disabled={deleting}
+                      onClick={() => onDeleteFile(q.id, f)}
+                    >
+                      <DeleteOutline />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Stack>
             )}
           </Stack>
         ))}
@@ -384,9 +410,12 @@ export function AssignmentPlayer({
     [drawer, setDrawer] = useState(false),
     [busy, setBusy] = useState<string[]>([]),
     [error, setError] = useState<unknown>(),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [removing, setRemoving] = useState(false);
   const [save, saveState] = useSaveAssignmentDraftMutation(),
     [submit, submitState] = useSubmitAssignmentMutation(),
+    [deleteUpload] = useDeleteOwnUploadMutation(),
+    deletingFile = useRef(false),
     version = useRef(initial?.version ?? 0),
     pending = useRef<Promise<Submission> | null>(null),
     mounted = useRef(true),
@@ -400,6 +429,10 @@ export function AssignmentPlayer({
     dirty = serial !== saved,
     readOnly = !!submission?.submittedAt;
   useUnsaved(!preview && !readOnly && (dirty || busy.length > 0));
+  const latestDeleteInput = useRef({ answers, serial, busy: busy.length });
+  useEffect(() => {
+    latestDeleteInput.current = { answers, serial, busy: busy.length };
+  }, [answers, serial, busy.length]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -450,6 +483,67 @@ export function AssignmentPlayer({
     },
     [assignment.id, assignment.assignmentVersionId, save, initial],
   );
+  const deleteFile = useCallback(
+    async (questionId: string, file: MaterialFile) => {
+      const { answers, serial, busy: activeWork } = latestDeleteInput.current;
+      if (
+        preview ||
+        readOnly ||
+        deletingFile.current ||
+        submitting.current ||
+        activeWork > 0
+      )
+        return;
+      if (
+        !window.confirm(
+          "Xóa vĩnh viễn tệp này? Với bài nói, em có thể ghi âm bản mới sau khi xóa.",
+        )
+      )
+        return;
+      deletingFile.current = true;
+      setRemoving(true);
+      changeBusy(questionId, true);
+      setError(undefined);
+      try {
+        if (pending.current) await pending.current;
+        await persist(answers, serial);
+        const result = await deleteUpload({
+          source: "submission",
+          contextId: assignment.id,
+          fileId: file.id,
+          version: file.version,
+          questionId,
+          draftVersion: version.current,
+        }).unwrap();
+        if (result.draftVersion != null) version.current = result.draftVersion;
+        const next = answers.map((a) =>
+          a.questionId !== questionId
+            ? a
+            : {
+                ...a,
+                text: a.text.replaceAll(`[file:${file.id}]`, ""),
+                materialIds: a.materialIds.filter((id) => id !== file.id),
+                files: a.files?.filter((f) => f.id !== file.id),
+                recordingSessionId: null,
+              },
+        );
+        const snapshot = JSON.stringify(next);
+        setAnswers(next);
+        setSaved(snapshot);
+        lastSaved.current = snapshot;
+        setMessage(
+          "Đã gỡ tệp khỏi bản nháp và lên lịch xóa vĩnh viễn. Em có thể tải tệp hoặc ghi âm mới.",
+        );
+      } catch (e) {
+        if (mounted.current) setError(e);
+      } finally {
+        deletingFile.current = false;
+        setRemoving(false);
+        changeBusy(questionId, false);
+      }
+    },
+    [preview, readOnly, persist, assignment.id, deleteUpload, changeBusy],
+  );
   useEffect(() => {
     if (
       preview ||
@@ -461,7 +555,7 @@ export function AssignmentPlayer({
     )
       return;
     const timer = setTimeout(() => {
-      if (submitting.current) return;
+      if (submitting.current || deletingFile.current) return;
       void persist(answers, serial).catch((e) => {
         if (mounted.current) setError(e);
       });
@@ -684,6 +778,8 @@ export function AssignmentPlayer({
                   readOnly={readOnly}
                   onChange={change}
                   onBusy={changeBusy}
+                  onDeleteFile={deleteFile}
+                  deleting={removing}
                 />
                 {submission?.publishedAt && (
                   <Paper sx={{ p: 2, bgcolor: "action.selected", mt: 1 }}>

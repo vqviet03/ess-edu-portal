@@ -8,6 +8,9 @@ import Typography from "@mui/material/Typography";
 import Mic from "@mui/icons-material/Mic";
 import Stop from "@mui/icons-material/Stop";
 import Replay from "@mui/icons-material/Replay";
+import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import {
   useStartAssignmentRecordingMutation,
   useFinishAssignmentRecordingMutation,
@@ -260,7 +263,22 @@ export function SpeakingRecorder({
       {source && <RecordingAudio source={source} />}
       {phase === "review" && (
         <Stack direction="row" spacing={1}>
-          <Button startIcon={<Replay />} onClick={() => void again()}>
+          <Tooltip title="Xóa bản ghi">
+            <span>
+              <IconButton
+                aria-label="Xóa bản ghi"
+                disabled={state.isLoading}
+                onClick={() => void again()}
+              >
+                <DeleteOutlined />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Button
+            startIcon={<Replay />}
+            disabled={state.isLoading}
+            onClick={() => void again()}
+          >
             Ghi lại
           </Button>
           <Button
@@ -289,7 +307,7 @@ export function SpeakingRecorder({
           onFile={(file) => void confirmFile(file)}
         />
       )}
-      {phase === "uploading" && !uploaded && !uploadBusy && (
+      {phase === "uploading" && !uploadBusy && !state.isLoading && (
         <Button
           startIcon={<Replay />}
           disabled={state.isLoading}

@@ -202,3 +202,136 @@ test("retry after audio verification failure keeps one upload and confirms the r
   expect(completions).toBe(2);
   expect(confirmations).toBe(1);
 });
+
+test("student permanently deletes a saved recording from its draft, retries safely and records again after reload", async ({
+  page,
+}) => {
+  await openRecorder(page);
+  const file = {
+    id: "saved-recording",
+    displayName: "Bản ghi cũ",
+    originalName: "bai-noi.webm",
+    mimeType: "audio/webm",
+    sizeBytes: 100,
+    thumbnailUrl: null,
+    folderId: null,
+    authorId: "student",
+    authorName: "Em",
+    uploadedBy: "student",
+    uploadSource: "submission",
+    sourceSessionId: null,
+    sourcePostId: "assignment-post",
+    status: "AVAILABLE",
+    version: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const draft = {
+    id: "draft-test",
+    assignmentId: "assignment-recording",
+    assignmentVersionId: "form-v1",
+    studentId: "student",
+    studentName: "Em",
+    submittedAt: null as string | null,
+    publishedAt: null,
+    version: 3,
+    status: "DRAFT",
+    answers: [
+      {
+        questionId: "question-speaking",
+        text: "",
+        link: "",
+        optionIds: [],
+        materialIds: [file.id],
+        files: [file],
+        recordingSessionId: "recording-test" as string | null,
+      },
+    ],
+    grades: [],
+    overallComment: "",
+    overallAdvice: "",
+    totalMax: 5,
+    totalScore: null,
+    percentage: null,
+  };
+  await page.route("**/assignments/assignment-recording/draft", (route) =>
+    route.fulfill({ json: { data: draft } }),
+  );
+  let deletions = 0;
+  await page.route(
+    "**/assignments/assignment-recording/uploads/saved-recording",
+    async (route) => {
+      deletions++;
+      expect(route.request().method()).toBe("DELETE");
+      expect(route.request().postDataJSON()).toMatchObject({
+        version: 2,
+        draftVersion: 3,
+        questionId: "question-speaking",
+      });
+      if (deletions === 1)
+        return route.fulfill({
+          status: 503,
+          json: {
+            error: {
+              code: "STORAGE_UNAVAILABLE",
+              message: "Chưa thể xóa. Hãy thử lại.",
+            },
+          },
+        });
+      draft.version = 4;
+      draft.answers[0].materialIds = [];
+      draft.answers[0].files = [];
+      draft.answers[0].recordingSessionId = null;
+      return route.fulfill({
+        status: 202,
+        json: { data: { id: file.id, status: "DELETING", draftVersion: 4 } },
+      });
+    },
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Ghi âm lại", exact: true }),
+  ).toBeVisible();
+  page.on("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Xóa Bản ghi cũ", exact: true })
+    .click();
+  await expect(
+    page.getByText("Chưa thể xóa. Hãy thử lại.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Ghi âm lại", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Ghi âm lại", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toBeVisible();
+  expect(deletions).toBe(2);
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Hồ sơ cá nhân" }).click();
+  await expect(page).toHaveURL(/profile\/$/);
+  await page.goBack();
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+  ).toHaveCount(0);
+  draft.submittedAt = new Date().toISOString();
+  draft.answers[0].files = [file];
+  draft.answers[0].materialIds = [file.id];
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Ghi âm lại", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Xóa Bản ghi cũ", exact: true }),
+  ).toHaveCount(0);
+});

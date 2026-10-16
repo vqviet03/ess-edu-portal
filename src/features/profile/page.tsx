@@ -18,6 +18,8 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import Save from "@mui/icons-material/Save";
+import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
+import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
 import {
   usePersonalProfileQuery,
   useSavePersonalProfileMutation,
@@ -26,6 +28,8 @@ import { errorMessage } from "@/api/base-query";
 import { UploadDialog } from "@/features/materials/upload";
 import { useUnsaved } from "@/shared/unsaved";
 import { ProfileAvatar } from "./avatar";
+import { useAppDispatch } from "@/store";
+import { profileUpdated } from "@/store/auth";
 import {
   avatarColors,
   avatarIcons,
@@ -98,6 +102,10 @@ function ProfileForm({
     [password, setPassword] = useState(""),
     [upload, setUpload] = useState(false);
   const [save, state] = useSavePersonalProfileMutation();
+  const [deleteUpload, deleting] = useDeleteOwnUploadMutation();
+  const profile = usePersonalProfileQuery();
+  const dispatch = useAppDispatch();
+  const [deleteError, setDeleteError] = useState<unknown>();
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
   useUnsaved(dirty);
   const validation = profileError(draft),
@@ -137,6 +145,9 @@ function ProfileForm({
       }}
     >
       <Stack spacing={2}>
+        {deleteError != null && (
+          <Alert severity="error">{errorMessage(deleteError)}</Alert>
+        )}
         <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <ProfileAvatar name={draft.fullName} value={draft.avatar} size={80} />
           <Tooltip title="Tải ảnh đại diện">
@@ -147,6 +158,47 @@ function ProfileForm({
               <PhotoCamera />
             </IconButton>
           </Tooltip>
+          {draft.avatar.fileId && (
+            <Tooltip
+              title={
+                dirty && draft.avatar.fileId === initial.avatar.fileId
+                  ? "Lưu thay đổi trước khi xóa ảnh"
+                  : "Xóa vĩnh viễn ảnh đại diện"
+              }
+            >
+              <span>
+                <IconButton
+                  aria-label="Xóa ảnh đại diện"
+                  disabled={
+                    deleting.isLoading ||
+                    (dirty && draft.avatar.fileId === initial.avatar.fileId)
+                  }
+                  onClick={async () => {
+                    const fileId = draft.avatar.fileId;
+                    if (
+                      !fileId ||
+                      !window.confirm("Xóa vĩnh viễn ảnh đại diện này?")
+                    )
+                      return;
+                    setDeleteError(undefined);
+                    try {
+                      await deleteUpload({ source: "avatar", fileId }).unwrap();
+                      if (fileId === initial.avatar.fileId) {
+                        const refreshed = await profile.refetch();
+                        if (refreshed.data)
+                          dispatch(profileUpdated(refreshed.data));
+                      } else
+                        setDraft((d) => ({ ...d, avatar: initial.avatar }));
+                    } catch (e) {
+                      setDeleteError(e);
+                    }
+                  }}
+                >
+                  <DeleteOutlined />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {draft.avatar.fileId && (
             <Button
               size="small"

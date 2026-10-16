@@ -1,4 +1,6 @@
 "use client";
+import DeleteOutline from "@mui/icons-material/DeleteOutlined";
+import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
 import { ContentViews } from "@/features/presence/views";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ProfileAvatar } from "@/features/profile/avatar";
@@ -129,8 +131,27 @@ export function Comments({
     [error, setError] = useState<unknown>();
   const [save, state] = useSaveCommentMutation(),
     [remove] = useRemoveCommentMutation(),
+    [deleteUpload, deletingUpload] = useDeleteOwnUploadMutation(),
     [pin, pinning] = usePinCommentMutation(),
     [like, liking] = useLikeCommentMutation();
+  async function deleteFile(file: MaterialFile, commentId?: string) {
+    if (!window.confirm("Xóa vĩnh viễn tệp đã tải lên này?")) return;
+    setError(undefined);
+    try {
+      const result = await deleteUpload({
+        source: "comment",
+        contextId: post.id,
+        fileId: file.id,
+        version: file.version,
+        commentId,
+      }).unwrap();
+      setAttachments((rows) => rows.filter((f) => f.id !== file.id));
+      if (editing?.id === commentId && result.commentVersion != null)
+        setEditing({ id: commentId!, version: result.commentVersion });
+    } catch (e) {
+      setError(e);
+    }
+  }
   const input = useRef<HTMLTextAreaElement>(null);
   useUnsaved(!!body.trim() || attachments.length > 0);
   useEffect(() => {
@@ -235,7 +256,22 @@ export function Comments({
             sx={{ gap: 1, flexWrap: "wrap", mt: 1 }}
           >
             {c.attachments.map((f) => (
-              <CommentAttachment key={f.id} file={f} preview={setPreview} />
+              <Stack key={f.id} direction="row" sx={{ alignItems: "center" }}>
+                <CommentAttachment file={f} preview={setPreview} />
+                {c.authorId === me?.id && f.uploadedBy === me?.id && (
+                  <Tooltip title="Xóa vĩnh viễn tệp">
+                    <span>
+                      <IconButton
+                        aria-label={`Xóa ${f.displayName}`}
+                        disabled={deletingUpload.isLoading}
+                        onClick={() => void deleteFile(f, c.id)}
+                      >
+                        <DeleteOutline fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                )}
+              </Stack>
             ))}
           </Stack>
         )}
@@ -345,8 +381,10 @@ export function Comments({
               key={f.id}
               label={f.displayName}
               sx={{ maxWidth: "100%" }}
-              onDelete={() =>
-                setAttachments((old) => old.filter((x) => x.id !== f.id))
+              onDelete={
+                deletingUpload.isLoading
+                  ? undefined
+                  : () => void deleteFile(f, editing?.id)
               }
             />
           ))}
