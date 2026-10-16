@@ -333,9 +333,12 @@ test("student permanently deletes a saved recording from its draft, retries safe
     .click();
   expect(contentRequests).toBe(1);
   expect(
-    (await page
+    await page
       .getByRole("slider", { name: "Tua Bản ghi bài nộp" })
-      .boundingBox())!.width,
+      .evaluate(
+        (input) =>
+          input.closest(".MuiSlider-root")!.getBoundingClientRect().width,
+      ),
   ).toBeGreaterThan(80);
   expect(
     await page.evaluate(
