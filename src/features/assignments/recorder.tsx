@@ -1,4 +1,5 @@
 "use client";
+import { submissionAudioFileName } from "./submission-file-name";
 import { RecordingAudio, recordingTime } from "./recording-audio";
 import { useEffect, useRef, useState } from "react";
 import Stack from "@mui/material/Stack";
@@ -22,12 +23,14 @@ import { errorMessage } from "@/api/base-query";
 export function SpeakingRecorder({
   assignmentId,
   questionId,
+  fileName,
   maxSeconds,
   onConfirmed,
   onBusy,
 }: {
   assignmentId: string;
   questionId: string;
+  fileName: string;
   maxSeconds: number;
   onConfirmed: (file: MaterialFile, recordingId: string) => void;
   onBusy: (busy: boolean) => void;
@@ -124,7 +127,7 @@ export function SpeakingRecorder({
         setAudio(
           new File(
             [blob],
-            `bai-noi.${type === "audio/mp4" ? "m4a" : type === "audio/ogg" ? "ogg" : "webm"}`,
+            submissionAudioFileName(fileName, { name: "", type }),
             { type },
           ),
         );
@@ -176,6 +179,12 @@ export function SpeakingRecorder({
     }
   }
   async function again() {
+    if (
+      !window.confirm(
+        "Xóa vĩnh viễn bản ghi này? Em có thể ghi âm bản mới sau khi xóa.",
+      )
+    )
+      return;
     if (session) {
       try {
         await finish({
@@ -267,6 +276,9 @@ export function SpeakingRecorder({
             <span>
               <IconButton
                 aria-label="Xóa bản ghi"
+                color="error"
+                size="small"
+                sx={{ minWidth: 44, minHeight: 44 }}
                 disabled={state.isLoading}
                 onClick={() => void again()}
               >

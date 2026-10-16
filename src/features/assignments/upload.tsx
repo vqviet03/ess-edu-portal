@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Alert from "@mui/material/Alert";
 import AttachFile from "@mui/icons-material/AttachFile";
+import { submissionAudioFileName } from "./submission-file-name";
 import Close from "@mui/icons-material/Close";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
@@ -39,12 +40,14 @@ export function AssignmentUpload({
   onBusy,
   recordingSessionId,
   fileToUpload,
+  fileName,
 }: {
   assignmentId: string;
   questionId: string;
   accept?: string;
   recordingSessionId?: string;
   fileToUpload?: File;
+  fileName?: string;
   onFile: (file: MaterialFile) => void;
   onBusy?: (busy: boolean) => void;
 }) {
@@ -76,7 +79,14 @@ export function AssignmentUpload({
       try {
         if (!buffer.current || buffer.current.original !== original) {
           if (buffer.current) uploadBuffers.delete(buffer.current.id);
-          const file = await compressImage(original);
+          const named = fileName
+            ? new File(
+                [original],
+                submissionAudioFileName(fileName, original),
+                { type: original.type, lastModified: original.lastModified },
+              )
+            : original;
+          const file = await compressImage(named);
           if (file.size > 100 * 1024 * 1024)
             throw new Error("File tối đa 100 MB.");
           const thumbnail = await imageThumb(file);
@@ -121,7 +131,15 @@ export function AssignmentUpload({
         if (live.current) onBusy?.(false);
       }
     },
-    [assignmentId, questionId, recordingSessionId, onBusy, onFile, upload],
+    [
+      assignmentId,
+      questionId,
+      recordingSessionId,
+      onBusy,
+      onFile,
+      upload,
+      fileName,
+    ],
   );
   const supplied = useRef<File | undefined>(undefined);
   useEffect(() => {

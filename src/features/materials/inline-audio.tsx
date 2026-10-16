@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useAudioTimeline } from "@/shared/audio-timeline";
 import { releaseMedia } from "@/shared/media-lifecycle";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -17,15 +18,21 @@ const time = (value: number) =>
   `${Math.floor(value / 60)}:${Math.floor(value % 60)
     .toString()
     .padStart(2, "0")}`;
-export function InlineAudio({ file }: { file: MaterialFile }) {
+export function InlineAudio({
+  file,
+  submission = false,
+}: {
+  file: MaterialFile;
+  submission?: boolean;
+}) {
+  const label = submission ? "Bản ghi bài nộp" : file.displayName;
   const audio = useRef<HTMLAudioElement>(null),
     [source, setSource] = useState<string>(),
     [playing, setPlaying] = useState(false),
-    [current, setCurrent] = useState(0),
-    [duration, setDuration] = useState(0),
     [speed, setSpeed] = useState(1),
     [error, setError] = useState<unknown>(),
     [load, state] = useLazyContentQuery();
+  const { position: current, duration } = useAudioTimeline(audio, source);
   useEffect(() => {
     const element = audio.current;
     return () => {
@@ -60,18 +67,32 @@ export function InlineAudio({ file }: { file: MaterialFile }) {
     }
   };
   return (
-    <Box sx={{ p: 1.75, bgcolor: "var(--post-soft)", borderRadius: "14px" }}>
+    <Box
+      sx={{
+        p: 1.75,
+        bgcolor: submission ? "var(--a-recording-bg)" : "var(--post-soft)",
+        color: submission ? "var(--a-recording-fg)" : undefined,
+        borderRadius: "14px",
+      }}
+    >
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <IconButton
-          aria-label={`${playing ? "Tạm dừng" : "Phát"} ${file.displayName}`}
+          aria-label={`${playing ? "Tạm dừng" : "Phát"} ${label}`}
           disabled={state.isFetching}
           onClick={() => void play()}
           sx={{
             width: 44,
             height: 44,
-            bgcolor: "var(--post-green)",
-            color: "var(--post-surface)",
-            "&:hover": { bgcolor: "var(--post-green)", opacity: 0.85 },
+            bgcolor: submission
+              ? "var(--a-recording-accent)"
+              : "var(--post-green)",
+            color: submission ? "var(--a-recording-bg)" : "var(--post-surface)",
+            "&:hover": {
+              bgcolor: submission
+                ? "var(--a-recording-accent)"
+                : "var(--post-green)",
+              opacity: 0.85,
+            },
           }}
         >
           {playing ? <Pause /> : <PlayArrow />}
@@ -80,32 +101,36 @@ export function InlineAudio({ file }: { file: MaterialFile }) {
           <Typography
             sx={{ fontSize: 13, fontWeight: 600, overflowWrap: "anywhere" }}
           >
-            {file.displayName}
+            {label}
           </Typography>
           <Stack direction="row" sx={{ alignItems: "center" }} spacing={1}>
             <Slider
               size="small"
-              aria-label={`Tua ${file.displayName}`}
-              value={current}
+              aria-label={`Tua ${label}`}
+              value={Math.min(current, duration || current)}
               min={0}
-              max={duration || 1}
+              max={duration || Math.max(current, 1)}
               disabled={!duration}
               onChange={(_, v) => {
                 if (audio.current && typeof v === "number") {
                   audio.current.currentTime = v;
-                  setCurrent(v);
                 }
               }}
-              sx={{ color: "var(--post-green)", p: "12px 0" }}
+              sx={{
+                color: submission
+                  ? "var(--a-recording-accent)"
+                  : "var(--post-green)",
+                p: "12px 0",
+              }}
             />
             <Typography
               sx={{
                 fontSize: 10,
-                color: "var(--post-muted)",
+                color: submission ? "inherit" : "var(--post-muted)",
                 whiteSpace: "nowrap",
               }}
             >
-              {time(current)} / {time(duration)}
+              {time(current)} / {duration ? time(duration) : "--:--"}
             </Typography>
           </Stack>
         </Box>
@@ -119,7 +144,7 @@ export function InlineAudio({ file }: { file: MaterialFile }) {
           }}
           size="small"
           slotProps={{
-            select: { "aria-label": `Tốc độ audio ${file.displayName}` },
+            select: { "aria-label": `Tốc độ audio ${label}` },
           }}
           sx={{
             width: 68,
@@ -140,17 +165,12 @@ export function InlineAudio({ file }: { file: MaterialFile }) {
         src={source}
         onLoadedMetadata={() => {
           if (audio.current) {
-            setDuration(
-              Number.isFinite(audio.current.duration)
-                ? audio.current.duration
-                : 0,
-            );
             audio.current.playbackRate = speed;
           }
         }}
-        onTimeUpdate={() => setCurrent(audio.current?.currentTime ?? 0)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
         onError={() => setError(new Error("Không phát được audio."))}
       />
       <Feedback loading={state.isFetching} error={error} />
