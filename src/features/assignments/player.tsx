@@ -137,13 +137,13 @@ const QuestionCard = memo(function QuestionCard({
                   q.type === "SINGLE" ? (
                     <Radio
                       checked={a.optionIds.includes(o.id)}
-                      disabled={readOnly}
+                      disabled={readOnly || deleting}
                       onChange={() => onChange(q.id, { optionIds: [o.id] })}
                     />
                   ) : (
                     <Checkbox
                       checked={a.optionIds.includes(o.id)}
-                      disabled={readOnly}
+                      disabled={readOnly || deleting}
                       onChange={(_, checked) =>
                         onChange(q.id, {
                           optionIds: checked
@@ -165,7 +165,7 @@ const QuestionCard = memo(function QuestionCard({
               label="Câu trả lời của em"
               value={a.text}
               onChange={(text) => onChange(q.id, { text })}
-              disabled={readOnly}
+              disabled={readOnly || deleting}
               inputRef={textRef}
               minRows={3}
               media={(a.files ?? []).map((file) => ({
@@ -274,7 +274,7 @@ const QuestionCard = memo(function QuestionCard({
               size="small"
               label="Liên kết http/https"
               value={a.link}
-              disabled={readOnly}
+              disabled={readOnly || deleting}
               onChange={(e) => onChange(q.id, { link: e.target.value })}
             />
             {!readOnly && !preview && (
