@@ -14,7 +14,7 @@ test.use({
 });
 
 async function openRecorder(page: Page) {
-  await installApiFixture(page);
+  const fixture = await installApiFixture(page);
   const assignment: Assignment = {
     id: "assignment-recording",
     classId: "juniors-03",
@@ -91,6 +91,7 @@ async function openRecorder(page: Page) {
   await expect(
     page.getByRole("heading", { name: assignment.title, exact: true }),
   ).toBeVisible();
+  return { assignment, fixture };
 }
 
 test("recording stops its microphone and countdown on stop and client navigation", async ({
@@ -395,5 +396,107 @@ test("student permanently deletes a saved recording from its draft, retries safe
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true }),
+  ).toHaveCount(0);
+});
+
+test("closed assignments stay read-only, a realtime individual reopen restores editing, and resubmission locks again", async ({
+  page,
+}) => {
+  const { assignment, fixture } = await openRecorder(page);
+  let draft = {
+    id: "draft-reopened",
+    assignmentId: assignment.id,
+    assignmentVersionId: assignment.assignmentVersionId,
+    studentId: "student",
+    studentName: "Em",
+    studentNickname: null,
+    submittedAt: new Date().toISOString() as string | null,
+    publishedAt: null,
+    version: 2,
+    attempt: 1,
+    reopenedAt: null as string | null,
+    status: "PENDING_GRADING",
+    isLate: false,
+    answers: [],
+    grades: [],
+    overallComment: "",
+    overallAdvice: "",
+    totalMax: 5,
+    totalScore: null,
+    percentage: null,
+  };
+  assignment.submissionWindow = {
+    closed: true,
+    lateWindowMinutes: 30,
+    closesAt: new Date().toISOString(),
+    open: false,
+  };
+  await page.route("**/assignments/assignment-recording/draft", (route) =>
+    route.fulfill({ json: { data: draft } }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText(/Đã nộp lúc/)).toBeVisible();
+  await expect.poll(() => fixture.activeConnections()).toBeGreaterThan(0);
+  // The grant changes only this student's state, keeping the global closed flag.
+  draft = {
+    ...draft,
+    submittedAt: null,
+    reopenedAt: new Date().toISOString(),
+    attempt: 2,
+    version: 3,
+    status: "REOPENED",
+  };
+  assignment.submissionWindow.open = true;
+  fixture.notify({
+    id: "reopen-notice",
+    type: "ASSIGNMENT",
+    title: "Được phép nộp lại",
+    href: "/assignment/?assignmentId=assignment-recording&classId=juniors-03",
+    isRead: false,
+    version: 1,
+    createdAt: new Date().toISOString(),
+  });
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Giảng viên đã mở lại bài nộp của em/),
+  ).toBeVisible();
+  expect(assignment.submissionWindow.closed).toBe(true);
+  draft = {
+    ...draft,
+    submittedAt: new Date().toISOString(),
+    version: 4,
+    status: "PENDING_GRADING",
+  };
+  assignment.submissionWindow.open = false;
+  fixture.notify({
+    id: "relock-notice",
+    type: "ASSIGNMENT",
+    title: "Đã nộp lại",
+    href: "/assignment/?assignmentId=assignment-recording&classId=juniors-03",
+    isRead: false,
+    version: 1,
+    createdAt: new Date().toISOString(),
+  });
+  await expect(
+    page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
+  ).toHaveCount(0);
+  draft = {
+    ...draft,
+    submittedAt: null,
+    reopenedAt: null,
+    attempt: 1,
+    status: "DRAFT",
+  };
+  await page.reload();
+  await expect(
+    page.getByText(/Bài tập đã đóng nhận bài. Em có thể xem/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Lưu bản nháp", exact: true }),
   ).toHaveCount(0);
 });

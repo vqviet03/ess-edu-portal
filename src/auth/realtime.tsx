@@ -90,14 +90,16 @@ export function StudentRealtime() {
           processed.delete(processed.values().next().value!);
       }
       let classId: string | null = null;
+      let assignmentId: string | null = null;
       try {
-        classId = new URL(
-          signal.href ?? "",
-          window.location.origin,
-        ).searchParams.get("classId");
+        const target = new URL(signal.href ?? "", window.location.origin);
+        classId = target.searchParams.get("classId");
+        assignmentId = target.searchParams.get("assignmentId");
       } catch {}
       dispatch(
-        api.util.invalidateTags(realtimeTags(kind, classId, signal.type)),
+        api.util.invalidateTags(
+          realtimeTags(kind, classId, signal.type, assignmentId),
+        ),
       );
     };
     const pause = () => {
