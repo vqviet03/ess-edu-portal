@@ -368,7 +368,7 @@ const QuestionCard = memo(function QuestionCard({
               )}
             </Box>
             {!readOnly && !preview && (
-              <Stack direction="row">
+              <Stack direction="column" spacing={0.5}>
                 {q.type === "SPEAKING" && (
                   <Tooltip title="Xóa bản ghi cũ và ghi âm lại">
                     <span>
@@ -454,7 +454,8 @@ export function AssignmentPlayer({
   }, [initial]);
   const serial = JSON.stringify(answers),
     dirty = serial !== saved,
-    readOnly = !!submission?.submittedAt;
+    closed = assignment.submissionWindow?.open === false,
+    readOnly = !!submission?.submittedAt || closed;
   useUnsaved(!preview && !readOnly && (dirty || busy.length > 0));
   const latestDeleteInput = useRef({ answers, serial, busy: busy.length });
   useEffect(() => {
@@ -732,12 +733,26 @@ export function AssignmentPlayer({
         >
           {complete} / {assignment.questions.length} câu · Xem danh sách
         </Button>
+        {assignment.submissionWindow?.closesAt && (
+          <Typography variant="body2" color="text.secondary">
+            Đóng nhận bài:{" "}
+            {new Date(assignment.submissionWindow.closesAt).toLocaleString(
+              "vi-VN",
+            )}
+          </Typography>
+        )}
+        {!preview && !submission?.submittedAt && submission?.reopenedAt && (
+          <Alert severity="info">
+            Giảng viên đã mở lại bài nộp của em. Em có thể chỉnh sửa và nộp lại;
+            sau khi nộp bài sẽ được khóa.
+          </Alert>
+        )}
         {preview ? (
           <Alert severity="info">
             Xem trước giao diện học sinh. Đáp án đúng và tiêu chí chấm không
             hiển thị ở đây.
           </Alert>
-        ) : readOnly ? (
+        ) : submission?.submittedAt ? (
           <Alert severity="success">
             Đã nộp lúc{" "}
             {new Date(submission.submittedAt!).toLocaleString("vi-VN")}.{" "}
@@ -750,6 +765,11 @@ export function AssignmentPlayer({
             >
               Về bài đăng
             </Link>
+          </Alert>
+        ) : closed ? (
+          <Alert severity="warning">
+            Bài tập đã đóng nhận bài. Em có thể xem nội dung đã lưu và liên hệ
+            giảng viên để được mở lại.
           </Alert>
         ) : (
           <Alert severity={error ? "error" : "info"}>

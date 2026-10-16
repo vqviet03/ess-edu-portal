@@ -7,6 +7,8 @@ export function realtimeTags(
 ): Parameters<typeof api.util.invalidateTags>[0] {
   if (noticeType === "ASSIGNMENT")
     return [
+      "AssignmentForm",
+      "AssignmentDraft",
       { type: "LearningAssignments", ...(classId ? { id: classId } : {}) },
       "Threads",
       "AssignmentReport",

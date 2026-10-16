@@ -24,7 +24,7 @@ export function AssignmentPage() {
       />
       {query.data && draft.data !== undefined && (
         <AssignmentPlayer
-          key={`${id}:${query.data.assignmentVersionId}`}
+          key={`${id}:${query.data.assignmentVersionId}:${draft.data?.attempt ?? 1}`}
           assignment={query.data}
           initial={draft.data}
         />
