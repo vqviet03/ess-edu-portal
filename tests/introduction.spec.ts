@@ -86,7 +86,7 @@ for (const theme of ["light", "dark"] as const) {
   test(`unpublished ${theme} keeps branding and login`, async ({ page }) => {
     const name = "Trung tâm Tiếng Anh Hoa Hướng Dương";
     await page.emulateMedia({ colorScheme: theme });
-    await page.route("**/api/v1/application-settings", (route) =>
+    await page.route("**/v1/application-settings", (route) =>
       route.fulfill({
         json: {
           data: {
@@ -102,7 +102,7 @@ for (const theme of ["light", "dark"] as const) {
         },
       }),
     );
-    await page.route("**/api/v1/portal/icon.png?**", (route) =>
+    await page.route("**/v1/portal/icon.png?**", (route) =>
       route.fulfill({
         contentType: "image/svg+xml",
         body: '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="green"/></svg>',
