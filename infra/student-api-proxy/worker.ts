@@ -1,3 +1,4 @@
+import { introductionResponse } from "./introduction";
 export interface ProxyEnvironment {
   API_ORIGIN: string;
   PUBLIC_ORIGIN: string;
@@ -101,8 +102,45 @@ export async function proxyRequest(
   }
 }
 
+// Cache only media explicitly exposed by the published introduction. Private file/auth/socket routes remain no-store.
+export async function introductionAssetResponse(
+  request: Request,
+  env: ProxyEnvironment,
+  send: typeof fetch = fetch,
+  cache?: Pick<Cache, "match" | "put">,
+): Promise<Response> {
+  if (request.headers.has("range") || request.method !== "GET")
+    return proxyRequest(request, env, send);
+  const cached = await cache?.match(request);
+  if (cached) return cached;
+  const headers = new Headers(request.headers);
+  headers.delete("authorization");
+  headers.delete("cookie");
+  const response = await proxyRequest(
+    new Request(request, { headers }),
+    env,
+    send,
+  );
+  if (response.status !== 200) return response;
+  const outgoing = new Headers(response.headers);
+  outgoing.set("cache-control", "public,max-age=30");
+  const result = new Response(response.body, {
+    status: 200,
+    headers: outgoing,
+  });
+  if (cache) await cache.put(request, result.clone());
+  return result;
+}
 const worker = {
-  fetch: (request: Request, env: ProxyEnvironment) =>
-    proxyRequest(request, env),
+  fetch: (request: Request, env: ProxyEnvironment) => {
+    const cache = (
+      globalThis.caches as (CacheStorage & { default?: Cache }) | undefined
+    )?.default;
+    const path = new URL(request.url).pathname;
+    if (path === "/") return introductionResponse(request, env, fetch, cache);
+    if (/^\/api\/v1\/introduction\/media\/[a-fA-F0-9-]{36}$/.test(path))
+      return introductionAssetResponse(request, env, fetch, cache);
+    return proxyRequest(request, env);
+  },
 };
 export default worker;

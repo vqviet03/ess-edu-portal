@@ -2,7 +2,10 @@ name = "ess-student-api-proxy"
 main = "worker.ts"
 compatibility_date = "2026-10-13"
 workers_dev = false
-routes = [{ pattern = "eeslern.com/api/*", zone_name = "eeslern.com" }]
+routes = [
+  { pattern = "eeslern.com/", zone_name = "eeslern.com" },
+  { pattern = "eeslern.com/api/*", zone_name = "eeslern.com" },
+]
 
 [vars]
 API_ORIGIN = "https://ess-edu-api-920149468670.asia-southeast1.run.app"
