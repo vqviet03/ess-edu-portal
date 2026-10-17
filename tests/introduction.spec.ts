@@ -83,9 +83,7 @@ for (const theme of ["light", "dark"] as const) {
 }
 
 for (const theme of ["light", "dark"] as const) {
-  test(`unpublished landing ${theme} keeps the configured brand and student sign-in on the root page`, async ({
-    page,
-  }) => {
+  test(`unpublished ${theme} keeps branding and login`, async ({ page }) => {
     const name = "Trung tâm Tiếng Anh Hoa Hướng Dương";
     await page.emulateMedia({ colorScheme: theme });
     await page.route("**/api/v1/application-settings", (route) =>
