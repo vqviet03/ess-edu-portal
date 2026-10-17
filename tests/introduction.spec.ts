@@ -81,3 +81,63 @@ for (const theme of ["light", "dark"] as const) {
     expect(submits).toBe(1);
   });
 }
+
+for (const theme of ["light", "dark"] as const) {
+  test(`unpublished landing ${theme} keeps the configured brand and student sign-in on the root page`, async ({
+    page,
+  }) => {
+    const name = "Trung tâm Tiếng Anh Hoa Hướng Dương";
+    await page.emulateMedia({ colorScheme: theme });
+    await page.route("**/api/v1/application-settings", (route) =>
+      route.fulfill({
+        json: {
+          data: {
+            appName: "Tên cũ",
+            version: 7,
+            portals: {
+              student: {
+                name,
+                iconSvg: '<svg xmlns="http://www.w3.org/2000/svg"/>',
+              },
+            },
+          },
+        },
+      }),
+    );
+    await page.route("**/api/v1/portal/icon.png?**", (route) =>
+      route.fulfill({
+        contentType: "image/svg+xml",
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="green"/></svg>',
+      }),
+    );
+    await page.route("**/api/v1/introduction", (route) =>
+      route.fulfill({
+        status: 404,
+        json: { error: { code: "NOT_FOUND", message: "Chưa công bố." } },
+      }),
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${base}/`);
+    const heading = page.getByRole("heading", { level: 1, name });
+    await expect(heading).toBeVisible();
+    await expect(heading.locator("img")).toHaveAttribute(
+      "src",
+      /portal\/icon\.png\?portal=student&size=192&v=7/,
+    );
+    const login = page.getByRole("link", { name: "Đăng nhập", exact: true });
+    await expect(login).toHaveAttribute("href", `${base}/login/`);
+    await expect(page).toHaveURL(new RegExp(`${base}/$`));
+    await expect(page.getByRole("form")).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(heading).toBeVisible();
+    await expect(login).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(390);
+    await login.click();
+    await expect(page).toHaveURL(/\/login\/$/);
+    await expect(
+      page.getByRole("textbox", { name: "ID học sinh / email / số điện thoại" }),
+    ).toBeVisible();
+  });
+}
