@@ -105,7 +105,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.route("**/v1/portal/icon.png?**", (route) =>
       route.fulfill({
         contentType: "image/svg+xml",
-        body: '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="green"/></svg>',
+        body: '<svg xmlns="http://www.w3.org/2000/svg"/>',
       }),
     );
     await page.route("**/api/v1/introduction", (route) =>
@@ -135,7 +135,9 @@ for (const theme of ["light", "dark"] as const) {
     await login.click();
     await expect(page).toHaveURL(/\/login\/$/);
     await expect(
-      page.getByRole("textbox", { name: "ID học sinh / email / số điện thoại" }),
+      page.getByRole("textbox", {
+        name: "ID học sinh / email / số điện thoại",
+      }),
     ).toBeVisible();
   });
 }
