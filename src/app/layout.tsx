@@ -1,7 +1,9 @@
+import "../features/introduction/fonts.css";
 import type { Metadata } from "next";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import Providers from "@/components/providers";
 import "./globals.css";
+import "../../public/introduction.css";
 
 export const metadata: Metadata = {
   description: "Báo cáo kết quả học tập, điểm kỹ năng và tài liệu theo lớp.",

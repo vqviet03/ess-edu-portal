@@ -15,6 +15,7 @@ export default defineConfig([
     ".next/**",
     "out/**",
     "public/pdf/**",
+    "public/introduction/client.js",
     "next-env.d.ts",
     "test-results/**",
     "playwright-report/**",

@@ -41,3 +41,7 @@ next-env.d.ts
 
 /test-results/
 /playwright-report/
+
+# Guest landing entry and fonts are emitted before static export.
+/public/introduction/client.js
+/public/introduction/fonts/
