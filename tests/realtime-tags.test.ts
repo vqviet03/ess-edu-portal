@@ -33,3 +33,15 @@ test("assignment reopen refreshes only its form and draft", () => {
     { type: "AssignmentDraft", id: "assignment-a" },
   ]);
 });
+
+test("silent resources refresh their own data without fetching unrelated reports", () => {
+  assert.deepEqual(
+    realtimeTags("RESOURCE_CHANGED", "c", "REWARD"),
+    realtimeTags("NOTIFICATION", "c", "REWARD"),
+  );
+  for (const type of ["COMMENT", "REACTION", "REPLY"])
+    assert.deepEqual(realtimeTags("RESOURCE_CHANGED", "c", type), [
+      { type: "Threads", id: "c" },
+      "Comments",
+    ]);
+});

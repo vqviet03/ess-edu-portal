@@ -19,15 +19,6 @@ export function realtimeTags(
     ];
   if (noticeType === "ASSIGNMENT_RESULT")
     return ["AssignmentDraft", "AssignmentReport"];
-  if (kind === "RESOURCE_CHANGED")
-    return classId
-      ? [
-          "Classes",
-          { type: "Report", id: classId },
-          { type: "Progress", id: classId },
-          { type: "Units", id: classId },
-        ]
-      : ["Classes", "Report", "Progress", "Units"];
   if (noticeType === "ATTENDANCE")
     return [
       { type: "Attendance", ...(classId ? { id: classId } : {}) },
@@ -61,10 +52,19 @@ export function realtimeTags(
           { type: "Units", id: classId },
         ]
       : ["Report", "Progress", "Units"];
+  if (kind === "RESOURCE_CHANGED" && !noticeType)
+    return classId
+      ? [
+          "Classes",
+          { type: "Report", id: classId },
+          { type: "Progress", id: classId },
+          { type: "Units", id: classId },
+        ]
+      : ["Classes", "Report", "Progress", "Units"];
   const threads = classId
     ? { type: "Threads" as const, id: classId }
     : ("Threads" as const);
-  if (noticeType === "SOCIAL" || noticeType === "REPLY")
+  if (["SOCIAL", "REPLY", "COMMENT", "REACTION"].includes(noticeType ?? ""))
     return [threads, "Comments"];
   return [
     threads,
