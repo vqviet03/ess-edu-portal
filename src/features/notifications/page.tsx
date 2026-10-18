@@ -39,7 +39,10 @@ const types: Record<string, string> = {
   ATTENDANCE: "Điểm danh",
   REWARD: "Điểm động viên",
   SCHEDULE: "Lịch học",
-  SOCIAL: "Bình luận / tương tác",
+  SOCIAL: "Bình luận / tương tác (cũ)",
+  POST: "Bài đăng",
+  COMMENT: "Bình luận",
+  REACTION: "Tương tác",
 };
 export function NotificationsPage() {
   const dispatch = useAppDispatch(),

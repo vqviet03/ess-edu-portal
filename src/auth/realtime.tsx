@@ -27,6 +27,7 @@ import { useStore } from "react-redux";
 import type { RootState } from "@/store";
 import { createSocketSessionCheck } from "./socket-session";
 type Signal = {
+  eventId?: string;
   classId?: string;
   userId?: string;
   connectionId?: string;
@@ -42,6 +43,7 @@ type Signal = {
   createdAt?: string;
 };
 type Frame = {
+  resourceRefreshFollows?: boolean;
   type: string;
   cursor?: string;
   data?: Signal & {
@@ -81,6 +83,7 @@ export function StudentRealtime() {
       kind: "NOTIFICATION" | "RESOURCE_CHANGED" = "NOTIFICATION",
     ) => {
       const key =
+        signal.eventId ||
         signal.operationId ||
         (signal.id ? `${signal.id}:${signal.version}` : undefined);
       if (key && processed.has(key)) return;
@@ -184,7 +187,8 @@ export function StudentRealtime() {
               }
               if (item.id) notices.set(item.id, item.version ?? 1);
               if (isNew) {
-                refresh(item, "NOTIFICATION");
+                if (!frame.resourceRefreshFollows)
+                  refresh(item, "NOTIFICATION");
                 showNoticeToast(item as Notification);
               }
             } else refresh(item, "RESOURCE_CHANGED");

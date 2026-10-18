@@ -108,6 +108,19 @@ test("same session/context shares one socket; owner hide hands over and events r
       exact: true,
     }),
   ).toBeVisible();
+  // Shared transport keeps both inboxes current, but only one visible window alerts.
+  const alerts = (view: Page) =>
+    view.getByRole("alert").filter({ hasText: notice.title });
+  await expect
+    .poll(
+      async () =>
+        (await alerts(page).count()) + (await alerts(secondPage).count()),
+    )
+    .toBe(1);
+  const alerted = (await alerts(page).count()) ? page : secondPage;
+  await alerted
+    .getByRole("button", { name: "Đóng thông báo", exact: true })
+    .click();
   const owner = first.activeConnections() ? page : secondPage;
   await hidden(owner, true);
   await expect.poll(active).toBe(1);
