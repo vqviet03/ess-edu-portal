@@ -148,3 +148,72 @@ test("mobile player uses inline chips and compact options; draft and submit keep
   await page.getByRole("button", { name: "Tiếp tục làm bài" }).click();
   await expect(input).toHaveText("Em học tại example.com");
 });
+
+for (const width of [390, 1440]) {
+  test(`student group stimulus is rendered once and does not add answer rows at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await installApiFixture(page);
+    const grouped = {
+      ...assignment,
+      groups: [
+        {
+          id: "shared-reading",
+          title: "At the beach",
+          content: "Lily finds a seashell. Read and answer.",
+          instructions: "Đọc dữ kiện trước khi trả lời.",
+          order: 0,
+          media: [],
+        },
+      ],
+      questions: assignment.questions.map((q) => ({
+        ...q,
+        groupId: "shared-reading",
+      })),
+    };
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization,content-type",
+      "Access-Control-Allow-Methods": "GET,PUT,OPTIONS",
+    };
+    await page.route("**/assignments/assignment-design**", (r) =>
+      r.fulfill({
+        headers,
+        json: { data: r.request().url().endsWith("/draft") ? null : grouped },
+      }),
+    );
+    await page.goto("login/");
+    await page.getByLabel("ID học sinh").fill("HV000123");
+    await page.locator("input[type=password]").fill("Demo123!");
+    await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+    await expect(page).toHaveURL(/home\//);
+    await page.goto(
+      "assignment/?assignmentId=assignment-design&classId=juniors-03",
+    );
+    const group = page.getByRole("region", {
+      name: "At the beach",
+      exact: true,
+    });
+    await expect(
+      group.getByRole("heading", { name: "At the beach", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByTestId("shared-stimulus")).toHaveCount(1);
+    await expect(
+      group.getByRole("heading", { name: "1. Which animal lives in the sea?" }),
+    ).toBeVisible();
+    await expect(
+      group.getByRole("heading", { name: "2. Viết câu trả lời" }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `test-results/student-question-group-${width}.png`,
+      fullPage: true,
+      animations: "disabled",
+    });
+  });
+}
