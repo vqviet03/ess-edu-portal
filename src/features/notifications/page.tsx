@@ -14,7 +14,6 @@ import Refresh from "@mui/icons-material/Refresh";
 import DoneAll from "@mui/icons-material/DoneAll";
 import MarkEmailRead from "@mui/icons-material/MarkEmailRead";
 import MarkEmailUnread from "@mui/icons-material/MarkEmailUnread";
-import OpenInNew from "@mui/icons-material/OpenInNew";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import { BackAction } from "@/shared/back-action";
 import ArrowForward from "@mui/icons-material/ArrowForward";
@@ -132,7 +131,11 @@ export function NotificationsPage() {
           </Tooltip>
         </Stack>
       </Stack>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ "& > *": { flex: 1, minWidth: 0 } }}
+      >
         <TextField
           select
           label="Loại thông báo"
@@ -192,7 +195,30 @@ export function NotificationsPage() {
             }}
           >
             <Stack direction="row" sx={{ gap: 1, alignItems: "center" }}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box
+                component={href ? Link : "div"}
+                {...(href
+                  ? {
+                      href,
+                      "aria-label": `Mở ${n.title}`,
+                      onClick: () => {
+                        if (!n.isRead) void mark(n.id, n.version, true);
+                      },
+                    }
+                  : {})}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: 44,
+                  color: "inherit",
+                  textDecoration: "none",
+                  borderRadius: 1,
+                  "&:focus-visible": {
+                    outline: "2px solid",
+                    outlineColor: "primary.main",
+                  },
+                }}
+              >
                 <Box
                   sx={{
                     fontWeight: n.isRead ? 400 : 700,
@@ -210,20 +236,6 @@ export function NotificationsPage() {
                 direction="row"
                 sx={{ flexWrap: "wrap", justifyContent: "flex-end" }}
               >
-                {href && (
-                  <Tooltip title="Mở nội dung">
-                    <IconButton
-                      component={Link}
-                      href={href}
-                      aria-label={`Mở ${n.title}`}
-                      onClick={() => {
-                        if (!n.isRead) void mark(n.id, n.version, true);
-                      }}
-                    >
-                      <OpenInNew fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
                 <Tooltip
                   title={n.isRead ? "Đánh dấu chưa đọc" : "Đánh dấu đã đọc"}
                 >
