@@ -1,4 +1,5 @@
 "use client";
+import { compactRadii } from "@/theme/compact";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -261,7 +262,7 @@ export function AssignmentReportView({
                       minHeight: 44,
                       color: "inherit",
                       textDecoration: "none",
-                      borderRadius: 1,
+                      borderRadius: compactRadii.inset,
                       "&:hover": { bgcolor: "action.hover" },
                       "&:focus-visible": {
                         outline: "2px solid",
