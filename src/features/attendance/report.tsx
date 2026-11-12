@@ -76,7 +76,7 @@ function AttendanceReportContent({ classId }: { classId: string }) {
           </Typography>
           <Box
             sx={{
-              p: 3,
+              p: { xs: 1.5, md: 3 },
               borderRadius: "16px",
               bgcolor: `var(--att-${color}-bg)`,
               color: `var(--att-${color})`,
