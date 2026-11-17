@@ -138,7 +138,7 @@ export function NotificationsPage() {
       >
         <TextField
           select
-          label="Loại thông báo"
+          label="Loại"
           size="small"
           value={type}
           onChange={(e) => {
@@ -155,7 +155,7 @@ export function NotificationsPage() {
         </TextField>
         <TextField
           select
-          label="Trạng thái thông báo"
+          label="Trạng thái"
           size="small"
           value={read}
           onChange={(e) => {
