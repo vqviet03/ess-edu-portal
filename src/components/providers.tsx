@@ -63,8 +63,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         },
         typography: {
           fontFamily: "Arial, Helvetica, sans-serif",
-          h4: { fontSize: "1.625rem", fontWeight: 700, lineHeight: 1.4 },
-          h5: { fontSize: "1.25rem", fontWeight: 700 },
+          h4: {
+            fontSize: "1.625rem",
+            fontWeight: 700,
+            lineHeight: 1.4,
+            "@media (max-width:599.95px)": { fontSize: "1.25rem" },
+          },
+          h5: {
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            "@media (max-width:599.95px)": { fontSize: "1.1rem" },
+          },
           h6: { fontSize: "1.125rem", fontWeight: 700 },
           body1: { lineHeight: 1.65 },
           button: { textTransform: "none", fontWeight: 700 },
