@@ -91,15 +91,24 @@ export function UploadDialog({
   const initialDrive = (mime: string) =>
     drives.find((s) => s.category === defaultArea(mime))?.id ??
     defaultArea(mime);
+  // Library and session uploads keep running in the background after the
+  // dialog closes or the page changes; drafts (post, comment, avatar, gift)
+  // are tied to this form, so leaving still cancels them.
+  const background = !postId && source !== "avatar";
   useUnsaved(
-    rows.some((r) => r.status === "WAITING" || r.status === "UPLOADING"),
+    !background &&
+      rows.some((r) => r.status === "WAITING" || r.status === "UPLOADING"),
   );
+  const backgroundRef = useRef(background);
+  useEffect(() => {
+    backgroundRef.current = background;
+  }, [background]);
   useEffect(() => {
     mounted.current = true;
     const tasks = active.current;
     return () => {
       mounted.current = false;
-      tasks.forEach((t) => t.abort());
+      if (!backgroundRef.current) tasks.forEach((t) => t.abort());
     };
   }, []);
   const patch = (key: string, data: Partial<Row>) => {
@@ -159,7 +168,10 @@ export function UploadDialog({
         tickets.current.set(row.key, ticket);
         patch(row.key, { ticket });
       }
-      if (cancelled.current.has(row.key) || !mounted.current) {
+      if (
+        cancelled.current.has(row.key) ||
+        (!mounted.current && !backgroundRef.current)
+      ) {
         await cancel({
           uploadId: ticket.uploadId,
           version: ticket.version,
@@ -184,7 +196,7 @@ export function UploadDialog({
     <Dialog
       open
       onClose={() => {
-        if (!busy) close();
+        if (!busy || background) close();
       }}
       fullWidth
       maxWidth="md"

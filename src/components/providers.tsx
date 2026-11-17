@@ -1,4 +1,5 @@
 "use client";
+import Grow from "@mui/material/Grow";
 import { compactControls } from "@/theme/compact";
 import { RouteStateProvider } from "@/shared/route-state";
 import { NavigationRuntime } from "@/shared/page-navigation";
@@ -13,6 +14,10 @@ import { makeStore } from "@/store";
 import { AppDisplayProvider } from "@/features/help/display";
 import { AuthRuntime } from "@/auth/runtime";
 import { ApplicationTitle } from "@/features/settings/title";
+// Motion curves shared by the theme.
+const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+const EMPHASIZED = "cubic-bezier(0.2, 0, 0, 1)";
+const DRAWER = "cubic-bezier(0.32, 0.72, 0, 1)";
 type Preference = "light" | "dark" | "system";
 const Appearance = createContext<{
   preference: Preference;
@@ -79,7 +84,152 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           button: { textTransform: "none", fontWeight: 700 },
         },
         shape: { borderRadius: 14 },
+        // Shared motion: springy (slightly overshooting) easing for things that
+        // appear or move, emphasized easing for colour changes. Only transform and
+        // opacity animate, so interactions stay smooth; reduced motion disables it.
+        transitions: {
+          easing: {
+            easeInOut: "cubic-bezier(0.2, 0, 0, 1)",
+            easeOut: "cubic-bezier(0.05, 0.7, 0.1, 1)",
+            easeIn: "cubic-bezier(0.3, 0, 0.8, 0.15)",
+            sharp: "cubic-bezier(0.2, 0, 0, 1)",
+          },
+          duration: {
+            shortest: 120,
+            shorter: 180,
+            short: 220,
+            standard: 280,
+            complex: 360,
+            enteringScreen: 300,
+            leavingScreen: 200,
+          },
+        },
         components: {
+          MuiCssBaseline: {
+            styleOverrides: {
+              "@media (prefers-reduced-motion: reduce)": {
+                "*, *::before, *::after": {
+                  animationDuration: "1ms !important",
+                  transitionDuration: "1ms !important",
+                },
+              },
+            },
+          },
+          // Press: a quick squash, then an elastic bounce back on release.
+          MuiButtonBase: {
+            styleOverrides: {
+              root: {
+                transition: `transform 460ms ${SPRING}, background-color 180ms ${EMPHASIZED}, color 180ms ${EMPHASIZED}, box-shadow 180ms ${EMPHASIZED}`,
+                "&:active:not(.Mui-disabled)": {
+                  transform: "scale(1.05, 0.92)",
+                  transition: `transform 90ms ease-out, background-color 180ms ${EMPHASIZED}`,
+                },
+              },
+            },
+          },
+          // Wide rows squash less so lists don't wobble.
+          MuiListItemButton: {
+            styleOverrides: {
+              root: {
+                "&&:active:not(.Mui-disabled)": { transform: "scale(0.985)" },
+              },
+            },
+          },
+          // Menus, popovers, dialogs and toasts pop open with a spring.
+          MuiPopover: {
+            defaultProps: {
+              transitionDuration: { enter: 340, exit: 160 },
+              slotProps: {
+                transition: { easing: { enter: SPRING, exit: EMPHASIZED } },
+              },
+            },
+          },
+          MuiMenu: {
+            defaultProps: {
+              transitionDuration: { enter: 340, exit: 160 },
+              slotProps: {
+                transition: { easing: { enter: SPRING, exit: EMPHASIZED } },
+              },
+            },
+          },
+          MuiDialog: {
+            defaultProps: {
+              slots: { transition: Grow },
+              transitionDuration: { enter: 380, exit: 180 },
+              slotProps: {
+                transition: { easing: { enter: SPRING, exit: EMPHASIZED } },
+              },
+            },
+          },
+          MuiDrawer: {
+            defaultProps: {
+              transitionDuration: { enter: 420, exit: 240 },
+              slotProps: {
+                transition: { easing: { enter: DRAWER, exit: EMPHASIZED } },
+              },
+            },
+          },
+          MuiCollapse: {
+            defaultProps: {
+              timeout: 320,
+              easing: { enter: DRAWER, exit: EMPHASIZED },
+            },
+          },
+          MuiTabs: {
+            styleOverrides: {
+              indicator: { transition: `all 420ms ${SPRING}` },
+            },
+          },
+          MuiSwitch: {
+            styleOverrides: {
+              switchBase: {
+                transition: `transform 380ms ${SPRING} !important`,
+              },
+              thumb: {
+                transition: `transform 380ms ${SPRING}`,
+              },
+            },
+          },
+          // Dragging a slider swells the thumb; releasing snaps it with a spring.
+          MuiSlider: {
+            styleOverrides: {
+              thumb: {
+                transition: `left 360ms ${SPRING}, bottom 360ms ${SPRING}, transform 360ms ${SPRING}, box-shadow 150ms ease`,
+                "&.Mui-active": {
+                  transform: "translate(-50%, -50%) scale(1.3)",
+                },
+              },
+              track: {
+                transition: `width 360ms ${SPRING}, left 360ms ${SPRING}`,
+              },
+              dragging: {
+                "& .MuiSlider-thumb, & .MuiSlider-track": {
+                  transition: "transform 120ms ease-out",
+                },
+              },
+            },
+          },
+          MuiSnackbar: {
+            defaultProps: {
+              anchorOrigin: { vertical: "top", horizontal: "center" },
+              slotProps: {
+                transition: { easing: { enter: SPRING, exit: EMPHASIZED } },
+              },
+            },
+          },
+          // Compact toasts at the top of the screen.
+          MuiSnackbarContent: {
+            styleOverrides: {
+              root: {
+                minWidth: 0,
+                padding: "4px 12px",
+                borderRadius: 12,
+                fontSize: 13,
+                maxWidth: "calc(100vw - 24px)",
+              },
+              message: { padding: "6px 0" },
+            },
+          },
           MuiPaper: {
             defaultProps: { elevation: 0 },
             styleOverrides: { root: { backgroundImage: "none" } },
@@ -105,12 +255,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           MuiChip: { defaultProps: { size: "small" } },
           MuiMenuItem: {
             styleOverrides: {
-              root: { "@media (pointer: coarse)": { minHeight: 44 } },
+              root: {
+                "&&:active:not(.Mui-disabled)": { transform: "scale(0.985)" },
+                "@media (pointer: coarse)": { minHeight: 44 },
+              },
             },
           },
           MuiTab: {
             styleOverrides: {
               root: {
+                "&&:active:not(.Mui-disabled)": { transform: "scale(0.96)" },
                 minHeight: 48,
                 textTransform: "none",
                 fontSize: "0.9375rem",

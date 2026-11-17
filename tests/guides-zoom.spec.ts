@@ -91,17 +91,13 @@ test("mobile dark guide has independent scroll and supports chart/class controls
   await expect(
     page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Tùy chọn khác", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
   await page.getByRole("menuitem", { name: "Hướng dẫn", exact: true }).click();
   const guide = page.getByRole("complementary", {
     name: "Hướng dẫn màn hình hiện tại",
   });
   await expect(guide).toBeVisible();
-  await page
-    .getByRole("button", { name: "Tùy chọn khác", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
   await page
     .getByRole("button", { name: "Thu nhỏ giao diện", exact: true })
     .click();
@@ -120,9 +116,7 @@ test("mobile dark guide has independent scroll and supports chart/class controls
   await guide
     .getByRole("button", { name: "Ẩn hướng dẫn", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Tùy chọn khác", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
   await page
     .getByRole("button", { name: "Đặt lại kích thước 100%", exact: true })
     .click();

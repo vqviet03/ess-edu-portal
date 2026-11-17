@@ -2,7 +2,7 @@
 import { Suspense, type ReactNode } from "react";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { PageBack } from "./page-back";
+import { FloatingBack, PageBack, useFloatingBack } from "./page-back";
 
 /**
  * The common page header: Back (on every non-entry page, from the route
@@ -19,6 +19,7 @@ export function PageHeader({
   subtitle?: ReactNode;
   actions?: ReactNode;
 }) {
+  const [floatRef, floatState] = useFloatingBack(12);
   return (
     <Stack
       component="section"
@@ -26,9 +27,18 @@ export function PageHeader({
       spacing={{ xs: 0.5, sm: 1 }}
       sx={{ mb: { xs: 1.5, sm: 2 } }}
     >
-      <Stack direction="row" sx={{ alignItems: "center", gap: 0.5 }}>
+      <Stack
+        ref={floatRef}
+        direction="row"
+        sx={{ alignItems: "center", gap: 0.5 }}
+      >
         <Suspense>
           <PageBack />
+          <FloatingBack
+            shown={floatState.shown}
+            left={floatState.left}
+            top={12}
+          />
         </Suspense>
         {title && (
           <Typography
