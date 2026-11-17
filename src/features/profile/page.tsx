@@ -1,4 +1,5 @@
 "use client";
+import { Loading } from "@/components/feedback";
 import { PageHeader } from "@/shared/page-header";
 import { useSectionTab } from "@/shared/page-navigation";
 import { NotificationPreferencesPanel } from "@/features/pwa/preferences";
@@ -16,7 +17,6 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Box from "@mui/material/Box";
-import LinearProgress from "@mui/material/LinearProgress";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import Save from "@mui/icons-material/Save";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
@@ -65,7 +65,7 @@ export function PersonalProfilePage() {
       </Tabs>
       <Box hidden={tab !== "profile"}>
         <Stack spacing={2}>
-          {q.isLoading && <LinearProgress />}
+          {q.isLoading && <Loading />}
           {q.error && (
             <Alert
               severity="error"
