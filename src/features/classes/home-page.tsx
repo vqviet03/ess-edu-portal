@@ -4,7 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import NextLink from "next/link";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
-import { MenuItem, TextField, Typography } from "@/components/ui";
+import { MenuItem, Stack, TextField, Typography } from "@/components/ui";
 import { Feedback } from "@/components/feedback";
 import { useClassesQuery } from "@/api/api";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -34,10 +34,17 @@ function HomeContent() {
   }, [classroom, selectedClassId, dispatch]);
   return (
     <Shell>
-      <Typography variant="h4" component="h1">
+      <Typography
+        variant="h4"
+        component="h1"
+        sx={{ fontSize: { xs: "1.5rem", sm: "2.125rem" } }}
+      >
         Lớp học của em
       </Typography>
-      <Typography color="text.secondary" sx={{ my: 1 }}>
+      <Typography
+        color="text.secondary"
+        sx={{ my: { xs: 0.5, sm: 1 }, fontSize: { xs: 14, sm: 16 } }}
+      >
         {student?.fullName}
         {student?.nickname ? ` (${student.nickname})` : ""} ·{" "}
         {classroom?.subject ?? "Học sinh"}
@@ -51,36 +58,45 @@ function HomeContent() {
       ) : (
         <>
           <Feedback error={classes.error} retry={classes.refetch} />
-          <TextField
-            select
-            label="Lớp học"
-            fullWidth
-            value={classroom.id}
-            onChange={(e) => {
-              dispatch(chooseClass(e.target.value));
-              const search = new URLSearchParams(params.toString());
-              search.set("classId", e.target.value);
-              search.delete("unitId");
-              router.push(`${pathname}?${search}`, { scroll: false });
+          <Stack
+            direction={{ xs: "row", sm: "column" }}
+            sx={{
+              alignItems: { xs: "center", sm: "flex-start" },
+              gap: { xs: 0.5, sm: 0 },
+              mt: { xs: 1.5, sm: 0 },
             }}
-            sx={{ maxWidth: { md: 480 }, mb: 2 }}
           >
-            {classes.currentData?.map((c) => (
-              <MenuItem key={c.id} value={c.id}>
-                {c.name}
-                {c.isActive ? " · Đang học" : ""}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Tooltip title="Tài liệu học tập">
-            <IconButton
-              component={NextLink}
-              aria-label="Tài liệu học tập"
-              href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}
+            <TextField
+              select
+              label="Lớp học"
+              fullWidth
+              value={classroom.id}
+              onChange={(e) => {
+                dispatch(chooseClass(e.target.value));
+                const search = new URLSearchParams(params.toString());
+                search.set("classId", e.target.value);
+                search.delete("unitId");
+                router.push(`${pathname}?${search}`, { scroll: false });
+              }}
+              sx={{ maxWidth: { md: 480 }, mb: { xs: 0, sm: 2 } }}
             >
-              <FolderOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+              {classes.currentData?.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {c.name}
+                  {c.isActive ? " · Đang học" : ""}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Tooltip title="Tài liệu học tập">
+              <IconButton
+                component={NextLink}
+                aria-label="Tài liệu học tập"
+                href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}
+              >
+                <FolderOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
           <TeacherContacts classId={classroom.id} />
           <ClassTabs
             key={classroom.id}

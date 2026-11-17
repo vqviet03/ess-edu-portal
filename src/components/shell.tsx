@@ -13,12 +13,24 @@ import {
   DisplayTools,
   GuideLayout,
   useAppDisplay,
+  zoomLevels,
 } from "@/features/help/display";
 import Brand from "./brand";
 import { NotificationBell } from "@/features/notifications/bell";
 import Tooltip from "@mui/material/Tooltip";
 import Language from "@mui/icons-material/Language";
 import BrightnessAuto from "@mui/icons-material/BrightnessAuto";
+import MoreVert from "@mui/icons-material/MoreVert";
+import HelpOutlined from "@mui/icons-material/HelpOutlined";
+import Remove from "@mui/icons-material/Remove";
+import Add from "@mui/icons-material/Add";
+import Check from "@mui/icons-material/Check";
+import LightMode from "@mui/icons-material/LightModeOutlined";
+import DarkMode from "@mui/icons-material/DarkModeOutlined";
+import Divider from "@mui/material/Divider";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import ListSubheader from "@mui/material/ListSubheader";
 import { useAppearance } from "./providers";
 import { type RootState, useAppDispatch, useAppSelector } from "@/store";
 import { loggedOut } from "@/store/auth";
@@ -28,10 +40,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const appName = useApplicationName();
   const pathname = usePathname();
   const [menu, setMenu] = useState<{
-    kind: "theme" | "language" | "profile";
+    kind: "theme" | "language" | "profile" | "more";
     anchor: HTMLElement;
   } | null>(null);
-  const { zoom } = useAppDisplay();
+  const display = useAppDisplay(),
+    { zoom } = display,
+    zoomIndex = (zoomLevels as readonly number[]).indexOf(zoom);
   const appearance = useAppearance();
   const student = useAppSelector((s) => s.auth.student);
   const dispatch = useAppDispatch();
@@ -60,14 +74,23 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           sx={{
             alignItems: "center",
             justifyContent: "space-between",
-            py: 2.5,
-            gap: 1,
-            flexWrap: "wrap",
+            py: { xs: 1, sm: 2.5 },
+            mb: { xs: 1, sm: 0 },
+            gap: { xs: 0.5, sm: 1 },
+            flexWrap: { xs: "nowrap", sm: "wrap" },
           }}
         >
           <Stack
             direction="row"
-            sx={{ alignItems: "center", minWidth: 0, maxWidth: "100%" }}
+            sx={{
+              alignItems: "center",
+              minWidth: 0,
+              maxWidth: "100%",
+              flex: { xs: 1, sm: "0 1 auto" },
+              "& .MuiTypography-root": {
+                fontSize: { xs: "1.05rem", sm: "1.25rem" },
+              },
+            }}
           >
             {![
               "/home/",
@@ -81,11 +104,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </Stack>
           <Stack
             direction="row"
-            sx={{ alignItems: "center", flexWrap: "wrap" }}
+            sx={{
+              alignItems: "center",
+              flexWrap: { xs: "nowrap", sm: "wrap" },
+              flexShrink: 0,
+            }}
           >
-            <DisplayTools />
+            <Box sx={{ display: { xs: "none", sm: "contents" } }}>
+              <DisplayTools />
+            </Box>
             <Tooltip title="Ngôn ngữ">
               <IconButton
+                sx={{ display: { xs: "none", sm: "inline-flex" } }}
                 aria-label="Ngôn ngữ"
                 onClick={(e) =>
                   setMenu({ kind: "language", anchor: e.currentTarget })
@@ -96,6 +126,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </Tooltip>
             <Tooltip title="Giao diện">
               <IconButton
+                sx={{ display: { xs: "none", sm: "inline-flex" } }}
                 aria-label="Giao diện"
                 onClick={(e) =>
                   setMenu({ kind: "theme", anchor: e.currentTarget })
@@ -122,6 +153,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </IconButton>
               </Tooltip>
             )}
+            <IconButton
+              aria-label="Tùy chọn khác"
+              aria-haspopup="menu"
+              aria-expanded={menu?.kind === "more"}
+              sx={{ display: { xs: "inline-flex", sm: "none" } }}
+              onClick={(e) =>
+                setMenu({ kind: "more", anchor: e.currentTarget })
+              }
+            >
+              <MoreVert />
+            </IconButton>
           </Stack>
         </Stack>
         <Menu
@@ -142,6 +184,102 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 {["Sáng", "Tối", "Theo hệ thống"][i]}
               </MenuItem>
             ))}
+          {menu?.kind === "more" && [
+            <MenuItem
+              key="guide"
+              onClick={() => {
+                setMenu(null);
+                display.toggle();
+              }}
+            >
+              <ListItemIcon>
+                <HelpOutlined fontSize="small" />
+              </ListItemIcon>
+              {display.open ? "Ẩn hướng dẫn" : "Hướng dẫn"}
+            </MenuItem>,
+            <Stack
+              key="zoom"
+              direction="row"
+              role="group"
+              aria-label="Cỡ giao diện"
+              sx={{ alignItems: "center", px: 2, py: 0.5, gap: 1 }}
+            >
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                Cỡ giao diện
+              </Typography>
+              <IconButton
+                size="small"
+                aria-label="Thu nhỏ giao diện"
+                disabled={zoomIndex <= 0}
+                onClick={() => display.setZoom(zoomLevels[zoomIndex - 1])}
+              >
+                <Remove fontSize="small" />
+              </IconButton>
+              <Typography
+                component="button"
+                type="button"
+                aria-label="Đặt lại kích thước 100%"
+                onClick={() => display.setZoom(100)}
+                sx={{
+                  border: 0,
+                  bgcolor: "transparent",
+                  color: "primary.main",
+                  font: "inherit",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  minWidth: 44,
+                  cursor: "pointer",
+                }}
+              >
+                {zoom}%
+              </Typography>
+              <IconButton
+                size="small"
+                aria-label="Phóng to giao diện"
+                disabled={zoomIndex === zoomLevels.length - 1}
+                onClick={() => display.setZoom(zoomLevels[zoomIndex + 1])}
+              >
+                <Add fontSize="small" />
+              </IconButton>
+            </Stack>,
+            <Divider key="d1" />,
+            <ListSubheader key="theme-h" sx={{ lineHeight: "32px" }}>
+              Giao diện
+            </ListSubheader>,
+            ...(["light", "dark", "system"] as const).map((mode, i) => (
+              <MenuItem
+                key={mode}
+                selected={appearance.preference === mode}
+                onClick={() => {
+                  appearance.change(mode);
+                  setMenu(null);
+                }}
+              >
+                <ListItemIcon>
+                  {mode === "light" ? (
+                    <LightMode fontSize="small" />
+                  ) : mode === "dark" ? (
+                    <DarkMode fontSize="small" />
+                  ) : (
+                    <BrightnessAuto fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText>
+                  {["Sáng", "Tối", "Theo hệ thống"][i]}
+                </ListItemText>
+                {appearance.preference === mode && (
+                  <Check fontSize="small" color="primary" />
+                )}
+              </MenuItem>
+            )),
+            <Divider key="d2" />,
+            <MenuItem key="lang" onClick={() => setMenu(null)}>
+              <ListItemIcon>
+                <Language fontSize="small" />
+              </ListItemIcon>
+              <ListItemText secondary="Tiếng Việt">Ngôn ngữ</ListItemText>
+            </MenuItem>,
+          ]}
           {menu?.kind === "language" && (
             <MenuItem selected onClick={() => setMenu(null)}>
               Tiếng Việt
