@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { NotificationContent } from "./content";
 import { useState } from "react";
 import Link from "next/link";
@@ -80,55 +81,43 @@ export function NotificationsPage() {
   }
   return (
     <Stack spacing={2}>
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1,
-          flexWrap: "wrap",
-        }}
-      >
-        <Stack direction="row" sx={{ alignItems: "center", gap: 1 }}>
-          <Box>
-            <Typography component="h1" variant="h4">
-              Thông báo
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {query.currentData?.unreadCount ?? 0} chưa đọc
-            </Typography>
-          </Box>
-        </Stack>
-        <Stack direction="row">
-          <Tooltip title="Tải lại">
-            <IconButton
-              aria-label="Tải lại thông báo"
-              disabled={query.isFetching}
-              onClick={reload}
-            >
-              <Refresh fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Đánh dấu tất cả đã đọc">
-            <span>
+      <PageHeader
+        title="Thông báo"
+        subtitle={`${query.currentData?.unreadCount ?? 0} chưa đọc`}
+        actions={
+          <>
+            <Tooltip title="Tải lại">
               <IconButton
-                aria-label="Đánh dấu tất cả đã đọc"
-                disabled={reading.isLoading || !query.currentData?.unreadCount}
-                onClick={async () => {
-                  try {
-                    setError(undefined);
-                    await readAll().unwrap();
-                  } catch (e) {
-                    setError(e);
-                  }
-                }}
+                aria-label="Tải lại thông báo"
+                disabled={query.isFetching}
+                onClick={reload}
               >
-                <DoneAll fontSize="small" />
+                <Refresh fontSize="small" />
               </IconButton>
-            </span>
-          </Tooltip>
-        </Stack>
-      </Stack>
+            </Tooltip>
+            <Tooltip title="Đánh dấu tất cả đã đọc">
+              <span>
+                <IconButton
+                  aria-label="Đánh dấu tất cả đã đọc"
+                  disabled={
+                    reading.isLoading || !query.currentData?.unreadCount
+                  }
+                  onClick={async () => {
+                    try {
+                      setError(undefined);
+                      await readAll().unwrap();
+                    } catch (e) {
+                      setError(e);
+                    }
+                  }}
+                >
+                  <DoneAll fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </>
+        }
+      />
       <Stack
         direction="row"
         spacing={1}

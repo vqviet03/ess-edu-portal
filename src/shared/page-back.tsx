@@ -51,7 +51,7 @@ export function useBackFallback() {
   return backFallback(pathname, new URLSearchParams(params.toString()));
 }
 
-/** The single Back control used by the app header on every non-entry page. */
+/** The single Back control, rendered by the common page header on every non-entry page. */
 export function PageBack({ otherwise = null }: { otherwise?: ReactNode }) {
   const fallback = useBackFallback();
   return fallback ? <BackAction fallback={fallback} /> : otherwise;

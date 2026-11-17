@@ -1,7 +1,7 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Typography } from "@/components/ui";
 import Shell from "@/components/shell";
 import { Guard } from "@/auth/runtime";
 import { Feedback } from "@/components/feedback";
@@ -20,8 +20,10 @@ function Materials() {
       : selectClass(classes.currentData ?? [], selected);
   return (
     <Shell>
-      <Typography variant="h4">Thread & tài liệu học tập</Typography>
-      <Typography color="text.secondary">{classroom?.name}</Typography>
+      <PageHeader
+        title="Thread & tài liệu học tập"
+        subtitle={classroom?.name}
+      />
       <Feedback
         loading={classes.isLoading}
         error={classes.error}

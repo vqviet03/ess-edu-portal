@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Guard } from "@/auth/runtime";
@@ -13,6 +14,7 @@ export default function Page() {
     <Guard>
       <Suspense fallback={null}>
         <Shell>
+          <PageHeader />
           <Content />
         </Shell>
       </Suspense>
