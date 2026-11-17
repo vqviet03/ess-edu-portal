@@ -29,6 +29,10 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     path: "test-results/student-thread-mobile-light.png",
     fullPage: true,
   });
+  // Teacher contacts start as a one-line summary on phones.
+  await page
+    .getByRole("button", { name: "Xem liên hệ giảng viên", exact: true })
+    .click();
   await expect(
     page.getByRole("link", { name: "teacher@example.test" }),
   ).toBeVisible();
