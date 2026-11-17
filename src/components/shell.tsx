@@ -1,7 +1,6 @@
 "use client";
-import { usePathname } from "next/navigation";
-import { BackAction } from "@/shared/back-action";
-import { useState } from "react";
+import { PageBack } from "@/shared/page-back";
+import { Suspense, useState } from "react";
 import { useStore } from "react-redux";
 import Menu from "@mui/material/Menu";
 import NextLink from "next/link";
@@ -38,7 +37,6 @@ import { useLogoutMutation } from "@/api/api";
 import { useApplicationName } from "@/features/settings/hooks";
 export default function Shell({ children }: { children: React.ReactNode }) {
   const appName = useApplicationName();
-  const pathname = usePathname();
   const [menu, setMenu] = useState<{
     kind: "theme" | "language" | "profile" | "more";
     anchor: HTMLElement;
@@ -92,14 +90,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               },
             }}
           >
-            {![
-              "/home/",
-              "/login/",
-              "/activate/",
-              "/login/link/",
-              "/post/",
-              "/notifications/",
-            ].includes(pathname) && <BackAction />}
+            <Suspense>
+              <PageBack />
+            </Suspense>
             <Brand name={appName} />
           </Stack>
           <Stack

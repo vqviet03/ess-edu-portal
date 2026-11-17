@@ -15,7 +15,6 @@ import DoneAll from "@mui/icons-material/DoneAll";
 import MarkEmailRead from "@mui/icons-material/MarkEmailRead";
 import MarkEmailUnread from "@mui/icons-material/MarkEmailUnread";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
-import { BackAction } from "@/shared/back-action";
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import FirstPage from "@mui/icons-material/FirstPage";
 import {
@@ -91,7 +90,6 @@ export function NotificationsPage() {
         }}
       >
         <Stack direction="row" sx={{ alignItems: "center", gap: 1 }}>
-          <BackAction label="Về lớp học" />
           <Box>
             <Typography component="h1" variant="h4">
               Thông báo
