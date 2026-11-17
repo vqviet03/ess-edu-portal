@@ -1,4 +1,5 @@
 "use client";
+import { Loading } from "@/components/feedback";
 import {
   browserAttemptStorage,
   attemptStorageKey,
@@ -18,7 +19,6 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  LinearProgress,
   Paper,
   Stack,
   TextField,
@@ -531,7 +531,7 @@ export function GiftHistory({
         error={query.error}
         retry={query.refetch}
       />
-      {query.isFetching && !query.isLoading && <LinearProgress />}
+      {query.isFetching && !query.isLoading && <Loading />}
       {query.currentData?.items.map((r) => (
         <Paper key={r.id} sx={giftStyles.surface}>
           <Stack spacing={1.5}>

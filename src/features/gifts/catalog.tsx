@@ -1,4 +1,5 @@
 "use client";
+import { Loading } from "@/components/feedback";
 import { memo, useCallback, useState } from "react";
 import {
   Alert,
@@ -9,7 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  LinearProgress,
   MenuItem,
   Paper,
   Stack,
@@ -366,7 +366,7 @@ export function GiftCatalogView({
             }
             retry={gifts.refetch}
           />
-          {gifts.isFetching && !gifts.isLoading && <LinearProgress />}
+          {gifts.isFetching && !gifts.isLoading && <Loading />}
           <Box
             sx={{
               display: "grid",

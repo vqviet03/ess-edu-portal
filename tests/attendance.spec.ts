@@ -121,9 +121,7 @@ test("student sees own attendance, thresholds, calendar and notices without writ
     fullPage: true,
   });
   // Phones keep display preferences behind the header overflow menu.
-  await page
-    .getByRole("button", { name: "Tùy chọn khác", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
   await page.getByRole("menuitem", { name: "Tối", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Điểm danh của em" }),

@@ -1,10 +1,11 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import NextLink from "next/link";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
-import { MenuItem, Stack, TextField, Typography } from "@/components/ui";
+import { MenuItem, Stack, TextField } from "@/components/ui";
 import { Feedback } from "@/components/feedback";
 import { useClassesQuery } from "@/api/api";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -34,21 +35,16 @@ function HomeContent() {
   }, [classroom, selectedClassId, dispatch]);
   return (
     <Shell>
-      <Typography
-        variant="h4"
-        component="h1"
-        sx={{ fontSize: { xs: "1.25rem", sm: "2.125rem" } }}
-      >
-        Lớp học của em
-      </Typography>
-      <Typography
-        color="text.secondary"
-        sx={{ my: { xs: 0.5, sm: 1 }, fontSize: { xs: 13, sm: 16 } }}
-      >
-        {student?.fullName}
-        {student?.nickname ? ` (${student.nickname})` : ""} ·{" "}
-        {classroom?.subject ?? "Học sinh"}
-      </Typography>
+      <PageHeader
+        title="Lớp học của em"
+        subtitle={
+          <>
+            {student?.fullName}
+            {student?.nickname ? ` (${student.nickname})` : ""} ·{" "}
+            {classroom?.subject ?? "Học sinh"}
+          </>
+        }
+      />
       {!classes.currentData && classes.isLoading ? (
         <Feedback loading />
       ) : !classes.currentData && classes.error ? (

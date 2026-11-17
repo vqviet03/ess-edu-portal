@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { Suspense } from "react";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
@@ -8,6 +9,7 @@ export default function Page() {
     <Guard>
       <Suspense fallback={null}>
         <Shell>
+          <PageHeader />
           <AssignmentProfileReport />
         </Shell>
       </Suspense>

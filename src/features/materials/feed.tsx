@@ -2,7 +2,6 @@
 import { useRouteState } from "@/shared/route-state";
 import NextLink from "next/link";
 import Button from "@mui/material/Button";
-import { BackAction } from "@/shared/back-action";
 import { usePostTarget } from "./post-target";
 import { Comments } from "./comments";
 import { PostSurface } from "./post-surface";
@@ -199,10 +198,6 @@ export function PostDetailPage({ postId }: { postId: string }) {
       />
       {q.data && target && (
         <>
-          <BackAction
-            label="Về thread"
-            fallback={`/home/thread/?classId=${encodeURIComponent(q.data.classId)}`}
-          />
           <PostCard detail targetComment={target?.comment} post={q.data} />
         </>
       )}

@@ -22,7 +22,7 @@ test("student tab is a static page, and post back restores exact tab after reloa
   const origin = page.url();
   await page.getByRole("link", { name: "Thread Unit 1", exact: true }).click();
   await expect(page).toHaveURL(/\/post\//);
-  await page.getByRole("link", { name: "Về thread", exact: true }).click();
+  await page.getByRole("link", { name: "Quay lại", exact: true }).click();
   await expect(page).toHaveURL(origin);
   await expect(
     page.getByRole("tab", { name: "Tài liệu", exact: true }),
@@ -32,7 +32,7 @@ test("student tab is a static page, and post back restores exact tab after reloa
   await page.getByRole("link", { name: "Thread Unit 1", exact: true }).click();
   await expect(page).toHaveURL(/\/post\//);
   await page.reload();
-  await page.getByRole("link", { name: "Về thread", exact: true }).click();
+  await page.getByRole("link", { name: "Quay lại", exact: true }).click();
   await expect(page).toHaveURL(origin);
   await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
   await expect(page).toHaveURL(/\/home\/report\//);
