@@ -120,7 +120,10 @@ test("student sees own attendance, thresholds, calendar and notices without writ
     path: "test-results/student-attendance-mobile.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Giao diện", exact: true }).click();
+  // Phones keep display preferences behind the header overflow menu.
+  await page
+    .getByRole("button", { name: "Tùy chọn khác", exact: true })
+    .click();
   await page.getByRole("menuitem", { name: "Tối", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Điểm danh của em" }),

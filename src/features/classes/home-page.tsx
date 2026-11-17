@@ -37,13 +37,13 @@ function HomeContent() {
       <Typography
         variant="h4"
         component="h1"
-        sx={{ fontSize: { xs: "1.5rem", sm: "2.125rem" } }}
+        sx={{ fontSize: { xs: "1.25rem", sm: "2.125rem" } }}
       >
         Lớp học của em
       </Typography>
       <Typography
         color="text.secondary"
-        sx={{ my: { xs: 0.5, sm: 1 }, fontSize: { xs: 14, sm: 16 } }}
+        sx={{ my: { xs: 0.5, sm: 1 }, fontSize: { xs: 13, sm: 16 } }}
       >
         {student?.fullName}
         {student?.nickname ? ` (${student.nickname})` : ""} ·{" "}

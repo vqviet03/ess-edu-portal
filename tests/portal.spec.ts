@@ -174,7 +174,9 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Giao diện", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Tùy chọn khác", exact: true })
+      .click();
     await page.getByRole("menuitem", { name: "Tối", exact: true }).click();
     expect(
       await page.evaluate(() => localStorage.getItem("learnleaf.theme")),
@@ -229,9 +231,11 @@ test.describe("mobile", () => {
       path: "test-results/mobile-dark.png",
       fullPage: true,
     });
-    await page.getByRole("button", { name: "Ngôn ngữ", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Tùy chọn khác", exact: true })
+      .click();
     await expect(
-      page.getByRole("menuitem", { name: "Tiếng Việt" }),
+      page.getByRole("menuitem", { name: /Ngôn ngữ.*Tiếng Việt/ }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await page
@@ -264,7 +268,9 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
-    await page.getByRole("button", { name: "Giao diện", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Tùy chọn khác", exact: true })
+      .click();
     await page.getByRole("menuitem", { name: "Sáng", exact: true }).click();
     await page.setViewportSize({ width: 1440, height: 1000 });
     await expect(
