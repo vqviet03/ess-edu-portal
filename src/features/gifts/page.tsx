@@ -1,14 +1,14 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Stack, TextField, MenuItem, Typography } from "@mui/material";
+import { Stack, TextField, MenuItem } from "@mui/material";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
 import { useGiftClassesQuery } from "@/api/gifts-api";
 import { useAppSelector } from "@/store";
 import { Feedback } from "@/shared/ui";
 import { GiftCatalogView } from "./catalog";
-import { giftStyles } from "./models";
 function Content() {
   const params = useSearchParams(),
     router = useRouter(),
@@ -19,14 +19,10 @@ function Content() {
   return (
     <Shell>
       <Stack spacing={2.5}>
-        <div>
-          <Typography component="h1" sx={giftStyles.title}>
-            Góc đổi quà
-          </Typography>
-          <Typography color="text.secondary">
-            Mỗi nỗ lực, một niềm vui nhỏ.
-          </Typography>
-        </div>
+        <PageHeader
+          title="Góc đổi quà"
+          subtitle="Mỗi nỗ lực, một niềm vui nhỏ."
+        />
         <Feedback
           loading={classes.isLoading}
           error={classes.error}

@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/shared/page-header";
 import { useSectionTab } from "@/shared/page-navigation";
 import { NotificationPreferencesPanel } from "@/features/pwa/preferences";
 import { ChangePassword } from "@/features/assignments/password";
@@ -52,9 +53,7 @@ export function PersonalProfilePage() {
     );
   return (
     <Stack spacing={2} sx={{ maxWidth: 720, mx: "auto" }}>
-      <Typography component="h1" variant="h4">
-        Hồ sơ cá nhân
-      </Typography>
+      <PageHeader title="Hồ sơ cá nhân" />
       <Tabs
         value={tab}
         onChange={(_, v) => {

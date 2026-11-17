@@ -1,6 +1,5 @@
 "use client";
-import { PageBack } from "@/shared/page-back";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { useStore } from "react-redux";
 import Menu from "@mui/material/Menu";
 import NextLink from "next/link";
@@ -90,9 +89,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               },
             }}
           >
-            <Suspense>
-              <PageBack />
-            </Suspense>
             <Brand name={appName} />
           </Stack>
           <Stack
