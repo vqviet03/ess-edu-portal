@@ -107,7 +107,7 @@ test("mobile player uses inline chips and compact options; draft and submit keep
   );
   const header = page.locator("header");
   await expect(
-    header.getByRole("button", { name: "Giao diện", exact: true }),
+    header.getByRole("button", { name: "Tùy chọn khác", exact: true }),
   ).toBeVisible();
   await expect(
     header.getByRole("button", { name: "Tài khoản", exact: true }),
