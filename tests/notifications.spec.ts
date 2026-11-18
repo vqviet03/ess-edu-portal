@@ -89,6 +89,11 @@ test("hold reaction gives feedback and does not submit before choosing; image th
       originals++;
   });
   await page.clock.install();
+  // Pixel checks below are for the 100% size; phones otherwise start at 75%.
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("ess.student.zoom"))
+      localStorage.setItem("ess.student.zoom", "100");
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
   const post = page.getByTestId("lesson-post"),

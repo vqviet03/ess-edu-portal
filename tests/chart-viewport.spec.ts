@@ -97,6 +97,11 @@ test("Unit curves and change charts use native pan/zoom with fixed Y and newest 
     }));
     await route.fulfill({ status: 200, headers, json: { data: { items } } });
   });
+  // Pixel checks below are for the 100% size; phones otherwise start at 75%.
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("ess.student.zoom"))
+      localStorage.setItem("ess.student.zoom", "100");
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
   await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
@@ -197,6 +202,11 @@ test("daily reward chart retains all dates, lines and tooltip values while scrol
             activityCount: 0,
           };
     await route.fulfill({ status: 200, headers, json: { data } });
+  });
+  // Pixel checks below are for the 100% size; phones otherwise start at 75%.
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("ess.student.zoom"))
+      localStorage.setItem("ess.student.zoom", "100");
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);

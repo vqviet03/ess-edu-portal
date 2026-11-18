@@ -97,11 +97,23 @@ test("mobile dark guide has independent scroll and supports chart/class controls
     name: "Hướng dẫn màn hình hiện tại",
   });
   await expect(guide).toBeVisible();
+  // Phones start at the smallest size.
+  await expect(page.getByTestId("application-scale")).toHaveAttribute(
+    "data-zoom",
+    "75",
+  );
   await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Thu nhỏ giao diện", exact: true }),
+  ).toBeDisabled();
   await page
-    .getByRole("button", { name: "Thu nhỏ giao diện", exact: true })
+    .getByRole("button", { name: "Phóng to giao diện", exact: true })
     .click();
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("application-scale")).toHaveAttribute(
+    "data-zoom",
+    "85",
+  );
   await page.getByRole("combobox", { name: "Lớp học", exact: true }).click();
   await page.getByRole("option", { name: "Juniors 02", exact: true }).click();
   await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
@@ -121,6 +133,12 @@ test("mobile dark guide has independent scroll and supports chart/class controls
     .getByRole("button", { name: "Đặt lại kích thước 100%", exact: true })
     .click();
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("application-scale")).toHaveAttribute(
+    "data-zoom",
+    "100",
+  );
+  // A chosen size wins over the phone default after reload.
+  await page.reload();
   await expect(page.getByTestId("application-scale")).toHaveAttribute(
     "data-zoom",
     "100",
