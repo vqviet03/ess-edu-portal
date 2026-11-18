@@ -38,7 +38,14 @@ import { type RootState, useAppDispatch, useAppSelector } from "@/store";
 import { loggedOut } from "@/store/auth";
 import { useLogoutMutation } from "@/api/api";
 import { useApplicationName } from "@/features/settings/hooks";
-export default function Shell({ children }: { children: React.ReactNode }) {
+export default function Shell({
+  children,
+  context,
+}: {
+  children: React.ReactNode;
+  /** Page context shown in the header (e.g. the class switcher). */
+  context?: React.ReactNode;
+}) {
   const appName = useApplicationName();
   const [menu, setMenu] = useState<{
     kind: "theme" | "language" | "profile" | "more";
@@ -189,6 +196,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             }}
           >
             <Brand name={appName} />
+            {context && (
+              <Box
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  ml: { xs: 1, sm: 2 },
+                  display: "flex",
+                }}
+              >
+                {context}
+              </Box>
+            )}
           </Stack>
           <Stack
             direction="row"

@@ -16,7 +16,7 @@ test("guides keep report interactive; zoom persists; seven curves and eight char
   await page.getByLabel("ID học sinh").fill("HV000123");
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
   ).toBeVisible();
@@ -87,7 +87,7 @@ test("mobile dark guide has independent scroll and supports chart/class controls
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("auth/link/#code=valid-test-code");
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
   ).toBeVisible();
@@ -104,7 +104,7 @@ test("mobile dark guide has independent scroll and supports chart/class controls
   await page.keyboard.press("Escape");
   await page.getByRole("combobox", { name: "Lớp học", exact: true }).click();
   await page.getByRole("option", { name: "Juniors 02", exact: true }).click();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(
     page.getByText("Lớp này chưa có Unit học tập.", { exact: true }),
   ).toBeVisible();

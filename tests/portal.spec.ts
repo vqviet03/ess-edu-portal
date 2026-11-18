@@ -10,9 +10,7 @@ async function login(page: Page, student = "HV000123") {
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   if (!["HVEMPTY", "HVFORBIDDEN"].includes(student))
-    await page
-      .getByRole("tab", { name: "Báo cáo kết quả", exact: true })
-      .click();
+    await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
 }
 async function logout(page: Page) {
   await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
@@ -36,7 +34,7 @@ test("manual login, exact data, seven curves, eight comparisons, class/unit stat
   await expect(page.locator(".MuiAlert-root")).toContainText("không đúng");
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Unit 3" })).toHaveAttribute(
     "aria-selected",
     "true",
@@ -75,20 +73,20 @@ test("manual login, exact data, seven curves, eight comparisons, class/unit stat
   await expect(page.getByText("Chưa có nhận xét tổng thể.")).toBeVisible();
   await page.getByRole("combobox", { name: "Lớp học" }).click();
   await page.getByRole("option", { name: "Juniors 02", exact: true }).click();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(page.getByText("Lớp này chưa có Unit học tập.")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /Tổng quan kết quả/ }),
   ).toHaveCount(0);
   await page.getByRole("combobox", { name: "Lớp học" }).click();
   await page.getByRole("option", { name: "Juniors 03 · Đang học" }).click();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Unit 3" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
   await page.reload();
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
   ).toBeVisible();
@@ -104,7 +102,7 @@ test("one-time link sanitizes URL, succeeds once and rejects used/expired code",
   page,
 }) => {
   await page.goto("auth/link/#code=valid-test-code");
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(page).toHaveURL(/\/home\/$/);
   expect(new URL(page.url()).hash).toBe("");
   await expect(
@@ -180,9 +178,7 @@ test.describe("mobile", () => {
       await page.evaluate(() => localStorage.getItem("learnleaf.theme")),
     ).toBe("dark");
     await page.reload();
-    await page
-      .getByRole("tab", { name: "Báo cáo kết quả", exact: true })
-      .click();
+    await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Tổng quan kết quả Unit 3" }),
     ).toBeVisible();
@@ -234,14 +230,13 @@ test.describe("mobile", () => {
       page.getByRole("menuitem", { name: /Ngôn ngữ.*Tiếng Việt/ }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
-    await page
-      .getByRole("link", { name: "Tài liệu học tập", exact: true })
-      .click();
-    await expect(page).toHaveURL(/materials\/\?classId=juniors-03$/);
+    // Materials are a filter inside Thread now (route /home/files/).
+    await page.getByRole("tab", { name: "Thread", exact: true }).click();
+    await page.getByRole("button", { name: "Tài liệu", exact: true }).click();
+    await expect(page).toHaveURL(/\/home\/files\//);
     await expect(
       page.getByRole("tab", { name: "Thread", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
-    await page.getByRole("tab", { name: "Tài liệu", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "Xem Tài liệu PDF mẫu", exact: true }),
     ).toBeVisible();
@@ -250,7 +245,7 @@ test.describe("mobile", () => {
       .click();
     await expect(
       page
-        .getByRole("tabpanel", { name: "Tài liệu", exact: true })
+        .getByRole("tabpanel", { name: "Thread", exact: true })
         .locator("audio"),
     ).toHaveAttribute("src", /^blob:/);
     await page
@@ -260,9 +255,10 @@ test.describe("mobile", () => {
     await expect(
       page.getByRole("tab", { name: "Thread", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
-    await page.getByRole("link", { name: "Quay lại", exact: true }).click();
+    // /home/thread/ is an entry page without Back; use the browser history.
+    await page.goBack();
     await expect(
-      page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
+      page.getByRole("tab", { name: "Báo cáo", exact: true }),
     ).toHaveAttribute("aria-selected", "true");
     await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
     await page.getByRole("menuitem", { name: "Sáng", exact: true }).click();

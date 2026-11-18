@@ -22,7 +22,7 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
   ).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("button", { name: /Đăng bài/ })).toHaveCount(0);
   await expect(
-    page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
+    page.getByRole("tab", { name: "Báo cáo", exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("skills-chart")).toHaveCount(0);
   await page.screenshot({
@@ -39,9 +39,6 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
   await expect(page.getByText("Chưa có dữ liệu.", { exact: true })).toHaveCount(
     0,
   );
-  await page
-    .getByRole("link", { name: "Tài liệu học tập", exact: true })
-    .click();
   await expect(
     page.getByRole("tab", { name: "Thread", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
@@ -67,7 +64,7 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     post.getByRole("button", { name: "Gửi bình luận", exact: true }),
   ).toBeDisabled();
   expect(commentReads).toBe(0);
-  await page.getByRole("tab", { name: "Tài liệu", exact: true }).click();
+  await page.getByRole("button", { name: "Tài liệu", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Xem Tài liệu PDF mẫu", exact: true }),
   ).toBeVisible();
@@ -78,14 +75,13 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     page.getByText("Tài liệu tổng hợp của lớp", { exact: true }),
   ).toHaveCount(0);
   expect(legacyReads).toBe(0);
-  await page
-    .getByRole("combobox", { name: "Lọc theo phiên học" })
-    .fill("Unit 2");
-  await page.getByRole("option", { name: /Unit 2/ }).click();
+  await page.getByRole("combobox", { name: "Unit" }).click();
+  await page.getByRole("option", { name: "Unit 2", exact: true }).click();
   await expect(
     page.getByText("Lớp chưa có thread được công bố.", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("tab", { name: "Thread", exact: true }).click();
+  await page.getByRole("combobox", { name: "Unit" }).click();
+  await page.getByRole("option", { name: "Tất cả Unit", exact: true }).click();
   await post.getByRole("button", { name: "Thích", exact: true }).click();
   await expect(
     post.getByRole("button", { name: "Thích", exact: true }),

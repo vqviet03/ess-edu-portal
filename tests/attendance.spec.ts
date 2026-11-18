@@ -81,6 +81,7 @@ test("student sees own attendance, thresholds, calendar and notices without writ
   await page.getByLabel("ID học sinh").fill("HV000123");
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await page.getByRole("tab", { name: "Điểm danh", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Điểm danh của em" }),

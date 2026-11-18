@@ -2,10 +2,9 @@
 import { PageHeader } from "@/shared/page-header";
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import NextLink from "next/link";
 import { Guard } from "@/auth/runtime";
 import Shell from "@/components/shell";
-import { MenuItem, Stack, TextField } from "@/components/ui";
+import { MenuItem, Stack, TextField, Typography } from "@/components/ui";
 import { Feedback } from "@/components/feedback";
 import { useClassesQuery } from "@/api/api";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -13,9 +12,6 @@ import { chooseClass } from "@/store/auth";
 import { selectClass } from "@/models/report";
 import { TeacherContacts } from "@/features/materials/contacts";
 import { ClassTabs } from "@/features/materials/class-tabs";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import FolderOutlined from "@mui/icons-material/FolderOutlined";
 function HomeContent() {
   const student = useAppSelector((s) => s.auth.student),
     selectedClassId = useAppSelector((s) => s.auth.classId),
@@ -29,22 +25,49 @@ function HomeContent() {
     ),
     classroom =
       requestedClass ?? selectClass(classes.currentData ?? [], selectedClassId);
+  const studentName = student
+    ? `${student.fullName}${student.nickname ? ` (${student.nickname})` : ""}`
+    : "";
   useEffect(() => {
     if (classroom && selectedClassId !== classroom.id)
       dispatch(chooseClass(classroom.id));
   }, [classroom, selectedClassId, dispatch]);
   return (
-    <Shell>
-      <PageHeader
-        title="Lớp học của em"
-        subtitle={
-          <>
-            {student?.fullName}
-            {student?.nickname ? ` (${student.nickname})` : ""} ·{" "}
-            {classroom?.subject ?? "Học sinh"}
-          </>
-        }
-      />
+    <Shell
+      context={
+        classroom && (
+          <Stack
+            direction="row"
+            sx={{ alignItems: "center", gap: 1, minWidth: 0, flex: 1 }}
+          >
+            <Typography
+              noWrap
+              title={studentName}
+              sx={{
+                fontSize: { xs: 13, sm: 14 },
+                fontWeight: 700,
+                minWidth: 0,
+                flexShrink: 1,
+              }}
+            >
+              {studentName}
+            </Typography>
+            <ClassSwitcher
+              classes={classes.currentData ?? []}
+              value={classroom.id}
+              onChange={(id) => {
+                dispatch(chooseClass(id));
+                const search = new URLSearchParams(params.toString());
+                search.set("classId", id);
+                search.delete("unitId");
+                router.push(`${pathname}?${search}`, { scroll: false });
+              }}
+            />
+          </Stack>
+        )
+      }
+    >
+      <PageHeader title="Lớp học của em" />
       {!classes.currentData && classes.isLoading ? (
         <Feedback loading />
       ) : !classes.currentData && classes.error ? (
@@ -54,45 +77,6 @@ function HomeContent() {
       ) : (
         <>
           <Feedback error={classes.error} retry={classes.refetch} />
-          <Stack
-            direction={{ xs: "row", sm: "column" }}
-            sx={{
-              alignItems: { xs: "center", sm: "flex-start" },
-              gap: { xs: 0.5, sm: 0 },
-              mt: { xs: 1.5, sm: 0 },
-            }}
-          >
-            <TextField
-              select
-              label="Lớp học"
-              fullWidth
-              value={classroom.id}
-              onChange={(e) => {
-                dispatch(chooseClass(e.target.value));
-                const search = new URLSearchParams(params.toString());
-                search.set("classId", e.target.value);
-                search.delete("unitId");
-                router.push(`${pathname}?${search}`, { scroll: false });
-              }}
-              sx={{ maxWidth: { md: 480 }, mb: { xs: 0, sm: 2 } }}
-            >
-              {classes.currentData?.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
-                  {c.name}
-                  {c.isActive ? " · Đang học" : ""}
-                </MenuItem>
-              ))}
-            </TextField>
-            <Tooltip title="Tài liệu học tập">
-              <IconButton
-                component={NextLink}
-                aria-label="Tài liệu học tập"
-                href={`/materials/?classId=${encodeURIComponent(classroom.id)}`}
-              >
-                <FolderOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
           <TeacherContacts classId={classroom.id} />
           <ClassTabs
             key={classroom.id}
@@ -102,6 +86,57 @@ function HomeContent() {
         </>
       )}
     </Shell>
+  );
+}
+/** Compact class picker for the app header. */
+function ClassSwitcher({
+  classes,
+  value,
+  onChange,
+}: {
+  classes: { id: string; name: string; isActive?: boolean }[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <TextField
+      select
+      size="small"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      slotProps={{
+        select: {
+          "aria-label": "Lớp học",
+          renderValue: (id) => classes.find((x) => x.id === id)?.name ?? "",
+        },
+      }}
+      sx={{
+        minWidth: 0,
+        flexShrink: 0,
+        maxWidth: { xs: 150, sm: 240 },
+        "& .MuiInputBase-root": {
+          height: "36px !important",
+          borderRadius: "10px",
+          bgcolor: "action.hover",
+          fontSize: 13,
+          fontWeight: 600,
+        },
+        "& fieldset": { border: 0 },
+        "& .MuiSelect-select": {
+          py: "0 !important",
+          pl: 1.25,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        },
+      }}
+    >
+      {classes.map((c) => (
+        <MenuItem key={c.id} value={c.id}>
+          {c.name}
+          {c.isActive ? " · Đang học" : ""}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 }
 export function ClassHomePage() {

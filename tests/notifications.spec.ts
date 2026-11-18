@@ -66,7 +66,7 @@ test("student receives notifications via socket without polling, deduplicates an
   expect(reads).toBe(0);
   await page.getByRole("link", { name: "Mở Điểm Unit 1", exact: true }).click();
   await expect(
-    page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
+    page.getByRole("tab", { name: "Báo cáo", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(
     page.getByRole("tab", { name: "Unit 1", exact: true }),

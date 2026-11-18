@@ -42,10 +42,8 @@ test("center name drives header, footer and browser title with one cached reques
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await expect(page).toHaveURL(/\/home\//);
   await branding();
-  await page
-    .getByRole("link", { name: "Tài liệu học tập", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/materials\//);
+  await page.getByRole("button", { name: "Tài liệu", exact: true }).click();
+  await expect(page).toHaveURL(/\/home\/files\//);
   await branding();
   expect(requests).toBe(1);
   await page.clock.install();
