@@ -99,7 +99,7 @@ test("Unit curves and change charts use native pan/zoom with fixed Y and newest 
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await page
     .getByRole("heading", { name: /Biểu đồ tiến độ theo kỹ năng/ })
     .scrollIntoViewIfNeeded();
@@ -200,6 +200,7 @@ test("daily reward chart retains all dates, lines and tooltip values while scrol
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await page.getByRole("tab", { name: "Điểm tích luỹ", exact: true }).click();
   const chart = page.getByTestId("native-chart");
   await chart.scrollIntoViewIfNeeded();

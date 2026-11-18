@@ -123,6 +123,7 @@ test("student reward history and four cumulative curves are read-only, responsiv
   await page.getByLabel("ID học sinh").fill("HV000123");
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await page.getByRole("tab", { name: "Điểm tích luỹ", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Hành trình tích luỹ", exact: true }),

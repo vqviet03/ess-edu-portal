@@ -93,7 +93,7 @@ test("report refetch errors retain mounted charts and current reading region", a
 }) => {
   const fixture = await installApiFixture(page);
   await login(page);
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   const chart = page.getByTestId("skills-chart");
   await chart.scrollIntoViewIfNeeded();
   await expect(chart.getByTestId("native-chart")).toBeVisible();
@@ -192,6 +192,7 @@ test("attendance error and delayed filter refetch keep the full layout mounted",
     });
   });
   await login(page);
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await page.getByRole("tab", { name: "Điểm danh", exact: true }).click();
   const content = page.getByTestId("attendance-report-content");
   await expect(content).toBeVisible();

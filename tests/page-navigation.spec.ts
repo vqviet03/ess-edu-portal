@@ -17,7 +17,7 @@ test("student tab is a static page, and post back restores exact tab after reloa
   await page.locator('input[autocomplete="current-password"]').fill("Demo123!");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await expect(page.getByTestId("lesson-post")).toBeVisible();
-  await page.getByRole("tab", { name: "Tài liệu", exact: true }).click();
+  await page.getByRole("button", { name: "Tài liệu", exact: true }).click();
   await expect(page).toHaveURL(/\/home\/files\//);
   const origin = page.url();
   await page.getByRole("link", { name: "Thread Unit 1", exact: true }).click();
@@ -25,8 +25,8 @@ test("student tab is a static page, and post back restores exact tab after reloa
   await page.getByRole("link", { name: "Quay lại", exact: true }).click();
   await expect(page).toHaveURL(origin);
   await expect(
-    page.getByRole("tab", { name: "Tài liệu", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("button", { name: "Tài liệu", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   expect(classes).toBe(1);
   expect(threads).toBe(2);
   await page.getByRole("link", { name: "Thread Unit 1", exact: true }).click();
@@ -34,15 +34,15 @@ test("student tab is a static page, and post back restores exact tab after reloa
   await page.reload();
   await page.getByRole("link", { name: "Quay lại", exact: true }).click();
   await expect(page).toHaveURL(origin);
-  await page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }).click();
+  await page.getByRole("tab", { name: "Báo cáo", exact: true }).click();
   await expect(page).toHaveURL(/\/home\/report\//);
   await page.goBack();
   await expect(
-    page.getByRole("tab", { name: "Tài liệu", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("button", { name: "Tài liệu", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await page.goForward();
   await expect(
-    page.getByRole("tab", { name: "Báo cáo kết quả", exact: true }),
+    page.getByRole("tab", { name: "Báo cáo", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
 });
 

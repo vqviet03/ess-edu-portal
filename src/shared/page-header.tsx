@@ -30,7 +30,7 @@ export function PageHeader({
       <Stack
         ref={floatRef}
         direction="row"
-        sx={{ alignItems: "center", gap: 0.5 }}
+        sx={{ alignItems: "center", gap: { xs: 1.5, sm: 2 } }}
       >
         <Suspense>
           <PageBack />
