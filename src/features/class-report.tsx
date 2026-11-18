@@ -1,7 +1,6 @@
 "use client";
+import { UnitPager } from "@/shared/unit-pager";
 import { useEffect } from "react";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { Feedback } from "@/components/feedback";
@@ -47,22 +46,18 @@ function ClassReportContent({ classId }: { classId: string }) {
       {report.currentData && (
         <Feedback error={report.error} retry={report.refetch} />
       )}
-      <Tabs
-        aria-label="Chọn Unit"
-        value={unit.id}
-        variant="scrollable"
-        scrollButtons="auto"
-        onChange={(_, value: string) => {
-          const search = new URLSearchParams(params.toString());
-          search.set("unitId", value);
-          router.push(`${pathname}?${search}`, { scroll: false });
-        }}
-        sx={{ mb: 2 }}
-      >
-        {units.currentData?.map((u) => (
-          <Tab key={u.id} label={u.name} value={u.id} />
-        ))}
-      </Tabs>
+      <Box sx={{ mb: 2 }}>
+        <UnitPager
+          ariaLabel="Chọn Unit"
+          items={units.currentData ?? []}
+          value={unit.id}
+          onChange={(value) => {
+            const search = new URLSearchParams(params.toString());
+            search.set("unitId", value);
+            router.push(`${pathname}?${search}`, { scroll: false });
+          }}
+        />
+      </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Ngày kiểm tra:{" "}
         {report.currentData?.testedAt
