@@ -1,4 +1,5 @@
 "use client";
+import { askConfirm } from "@/shared/dialogs";
 import { RichInput, type RichInputHandle } from "./rich-input";
 import { AssignmentIcon } from "./surface";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
@@ -525,11 +526,16 @@ export function AssignmentPlayer({
       )
         return;
       if (
-        !window.confirm(
-          "Xóa vĩnh viễn tệp này? Với bài nói, em có thể ghi âm bản mới sau khi xóa.",
-        )
+        !(await askConfirm({
+          message:
+            "Xóa vĩnh viễn tệp này? Với bài nói, em có thể ghi âm bản mới sau khi xóa.",
+          confirmText: "Xóa",
+          danger: true,
+        }))
       )
         return;
+      // The dialog is modal, but re-check work that may have started meanwhile.
+      if (deletingFile.current || submitting.current) return;
       deletingFile.current = true;
       setRemoving(true);
       changeBusy(questionId, true);

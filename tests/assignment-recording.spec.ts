@@ -1,4 +1,9 @@
 import path from "node:path";
+import {
+  appDialog,
+  cancelAppDialog,
+  confirmAppDialog,
+} from "./support/app-dialog";
 import { test, expect, type Page } from "@playwright/test";
 import { installApiFixture } from "./support/api-fixture";
 import type { Assignment } from "../src/features/assignments/models";
@@ -110,13 +115,13 @@ test("recording stops its microphone and countdown on stop and client navigation
   const timer = await page.getByRole("timer").textContent();
   await page.waitForTimeout(1100);
   await expect(page.getByRole("timer")).toHaveText(timer!);
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Ghi lại", exact: true }).click();
+  await confirmAppDialog(page, { message: /Xóa vĩnh viễn bản ghi này/ });
   await page.getByRole("button", { name: "Bắt đầu ghi âm" }).click();
   await expect.poll(live).toBe(1);
   await page.getByRole("button", { name: "Tài khoản", exact: true }).click();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("menuitem", { name: "Hồ sơ cá nhân" }).click();
+  await confirmAppDialog(page, { message: /chưa lưu/ });
   await expect(page).toHaveURL(/profile\/$/);
   await expect.poll(live).toBe(0);
 });
@@ -349,16 +354,21 @@ test("student permanently deletes a saved recording from its draft, retries safe
   await page.screenshot({
     path: test.info().outputPath("submission-audio-mobile.png"),
   });
-  page.once("dialog", (dialog) => dialog.dismiss());
   await page
     .getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true })
     .click();
+  await expect(appDialog(page).getByRole("dialog")).toBeVisible();
+  await page.waitForTimeout(400); // let the dialog finish fading in
+  await page.screenshot({
+    path: test.info().outputPath("delete-recording-confirm-mobile.png"),
+  });
+  await cancelAppDialog(page, { message: /Xóa vĩnh viễn tệp này/ });
   expect(deletions).toBe(0);
 
-  page.on("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "Xóa bản ghi bài nộp", exact: true })
     .click();
+  await confirmAppDialog(page, { message: /Xóa vĩnh viễn tệp này/ });
   await expect(
     page.getByText("Chưa thể xóa. Hãy thử lại.", { exact: true }),
   ).toBeVisible();
@@ -366,6 +376,7 @@ test("student permanently deletes a saved recording from its draft, retries safe
     page.getByRole("button", { name: "Ghi âm lại", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Ghi âm lại", exact: true }).click();
+  await confirmAppDialog(page);
   await expect(
     page.getByRole("button", { name: "Bắt đầu ghi âm", exact: true }),
   ).toBeVisible();

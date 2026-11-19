@@ -5,6 +5,8 @@ Tên trên header, footer và tiêu đề trình duyệt lấy từ API thật `
 [Thread, đính kèm bình luận, file private và rollout](docs/thread-materials.md): mặc định tab Thread cho học sinh; liên hệ giảng viên; routing upload theo storage; migration Materials `005_materials.sql` trước triển khai frontend.
 Next.js App Router + TypeScript strict + MUI + Redux Toolkit/RTK Query. Static export cho GitHub Pages; giao diện Sáng/Tối/Theo hệ thống, ưu tiên mobile. Apache ECharts tải khi biểu đồ đi vào vùng nhìn.
 
+[Hộp thoại xác nhận trong ứng dụng](docs/in-app-dialogs.md): thay hộp thoại trình duyệt (bị chặn trong Zalo/Facebook) bằng hộp thoại MUI theo giao diện.
+
 ## Chạy với backend thật
 
 Yêu cầu Node.js 24 và backend `ess-edu-api` đã deploy.
