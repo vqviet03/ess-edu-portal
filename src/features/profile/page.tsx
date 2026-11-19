@@ -1,4 +1,5 @@
 "use client";
+import { askConfirm } from "@/shared/dialogs";
 import { Loading } from "@/components/feedback";
 import { PageHeader } from "@/shared/page-header";
 import { useSectionTab } from "@/shared/page-navigation";
@@ -176,7 +177,11 @@ function ProfileForm({
                     const fileId = draft.avatar.fileId;
                     if (
                       !fileId ||
-                      !window.confirm("Xóa vĩnh viễn ảnh đại diện này?")
+                      !(await askConfirm({
+                        message: "Xóa vĩnh viễn ảnh đại diện này?",
+                        confirmText: "Xóa",
+                        danger: true,
+                      }))
                     )
                       return;
                     setDeleteError(undefined);

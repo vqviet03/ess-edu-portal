@@ -1,4 +1,5 @@
 "use client";
+import { askConfirm } from "@/shared/dialogs";
 import DeleteOutline from "@mui/icons-material/DeleteOutlined";
 import { useDeleteOwnUploadMutation } from "@/api/own-upload-api";
 import { ContentViews } from "@/features/presence/views";
@@ -135,7 +136,14 @@ export function Comments({
     [pin, pinning] = usePinCommentMutation(),
     [like, liking] = useLikeCommentMutation();
   async function deleteFile(file: MaterialFile, commentId?: string) {
-    if (!window.confirm("Xóa vĩnh viễn tệp đã tải lên này?")) return;
+    if (
+      !(await askConfirm({
+        message: "Xóa vĩnh viễn tệp đã tải lên này?",
+        confirmText: "Xóa",
+        danger: true,
+      }))
+    )
+      return;
     setError(undefined);
     try {
       const result = await deleteUpload({
@@ -524,7 +532,14 @@ export function Comments({
               if (!menu) return;
               const c = menu.comment;
               setMenu(null);
-              if (!window.confirm("Xóa bình luận này?")) return;
+              if (
+                !(await askConfirm({
+                  message: "Xóa bình luận này?",
+                  confirmText: "Xóa",
+                  danger: true,
+                }))
+              )
+                return;
               setError(undefined);
               try {
                 await remove({

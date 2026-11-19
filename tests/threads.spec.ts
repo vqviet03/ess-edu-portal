@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { appDialog, confirmAppDialog } from "./support/app-dialog";
 import { installApiFixture } from "./support/api-fixture";
 test("thread default, teacher contacts, reaction, comment and idle requests on mobile", async ({
   page,
@@ -164,10 +165,15 @@ test("thread default, teacher contacts, reaction, comment and idle requests on m
     .click();
   await expect(first).toContainText("Nội dung đã sửa");
   await first.getByRole("button", { name: /^Thao tác bình luận/ }).click();
-  page.once("dialog", (d) => d.accept());
   await page
     .getByRole("menuitem", { name: "Xóa bình luận", exact: true })
     .click();
+  await expect(appDialog(page).getByRole("dialog")).toBeVisible();
+  await page.waitForTimeout(400); // let the dialog finish fading in
+  await page.screenshot({
+    path: test.info().outputPath("delete-comment-confirm.png"),
+  });
+  await confirmAppDialog(page, { message: "Xóa bình luận này?" });
   await expect(post.getByTestId("post-comment")).toHaveCount(1);
   await page.screenshot({
     path: "test-results/student-inline-comments-light.png",

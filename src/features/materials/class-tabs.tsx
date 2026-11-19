@@ -197,8 +197,10 @@ function ClassThread({
           label="Unit"
           value={unit === null ? "" : String(unit)}
           onChange={(e) => {
-            if (confirmLeave())
-              setUnit(e.target.value === "" ? null : Number(e.target.value));
+            const next = e.target.value === "" ? null : Number(e.target.value);
+            void confirmLeave().then((ok) => {
+              if (ok) setUnit(next);
+            });
           }}
           slotProps={{
             select: { displayEmpty: true },

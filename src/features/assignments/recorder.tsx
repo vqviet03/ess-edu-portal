@@ -1,4 +1,5 @@
 "use client";
+import { askConfirm } from "@/shared/dialogs";
 import { submissionAudioFileName } from "./submission-file-name";
 import { RecordingAudio, recordingTime } from "./recording-audio";
 import { useEffect, useRef, useState } from "react";
@@ -180,9 +181,12 @@ export function SpeakingRecorder({
   }
   async function again() {
     if (
-      !window.confirm(
-        "Xóa vĩnh viễn bản ghi này? Em có thể ghi âm bản mới sau khi xóa.",
-      )
+      !(await askConfirm({
+        message:
+          "Xóa vĩnh viễn bản ghi này? Em có thể ghi âm bản mới sau khi xóa.",
+        confirmText: "Xóa",
+        danger: true,
+      }))
     )
       return;
     if (session) {

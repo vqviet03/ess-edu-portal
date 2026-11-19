@@ -2,6 +2,7 @@
 import { RealtimeBoundary } from "@/shared/realtime-activity";
 import { NotificationToast } from "@/features/notifications/toast";
 import { UnsavedRuntime } from "@/shared/unsaved";
+import { DialogHost } from "@/shared/dialogs";
 import { StudentRealtime } from "./realtime";
 import { createContext, useContext, useEffect } from "react";
 import { loginRedirect } from "@/shared/auth-navigation";
@@ -76,6 +77,7 @@ export function AuthRuntime({ children }: { children: React.ReactNode }) {
         <StudentRealtime />
         <NotificationToast key={auth.student?.id ?? "guest"} />
         {children}
+        <DialogHost />
       </RealtimeBoundary>
     </CheckContext.Provider>
   );

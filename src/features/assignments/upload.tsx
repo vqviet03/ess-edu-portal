@@ -1,4 +1,5 @@
 "use client";
+import { askConfirm } from "@/shared/dialogs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -190,7 +191,14 @@ export function AssignmentUpload({
           startIcon={<DeleteOutlined />}
           disabled={deleting.isLoading}
           onClick={async () => {
-            if (!window.confirm("Xóa vĩnh viễn lượt tải tệp này?")) return;
+            if (
+              !(await askConfirm({
+                message: "Xóa vĩnh viễn lượt tải tệp này?",
+                confirmText: "Xóa",
+                danger: true,
+              }))
+            )
+              return;
             onBusy?.(true);
             try {
               const entry =
